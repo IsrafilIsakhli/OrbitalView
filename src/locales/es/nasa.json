@@ -1,0 +1,71 @@
+{
+  "eyebrow": "INTELIGENCIA ESPACIAL",
+  "title": "Resumen de misión",
+  "subtitle": "Astronomía de NASA, objetos cercanos a la Tierra y eventos recientes de clima espacial en una vista operativa verificada.",
+  "source": "NASA Open APIs",
+  "status": {
+    "fresh": "ACTUAL",
+    "stale": "EN CACHÉ",
+    "degraded": "DEGRADADO",
+    "unavailable": "NO DISPONIBLE"
+  },
+  "configuration": {
+    "title": "La clave de NASA API no está configurada",
+    "description": "Define NASA_API_KEY en el entorno nativo. La clave nunca se incluye en la interfaz ni en el paquete frontend."
+  },
+  "apod": {
+    "label": "IMAGEN ASTRONÓMICA DEL DÍA",
+    "credit": "Crédito de imagen: {{credit}}",
+    "publicDomain": "Contenido astronómico de NASA",
+    "unavailable": "El contenido astronómico de hoy no está disponible temporalmente."
+  },
+  "actions": {
+    "openMedia": "Abrir fuente",
+    "openEvent": "Abrir evento NASA",
+    "retry": "Reintentar"
+  },
+  "summary": {
+    "label": "ESTADO DE PROVEEDORES",
+    "title": "Resumen operativo",
+    "approaches": "Aproximaciones",
+    "spaceWeather": "Eventos de clima espacial",
+    "sourcesReady": "Fuentes listas",
+    "retrieved": "Panel comprobado {{date}} UTC"
+  },
+  "components": {
+    "apod": "APOD",
+    "neo": "NeoWs",
+    "cmes": "DONKI CME",
+    "flares": "Llamaradas DONKI",
+    "storms": "Tormentas DONKI"
+  },
+  "neo": {
+    "label": "CERCA DE LA TIERRA",
+    "title": "Próximas aproximaciones",
+    "distance": "Distancia {{value}}",
+    "velocity": "Velocidad relativa {{value}}",
+    "designated": "NASA PHA",
+    "monitored": "MONITORIZADO",
+    "empty": "NASA no informa de aproximaciones en la ventana actual de siete días."
+  },
+  "donki": {
+    "label": "CLIMA ESPACIAL",
+    "title": "Eventos DONKI recientes",
+    "types": {
+      "cme": "Eyección de masa coronal",
+      "flare": "Llamarada solar",
+      "storm": "Tormenta geomagnética"
+    },
+    "locationUnavailable": "Región de origen no disponible",
+    "window": "NASA DONKI · Últimos 7 días",
+    "empty": "No se devolvieron eventos CME, llamaradas o tormentas geomagnéticas para el periodo actual."
+  },
+  "loading": {
+    "title": "Conectando con los datos de NASA",
+    "description": "Se revisa la caché nativa y solo se actualizan las fuentes vencidas."
+  },
+  "error": {
+    "title": "Los datos de NASA no están disponibles",
+    "description": "La aplicación sigue estable, pero no se pudo cargar una respuesta válida en vivo o en caché."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Kosmik hava",
+  "subtitle": "NOAA Kosmik Hava Proqnozu Mərkəzindən rəsmi əməliyyat şəraiti.",
+  "actions": { "back": "Geri" },
+  "status": { "fresh": "Aktual", "stale": "Keşdən", "unavailable": "Əlçatan deyil" },
+  "states": { "loading": "Rəsmi NOAA müşahidələri yüklənir…", "unavailable": "Kosmik hava məlumatı əlçatan deyil." },
+  "scale": { "none": "Aktiv şkala yoxdur", "radioBlackout": "Radio rabitəsinin kəsilməsi", "solarRadiation": "Günəş radiasiyası", "geomagneticStorm": "Geomaqnit fırtınası" },
+  "metrics": { "kp": "Planetar K-indeksi", "solarWind": "Günəş küləyinin sürəti", "speed": "{{value}} km/s" },
+  "alerts": { "eyebrow": "Rəsmi bildirişlər", "title": "NOAA müşahidə, xəbərdarlıq və həyəcanları", "empty": "Hazırda rəsmi bildiriş yoxdur.", "kind": { "alert": "Həyəcan", "warning": "Xəbərdarlıq", "watch": "Müşahidə", "summary": "Xülasə", "cancellation": "Ləğv", "message": "Məlumat" } }
+}

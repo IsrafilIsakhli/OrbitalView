@@ -1,0 +1,73 @@
+.space-weather-page {
+  max-width: 1480px;
+  min-height: 100%;
+  padding: clamp(18px, 2vw, 34px);
+  margin: 0 auto;
+}
+
+.space-weather-page .workspace-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.space-weather-page .workspace-heading h1 { margin: 3px 0 6px; font-size: clamp(28px, 3vw, 44px); }
+.space-weather-page .workspace-heading p { margin: 0; color: var(--text-secondary); }
+
+.space-weather-scale-grid,
+.space-weather-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.noaa-scale-badge {
+  display: flex;
+  min-height: 104px;
+  padding: 18px;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid var(--stroke-subtle);
+  border-radius: 16px;
+  background: var(--surface-mica);
+}
+
+.noaa-scale-badge strong {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 13px;
+  background: rgba(113, 223, 154, .1);
+  color: var(--accent-green);
+  font-family: var(--font-mono);
+  font-size: 21px;
+}
+
+.noaa-scale-badge[data-level="3"] strong,
+.noaa-scale-badge[data-level="4"] strong { background: rgba(255, 184, 92, .13); color: var(--accent-amber); }
+.noaa-scale-badge[data-level="5"] strong { background: rgba(255, 115, 125, .13); color: var(--accent-red); }
+.noaa-scale-badge span { color: var(--text-secondary); font-size: 12px; }
+
+.space-weather-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.space-weather-metrics article { display: grid; padding: 18px; gap: 6px; }
+.space-weather-metrics small, .space-weather-metrics span { color: var(--text-muted); font-size: 11px; }
+.space-weather-metrics strong { font-family: var(--font-mono); font-size: 26px; }
+
+.space-weather-alerts { padding: 20px; }
+.space-weather-alerts > header { display: flex; align-items: center; justify-content: space-between; }
+.space-weather-alerts h2 { margin: 4px 0 0; font-size: 18px; }
+.space-weather-alerts > header > strong { font-family: var(--font-mono); font-size: 28px; color: var(--accent-cyan); }
+.space-weather-alerts article { display: grid; grid-template-columns: 140px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--stroke-subtle); }
+.space-weather-alerts article h3 { margin: 0; font-size: 12px; line-height: 1.45; }
+.space-weather-alerts article time { color: var(--text-muted); font-size: 10px; }
+.space-weather-alerts article > div { display: flex; gap: 7px; align-items: center; }
+
+@media (max-width: 1100px) {
+  .space-weather-scale-grid { grid-template-columns: 1fr; }
+  .space-weather-alerts article { grid-template-columns: 1fr; }
+}

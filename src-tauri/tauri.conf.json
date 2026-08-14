@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Orbital Vision",
+  "version": "0.1.0",
+  "identifier": "com.orbitalvision.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Orbital Vision",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 320,
+        "minHeight": 568,
+        "center": true,
+        "decorations": true,
+        "resizable": true,
+        "fullscreen": false,
+        "backgroundColor": "#05070c"
+      }
+    ],
+    "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPCACHE/space-news-images-v1/**", "$APPCACHE/remote-media-v1/**", "$APPCACHE/satellite-object-media-v1/**"]
+      },
+      "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' asset: http://asset.localhost data: blob: https://services.arcgisonline.com https://server.arcgisonline.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src ipc: http://ipc.localhost http://tauri.localhost https://tauri.localhost https://services.arcgisonline.com https://server.arcgisonline.com https://elevation3d.arcgis.com; worker-src 'self' blob:; child-src 'self' blob:",
+      "devCsp": "default-src 'self' http://localhost:1420; script-src 'self' 'wasm-unsafe-eval' http://localhost:1420; img-src 'self' asset: http://asset.localhost data: blob: https://services.arcgisonline.com https://server.arcgisonline.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src ipc: http://ipc.localhost http://tauri.localhost https://tauri.localhost http://localhost:1420 ws://localhost:1421 https://services.arcgisonline.com https://server.arcgisonline.com https://elevation3d.arcgis.com; worker-src 'self' blob:; child-src 'self' blob:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "category": "Education",
+    "copyright": "Copyright © 2026 Orbital Vision",
+    "shortDescription": "Real-time space intelligence and orbital analysis",
+    "longDescription": "Explore Earth orbit, satellites, launches and active space missions from a premium real-time desktop experience.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico",
+      "icons/icon.icns",
+      "icons/icon.png"
+    ]
+  }
+}

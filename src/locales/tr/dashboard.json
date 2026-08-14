@@ -1,0 +1,76 @@
+{
+  "eyebrow": "UZAY OPERASYONLARI KOMUTASI",
+  "title": "Operasyon özeti",
+  "subtitle": "Doğrulanmış havacılık ve uzay sağlayıcılarından güncel görev ve yörünge durumu.",
+  "actions": {
+    "earth": "Dünya görünümünü aç",
+    "launches": "Tüm fırlatmalar",
+    "missions": "Görev takvimi",
+    "news": "Uzay haberleri",
+    "nasa": "NASA verileri",
+    "weather": "Uzay havası",
+    "view": "Görevi aç"
+  },
+  "labels": {
+    "active": "Aktif",
+    "activeMission": "Şu anda aktif görev",
+    "cached": "Önbellekten",
+    "catalogTotal": "Katalog kaydı",
+    "countdown": "Fırlatma saati",
+    "debris": "Enkaz ve roket",
+    "fresh": "Güncel",
+    "geomagnetic": "Jeomanyetik",
+    "kp": "Kp indeksi",
+    "latestNews": "Son gerçek haberler",
+    "launchTime": "Fırlatma zamanı",
+    "loading": "Güncelleniyor",
+    "nextMission": "Sonraki görev",
+    "observed": "Gözlem: {{time}}",
+    "payloads": "Faydalı yükler",
+    "propagatableObjects": "Gerçek yörünge konumu hesaplanabilen nesneler",
+    "radioBlackout": "Radyo",
+    "recentAlerts": "24 saatlik bildirim",
+    "related": "Bu fırlatmayla gerçek kimlik üzerinden ilişkili",
+    "solarRadiation": "Radyasyon",
+    "solarWind": "Güneş rüzgârı",
+    "unavailable": "Kullanılamıyor",
+    "upcomingLoaded": "Yüklenen yaklaşan",
+    "updatedAt": "Güncellendi: {{time}}",
+    "weatherMetric": "{{temperature}} · {{wind}}"
+  },
+  "countdown": {
+    "days": "Gün",
+    "hours": "Saat",
+    "minutes": "Dakika",
+    "seconds": "Saniye",
+    "counting": "Fırlatmaya geri sayım",
+    "hold": "Fırlatma beklemede",
+    "in-flight": "Uçuşta",
+    "elapsed": "Fırlatmadan geçen süre",
+    "awaiting": "Durum güncellemesi bekleniyor",
+    "invalid": "Zaman kullanılamıyor"
+  },
+  "providers": {
+    "celestrak": "CelesTrak",
+    "launchLibrary": "Launch Library 2",
+    "noaaSwpc": "NOAA SWPC",
+    "openMeteo": "Open-Meteo",
+    "spaceflightNews": "Spaceflight News"
+  },
+  "modules": {
+    "nextLaunch": "Sonraki fırlatma",
+    "mission": "Görev durumu",
+    "satellites": "Yörünge kataloğu",
+    "spaceWeather": "Uzay havası",
+    "news": "Son uzay haberleri"
+  },
+  "states": {
+    "loading": "Gerçek veriler eşitleniyor…",
+    "unavailable": "Sağlayıcı verileri şu anda kullanılamıyor.",
+    "noLaunch": "Doğrulanmış yaklaşan fırlatma bulunamadı.",
+    "noMission": "Aktif veya yaklaşan görev bulunamadı.",
+    "noNews": "Güncel uzay haberi bulunamadı.",
+    "noSpaceWeatherAlert": "Son 24 saatte aktif NOAA uyarısı yok.",
+    "unknown": "Yayınlanmadı"
+  }
+}

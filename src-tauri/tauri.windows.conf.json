@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Orbital Vision",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 320,
+        "minHeight": 568,
+        "center": true,
+        "decorations": false,
+        "resizable": true,
+        "fullscreen": false,
+        "backgroundColor": "#05070c",
+        "windowEffects": {
+          "effects": ["mica"]
+        }
+      }
+    ]
+  },
+  "bundle": {
+    "targets": ["nsis", "msi"],
+    "shortDescription": "Real-time space intelligence for Windows"
+  }
+}

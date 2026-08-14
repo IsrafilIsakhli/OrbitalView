@@ -1,0 +1,7 @@
+{
+  "titlebar": { "minimize": "Minimizar ventana", "maximize": "Maximizar o restaurar ventana", "close": "Cerrar ventana" },
+  "search": { "button": "Buscar en todo", "placeholder": "Buscar en Orbital Vision", "dialogTitle": "Buscar", "hint": "Navegación instantánea", "empty": "No hay resultados", "shortcut": "Ctrl K", "escapeKey": "Esc", "closeHint": "Pulsa Esc para cerrar", "satelliteMeta": "NORAD {{id}} · Satélite en vivo", "missionMeta": "Misión · {{date}}", "rocketMeta": "Cohete · {{agency}}", "siteMeta": "Sitio de lanzamiento · {{country}}", "nasaMeta": "Inteligencia NASA" },
+  "scene": { "eyebrow": "SISTEMA LISTO", "title": "Tu ventana a la órbita.", "description": "Explora la Tierra, satélites, lanzamientos y misiones en una única vista viva.", "engineLabel": "Vista orbital", "engineStatus": "Preparando el motor 3D", "quality": "Calidad adaptativa", "localization": "Cinco idiomas", "runtime": "Entorno de escritorio seguro" },
+  "module": { "title": "{{name}} está preparado para el próximo módulo", "description": "La estructura del producto está lista. Este espacio se activará cuando su capa de datos y renderizado supere la revisión de calidad." },
+  "errors": { "title": "Orbital Vision encontró un problema", "description": "La interfaz se detuvo de forma segura antes de que el error pudiera afectar a los datos locales." }
+}

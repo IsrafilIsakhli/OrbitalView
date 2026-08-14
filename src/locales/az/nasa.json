@@ -1,0 +1,71 @@
+{
+  "eyebrow": "KOSMİK KƏŞFİYYAT",
+  "title": "Missiya icmalı",
+  "subtitle": "NASA astronomiyası, Yerə yaxın obyektlər və son kosmik hava hadisələri vahid, təsdiqlənmiş əməliyyat görünüşündə.",
+  "source": "NASA Open APIs",
+  "status": {
+    "fresh": "AKTUAL",
+    "stale": "KEŞDƏN",
+    "degraded": "MƏHDUD",
+    "unavailable": "ƏLÇATMAZ"
+  },
+  "configuration": {
+    "title": "NASA API açarı sazlanmayıb",
+    "description": "Native iş mühitində NASA_API_KEY təyin edin. Açar heç vaxt veb interfeysə və ya frontend paketinə daxil edilmir."
+  },
+  "apod": {
+    "label": "GÜNÜN ASTRONOMİYA ŞƏKLİ",
+    "credit": "Şəkil müəllifi: {{credit}}",
+    "publicDomain": "NASA astronomiya mediası",
+    "unavailable": "Bugünkü astronomiya materialı müvəqqəti əlçatan deyil."
+  },
+  "actions": {
+    "openMedia": "Mənbəni aç",
+    "openEvent": "NASA hadisəsini aç",
+    "retry": "Yenidən sına"
+  },
+  "summary": {
+    "label": "PROVIDER STATUSU",
+    "title": "Əməliyyat xülasəsi",
+    "approaches": "Yaxın keçidlər",
+    "spaceWeather": "Kosmik hava hadisələri",
+    "sourcesReady": "Hazır axınlar",
+    "retrieved": "Panel {{date}} UTC vaxtında yoxlanıldı"
+  },
+  "components": {
+    "apod": "APOD",
+    "neo": "NeoWs",
+    "cmes": "DONKI CME",
+    "flares": "DONKI alışmaları",
+    "storms": "DONKI qasırğaları"
+  },
+  "neo": {
+    "label": "YERƏ YAXIN",
+    "title": "Qarşıdakı yaxın keçidlər",
+    "distance": "Keçid məsafəsi {{value}}",
+    "velocity": "Nisbi sürət {{value}}",
+    "designated": "NASA PHA",
+    "monitored": "İZLƏNİLİR",
+    "empty": "NASA cari yeddi günlük müddət üçün yaxın keçid bildirmir."
+  },
+  "donki": {
+    "label": "KOSMİK HAVA",
+    "title": "Son DONKI hadisələri",
+    "types": {
+      "cme": "Koronal kütlə atılması",
+      "flare": "Günəş alışması",
+      "storm": "Geomaqnit qasırğası"
+    },
+    "locationUnavailable": "Mənbə regionu əlçatan deyil",
+    "window": "NASA DONKI · Son 7 gün",
+    "empty": "Cari müddət üçün CME, Günəş alışması və ya geomaqnit qasırğası qaytarılmayıb."
+  },
+  "loading": {
+    "title": "NASA məlumatlarına qoşulur",
+    "description": "Native keşlər yoxlanılır və yalnız vaxtı bitmiş axınlar yenilənir."
+  },
+  "error": {
+    "title": "NASA məlumatları əlçatan deyil",
+    "description": "Tətbiq sabit qaldı, lakin etibarlı canlı və ya keşlənmiş NASA cavabı yüklənmədi."
+  }
+}

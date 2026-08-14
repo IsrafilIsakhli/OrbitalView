@@ -1,0 +1,58 @@
+{
+  "common": { "unknown": "Not available" },
+  "favorites": {
+    "eyebrow": "PERSONAL ORBIT",
+    "title": "Favorites",
+    "subtitle": "Your satellites, launches and missions in one focused intelligence view.",
+    "saved": "saved",
+    "emptyTitle": "Your watchlist is ready",
+    "emptyBody": "Select the star on any satellite, launch or mission to keep it here.",
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "open": "Open",
+    "kind": { "satellite": "Satellites", "launch": "Launches", "event": "Missions" }
+  },
+  "notifications": {
+    "eyebrow": "LIVE AWARENESS",
+    "title": "Notifications",
+    "subtitle": "Launch countdowns, mission changes and the signals that matter to you.",
+    "unread": "unread",
+    "markAll": "Mark all read",
+    "clear": "Clear",
+    "emptyTitle": "All clear",
+    "emptyBody": "New operational alerts will appear here.",
+    "filter": { "all": "All", "unread": "Unread", "launch": "Launches", "mission": "Missions", "satellite": "Satellites", "weather": "Weather", "news": "News", "system": "System" },
+    "kind": { "launch": "Launch alert", "mission": "Mission update", "satellite": "Satellite alert", "weather": "Weather alert", "news": "News alert", "system": "System intelligence" }
+  },
+  "settings": {
+    "eyebrow": "ALERT PROFILE",
+    "title": "Awareness settings",
+    "launches": "Launch countdowns",
+    "missions": "Mission updates",
+    "satellites": "Satellite alerts",
+    "weather": "Launch weather",
+    "news": "Featured news",
+    "providers": "Provider health",
+    "quietHours": "Quiet hours {{start}}:00–{{end}}:00",
+    "leadTime": "Alert window",
+    "hours": "{{count}} hours",
+    "windowsTitle": "Windows notifications",
+    "windowsBody": "Show native alerts even when Orbital Vision is in the background.",
+    "enable": "Enable",
+    "enabled": "Enabled",
+    "denied": "Permission denied"
+  },
+  "generated": {
+    "syncTitle": "Space intelligence synchronized",
+    "syncBody": "{{launches}} launches and {{events}} mission events are current.",
+    "staleTitle": "Using cached intelligence",
+    "staleBody": "The live provider is temporarily unavailable. Last-known-good data remains active.",
+    "launchBody": "{{agency}} launch window opens in approximately {{hours}} hours.",
+    "missionBody": "This saved mission event begins in approximately {{hours}} hours.",
+    "providerTitle": "Provider service degraded",
+    "providerBody": "{{provider}} is degraded or unavailable. Last-known-good data remains visible when possible.",
+    "newsBody": "Featured aerospace report from {{source}}.",
+    "satelliteStaleTitle": "Satellite catalog is using cached data",
+    "satelliteStaleBody": "CelesTrak refresh is delayed. Existing orbital records remain available and are not described as reentries."
+  }
+}

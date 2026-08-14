@@ -1,0 +1,10 @@
+{
+  "title": "Clima espacial",
+  "subtitle": "Condiciones operativas oficiales del Centro de Predicción del Clima Espacial de NOAA.",
+  "actions": { "back": "Volver" },
+  "status": { "fresh": "Actual", "stale": "En caché", "unavailable": "No disponible" },
+  "states": { "loading": "Cargando observaciones oficiales de NOAA…", "unavailable": "Los datos de clima espacial no están disponibles." },
+  "scale": { "none": "Sin escala activa", "radioBlackout": "Apagón de radio", "solarRadiation": "Radiación solar", "geomagneticStorm": "Tormenta geomagnética" },
+  "metrics": { "kp": "Índice K planetario", "solarWind": "Velocidad del viento solar", "speed": "{{value}} km/s" },
+  "alerts": { "eyebrow": "Notificaciones oficiales", "title": "Vigilancias, avisos y alertas de NOAA", "empty": "No hay notificaciones oficiales actuales.", "kind": { "alert": "Alerta", "warning": "Aviso", "watch": "Vigilancia", "summary": "Resumen", "cancellation": "Cancelación", "message": "Mensaje" } }
+}

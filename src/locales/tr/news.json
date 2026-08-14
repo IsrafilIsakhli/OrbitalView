@@ -1,0 +1,16 @@
+{
+  "eyebrow": "CANLI İSTİHBARAT", "title": "Uzay Haberleri", "subtitle": "Spaceflight News kaynaklı doğrulanmış havacılık ve uzay haberleri, İngilizce kaynak korunarak çevrilir.",
+  "types": { "article": "Makale", "blog": "Blog", "report": "Rapor" },
+  "filters": { "label": "Haber filtreleri", "all": "Tümü", "article": "Makaleler", "blog": "Bloglar", "report": "Raporlar", "featured": "Öne çıkan", "source": "Kaynak", "allSources": "Tüm kaynaklar", "search": "Haberlerde ara" },
+  "translation": { "original": "Özgün İngilizce", "cached": "Makine çevirisi", "pending": "İngilizce · çeviri bekleniyor", "failed": "İngilizce · çeviri kullanılamıyor" },
+  "relations": { "launch": "İlgili fırlatma", "event": "İlgili etkinlik" },
+  "badges": { "featured": "ÖNE ÇIKAN" },
+  "briefing": { "latest": "SON İSTİHBARAT BRİFİNGİ" },
+  "actions": { "details": "Brifingi aç", "openStory": "{{title}} haber brifingini aç", "refresh": "Yenile", "retry": "Yeniden dene", "readFull": "Kaynakta tam oku", "original": "Özgün İngilizceyi göster", "localized": "Çeviriyi göster", "back": "Haberlere dön", "loadMore": "Daha fazla haber yükle" },
+  "metrics": { "stories": "{{count}} haber", "loaded": "Yüklendi", "archive": "Arşiv", "never": "Henüz başarılı eşitleme yok" },
+  "overview": { "label": "Yüklenen haber arşivine genel bakış", "loaded": "GÖRÜNEN HABER", "sources": "GERÇEK KAYNAK", "translated": "HAZIR ÇEVİRİ", "linked": "GÖREV BAĞLANTISI" },
+  "empty": { "title": "Bu görünüme uygun haber yok", "description": "Kaynak, tür veya arama filtrelerini değiştirin. Önbellekteki haberler çevrimdışı kullanılabilir." },
+  "error": { "title": "Uzay Haberleri kullanılamıyor", "description": "Son geçerli yerel arşiv korundu. Sağlayıcı bağlantısını denetleyip yeniden deneyin." },
+  "detail": { "briefingId": "Brifing · {{id}}", "sourceData": "Kaynak kaydı", "publisher": "Yayın kaynağı", "published": "Yayınlandı", "updated": "Kaynak güncellendi", "authors": "Yazarlar", "related": "Görev ilişkileri", "noRelations": "Sağlayıcı doğrulanmış bir fırlatma veya etkinlik ilişkisi sunmadı.", "externalNotice": "Tam makale, telif hakkı korunan özgün kaynakta açılır.", "unavailable": "Sunulmadı" },
+  "search": { "meta": "{{source}} · {{date}}" }
+}

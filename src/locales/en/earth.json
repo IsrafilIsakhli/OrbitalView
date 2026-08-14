@@ -1,0 +1,32 @@
+{
+  "regionLabel": "Interactive Earth engine",
+  "canvasLabel": "Interactive 3D Earth. Drag to rotate, scroll to zoom and use the camera controls to change viewpoint.",
+  "eyebrow": "LIVE EARTH",
+  "title": "Earth",
+  "utc": "UTC",
+  "loading": { "eyebrow": "EARTH & ORBIT ENGINE", "title": "Building the living Earth", "description": "Starting the GPU renderer, atmosphere and surface layers" },
+  "error": { "title": "The Earth renderer could not start", "description": "A graphics or surface resource could not be initialized. Check the connection, update the graphics driver, or retry the renderer.", "retry": "Retry renderer" },
+  "surface": {
+    "terrain": "Terrain", "imagery": "Imagery", "earthData": "Earth surface", "clouds": "Clouds", "cloudCount": "Static NASA GEOS-5 reference", "launchesToday": "Launches today", "launchActivity": "{{today}} today · {{sites}} sites",
+    "status": { "loading": "Streaming", "highResolution": "High resolution", "adaptive": "Adaptive", "fallback": "Local fallback" }
+  },
+  "telemetry": { "quality": "Adaptive quality", "fps": "FPS", "renderer": "Renderer" },
+  "quality": { "eco": "Efficient", "balanced": "Balanced", "high": "Ultra" },
+  "layers": { "orbits": "Orbit paths", "groundTrack": "Selected ground track", "clouds": "Cloud cover", "nightLights": "Night lights", "collapse": "Collapse layer controller", "expand": "Expand layer controller" },
+  "rotation": { "pause": "Pause cinematic Earth rotation", "resume": "Resume cinematic Earth rotation" },
+  "orbitLegend": { "eyebrow": "SSA LAYER CONTROL", "title": "LIVE ORBITAL LAYERS", "subtitle": "Explore real catalog objects without changing their coordinates.", "overview": "Overview", "signals": "signals", "semantic": "markers", "satellites": "Satellites", "launchSites": "Launch sites", "visible": "{{count}} visible · {{total}} catalogued", "orbits": "{{count}} real orbit paths", "rockets": "{{count}} recent rocket bodies", "openLayers": "Layers", "closeLayers": "Close layers", "sceneOverlays": "Scene overlays", "groups": { "orbitalNetworks": "Orbital networks", "scienceObservation": "Science and observation", "vehiclesEnvironment": "Vehicles and environment" }, "visibilityState": { "visible": "visible", "hidden": "hidden" }, "focusCategory": "Focus {{category}}, {{count}} real objects", "categoryVisibility": "{{category}}, {{count}} objects, currently {{visibility}}" },
+  "context": { "title": "Priority live objects", "station": "LIVE STATION", "nextLaunch": "NEXT LAUNCH", "norad": "NORAD {{id}}" },
+  "camera": {
+    "groupLabel": "Camera presets",
+    "issNotice": "Camera preset — select the live ISS marker to inspect its current position.",
+    "moonNotice": "Real UTC lunar position and NASA LRO surface — camera distance is cinematic.",
+    "sunNotice": "Real UTC solar direction — Sun scale and camera distance are cinematic.",
+    "presets": {
+      "earth": { "label": "Earth", "detail": "Global view" },
+      "leo": { "label": "Low Earth Orbit", "detail": "1,850 km" },
+      "iss": { "label": "ISS View", "detail": "420 km" },
+      "moon": { "label": "Moon", "detail": "Real position" },
+      "sun": { "label": "Sun", "detail": "Real direction" }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "eyebrow": "UZAY İSTİHBARATI", "title": "Göreve genel bakış", "subtitle": "NASA astronomisi, Dünya'ya yakın nesneler ve son uzay hava olayları tek doğrulanmış operasyonel görünümde.", "source": "NASA Open API'leri",
+  "status": { "fresh": "GÜNCEL", "stale": "ÖNBELLEK", "degraded": "KISITLI", "unavailable": "KULLANILAMIYOR" },
+  "configuration": { "title": "NASA API anahtarı yapılandırılmadı", "description": "Yerel çalışma ortamında NASA_API_KEY ayarlayın. Anahtar web arayüzüne veya frontend paketine eklenmez." },
+  "apod": { "label": "GÜNÜN ASTRONOMİ GÖRSELİ", "credit": "Görsel: {{credit}}", "publicDomain": "NASA astronomi medyası", "unavailable": "Bugünün astronomi içeriği geçici olarak kullanılamıyor." },
+  "actions": { "openMedia": "Kaynağı aç", "openEvent": "NASA olayını aç", "retry": "Tekrar dene" },
+  "summary": { "label": "SAĞLAYICI DURUMU", "title": "Operasyonel özet", "approaches": "Yakın geçiş", "spaceWeather": "Uzay hava olayı", "sourcesReady": "Hazır akış", "retrieved": "Panel {{date}} UTC kontrol edildi" },
+  "components": { "apod": "APOD", "neo": "NeoWs", "cmes": "DONKI CME", "flares": "DONKI parlamaları", "storms": "DONKI fırtınaları" },
+  "neo": { "label": "DÜNYA'YA YAKIN", "title": "Yaklaşan yakın geçişler", "distance": "Geçiş mesafesi {{value}}", "velocity": "Bağıl hız {{value}}", "designated": "NASA PHA", "monitored": "İZLENİYOR", "empty": "NASA, geçerli yedi günlük aralıkta yakın geçiş bildirmiyor." },
+  "donki": { "label": "UZAY HAVASI", "title": "Son DONKI olayları", "types": { "cme": "Koronal kütle atımı", "flare": "Güneş parlaması", "storm": "Jeomanyetik fırtına" }, "locationUnavailable": "Kaynak bölge kullanılamıyor", "window": "NASA DONKI · Son 7 gün", "empty": "Geçerli aralıkta CME, güneş parlaması veya jeomanyetik fırtına dönmedi." },
+  "loading": { "title": "NASA verilerine bağlanılıyor", "description": "Yerel önbellekler kontrol ediliyor ve yalnız süresi dolan akışlar yenileniyor." },
+  "error": { "title": "NASA verileri kullanılamıyor", "description": "Uygulama kararlı kaldı ancak geçerli canlı veya önbellek yanıtı yüklenemedi." }
+}

@@ -1,0 +1,12 @@
+{
+  "common": { "unavailable": "Məlumat yoxdur" },
+  "category": { "station": "Kosmik stansiya", "rocket-body": "Raket gövdəsi", "debris": "Kosmik tullantı", "starlink": "Starlink", "navigation": "Naviqasiya", "weather": "Meteoroloji", "science": "Elmi missiya", "communications": "Rabitə", "other": "Digər aktiv" },
+  "data": { "label": "Canlı orbital obyektlər", "loading": "Qoşulur", "error": "Məlumat əlçatan deyil", "ready": "{{count}} izlənilir", "rendered": "{{count}} görünür", "stale": "Keşlənmiş məlumat" },
+  "details": { "regionLabel": "Orbital obyekt kəşfiyyatı", "close": "Obyekt kəşfiyyatını bağla", "norad": "NORAD {{id}}", "livePosition": "CANLI MÖVQE", "updatedNow": "İndi yeniləndi", "calculating": "Orbit hesablanır", "coordinates": "{{latitude}}°, {{longitude}}°", "earthOrbit": "Yer orbiti", "source": "Orbital elementlər və kataloq metadatası: CelesTrak", "categoryProvenance": "Kateqoriya CelesTrak obyekt metadatası və adlandırma qaydalarından törədilir.", "fresh": "Canlı kataloq · {{time}}", "cached": "Keşlənmiş kataloq · {{time}}" },
+  "media": { "alt": "{{name}} obyektinin real istinad şəkli", "pending": "Dəqiq NORAD identifikatoru ilə Wikimedia Commons yoxlanılır", "source": "Commons mənbəyi", "creatorUnknown": "Müəllif dərc edilməyib" },
+  "sections": { "liveTelemetry": "Canlı telemetriya", "orbit": "Orbit məlumatları", "identity": "Kimlik və mənbə" },
+  "actions": { "focus": "Fokusla", "follow": "İzlə", "stopFollow": "İzləməni dayandır", "orbit": "Orbit", "groundTrack": "Yer izi", "hide": "Gizlət", "details": "Tam məlumat", "less": "Qısalt" },
+  "fields": { "altitude": "Hündürlük", "velocity": "Sürət", "latitude": "Enlik", "longitude": "Uzunluq", "period": "Period", "inclination": "Meyillik", "owner": "Operator kodu", "launchDate": "Buraxılış tarixi", "launchSite": "Buraxılış məntəqəsi", "status": "Status", "designator": "Beynəlxalq ID", "orbit": "Orbit", "perigee": "Perigey", "apogee": "Apogey", "objectType": "Obyekt tipi", "eccentricity": "Eksentrisitet", "meanMotion": "Gündəlik dövr", "epoch": "Element epoxası" },
+  "status": { "operational": "Aktiv", "partial": "Qismən aktiv", "standby": "Ehtiyat rejimi", "inactive": "Aktiv deyil", "unknown": "Status dərc edilməyib" },
+  "units": { "kilometers": "{{value}} km", "kilometersPerSecond": "{{value}} km/s", "minutes": "{{value}} dəq", "degrees": "{{value}}°" }
+}

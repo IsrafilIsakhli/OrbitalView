@@ -1,0 +1,12 @@
+{
+  "eyebrow": "GÖREV OPERASYONLARI", "title": "Görev kontrolü", "subtitle": "Yaklaşan, etkin ve tamamlanan görevleri doğrulanmış fırlatma ve yörünge verileriyle izleyin.",
+  "tabs": { "upcoming": "Yaklaşan", "active": "Etkin", "completed": "Tamamlanan", "events": "Olaylar" },
+  "filters": { "search": "Görev, roket, operatör veya yörünge ara", "rangeLabel": "Zaman aralığı", "ranges": { "sevenDays": "7 gün", "thirtyDays": "30 gün", "all": "Tümü" } },
+  "queue": { "title": "Görev sırası", "eventsTitle": "Uzay olayları", "loaded": "{{loaded}} yüklendi · sağlayıcıda {{total}} kayıt", "showing": "{{count}} gösteriliyor · sağlayıcıda {{total}}", "empty": "Bu durumda kullanılabilir görev yok.", "open": "{{name}} görevini aç", "select": "{{name}} görevini seç", "payload": "Faydalı yük" },
+  "detail": { "overview": "Göreve genel bakış", "payloads": "Faydalı yükler", "sources": "Kaynak verileri", "back": "Görev sırasına dön", "showEarth": "Dünya üzerinde göster", "watch": "Yayını izle", "notPublished": "Yayımlanmadı" },
+  "inspector": { "eyebrow": "GÖREV İSTİHBARATI", "emptyTitle": "Bir görev seçin", "emptyBody": "Amaç, faydalı yük ve yörünge takip durumunu görmek için sıradan gerçek bir görev seçin.", "nextMilestone": "SONRAKİ AŞAMA", "outcome": "GÖREV SONUCU", "providerContent": "Görev açıklaması veri sağlayıcısı tarafından sağlandı" },
+  "tracking": { "title": "Canlı görev takibi", "available": "YÖRÜNGE TELEMETRİSİ HAZIR", "pending": "YÖRÜNGE TELEMETRİSİ BEKLENİYOR", "pendingBody": "Eşleşen CelesTrak uluslararası tanımlayıcısı henüz yayımlanmadı.", "checking": "Gerçek CelesTrak kataloğunda eşleşme denetleniyor.", "noDesignator": "Fırlatma tanımlayıcısı yayımlanmadı; yörünge telemetrisi eşleştirilemiyor.", "primary": "BİRİNCİL FAYDALI YÜK", "matches": "İzlenen yörünge nesneleri", "trackEarth": "Dünya üzerinde izle", "position": "Güncel konum", "altitude": "İrtifa", "velocity": "Hız", "groundTrack": "Yer izi", "orbit": "Yörünge görünümü", "updated": "Telemetri {{time}} güncellendi" },
+  "actions": { "fullDetails": "Tüm görev ayrıntıları", "launchOperations": "Fırlatma operasyonları" },
+  "events": { "emptyTitle": "Bir olay seçin", "emptyBody": "Zaman, konum ve kaynak bilgilerini görmek için gerçek bir uzay olayı seçin." },
+  "status": { "upcoming": "YAKLAŞAN", "active": "ETKİN", "completed": "TAMAMLANDI", "events": "UZAY OLAYLARI", "unknown": "SINIFLANDIRILMADI" }
+}

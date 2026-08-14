@@ -1,0 +1,17 @@
+{
+  "regionLabel": "Etkileşimli Dünya motoru",
+  "canvasLabel": "Etkileşimli 3B Dünya. Döndürmek için sürükleyin, yakınlaştırmak için kaydırın ve bakış açısını değiştirmek için kamera kontrollerini kullanın.",
+  "eyebrow": "CANLI DÜNYA",
+  "title": "Dünya",
+  "utc": "UTC",
+  "loading": { "eyebrow": "DÜNYA VE YÖRÜNGE MOTORU", "title": "Canlı Dünya oluşturuluyor", "description": "GPU görüntüleyici, atmosfer ve yüzey katmanları başlatılıyor" },
+  "error": { "title": "Dünya görüntüleyici başlatılamadı", "description": "Grafik veya yüzey kaynağı hazırlanamadı. Bağlantıyı ve grafik sürücüsünü kontrol edin veya yeniden deneyin.", "retry": "Görüntüleyiciyi yeniden dene" },
+  "surface": { "terrain": "Arazi", "imagery": "Görüntü", "earthData": "Dünya yüzeyi", "clouds": "Bulutlar", "cloudCount": "Statik NASA GEOS-5 referansı", "launchesToday": "Bugünkü fırlatmalar", "launchActivity": "Bugün {{today}} · {{sites}} saha", "status": { "loading": "Aktarılıyor", "highResolution": "Yüksek çözünürlük", "adaptive": "Uyarlanabilir", "fallback": "Yerel yedek" } },
+  "telemetry": { "quality": "Uyarlanabilir kalite", "fps": "FPS", "renderer": "Görüntüleyici" },
+  "quality": { "eco": "Verimli", "balanced": "Dengeli", "high": "Ultra" },
+  "layers": { "orbits": "Yörünge yolları", "groundTrack": "Seçili yer izi", "clouds": "Bulut örtüsü", "nightLights": "Gece ışıkları", "collapse": "Katman denetleyicisini daralt", "expand": "Katman denetleyicisini genişlet" },
+  "rotation": { "pause": "Sinematik Dünya dönüşünü duraklat", "resume": "Sinematik Dünya dönüşünü sürdür" },
+  "orbitLegend": { "eyebrow": "SSA KATMAN KONTROLÜ", "title": "CANLI YÖRÜNGE KATMANLARI", "subtitle": "Gerçek katalog nesnelerini koordinatlarını değiştirmeden inceleyin.", "overview": "Genel bakış", "signals": "sinyal", "semantic": "işaretçi", "satellites": "Uydular", "launchSites": "Fırlatma sahaları", "visible": "{{count}} görünür · {{total}} katalogda", "orbits": "{{count}} gerçek yörünge yolu", "rockets": "{{count}} yeni roket gövdesi", "openLayers": "Katmanlar", "closeLayers": "Katmanları kapat", "sceneOverlays": "Sahne katmanları", "groups": { "orbitalNetworks": "Yörünge ağları", "scienceObservation": "Bilim ve gözlem", "vehiclesEnvironment": "Araçlar ve çevre" }, "visibilityState": { "visible": "görünür", "hidden": "gizli" }, "focusCategory": "{{category}} kategorisine odaklan, {{count}} gerçek nesne", "categoryVisibility": "{{category}}, {{count}} nesne, şu anda {{visibility}}" },
+  "context": { "title": "Öncelikli canlı nesneler", "station": "CANLI İSTASYON", "nextLaunch": "SONRAKİ FIRLATMA", "norad": "NORAD {{id}}" },
+  "camera": { "groupLabel": "Kamera ön ayarları", "issNotice": "Kamera ön ayarı — mevcut konumunu incelemek için canlı ISS işaretçisini seçin.", "moonNotice": "Gerçek UTC Ay konumu ve NASA LRO yüzeyi — kamera mesafesi sinematiktir.", "sunNotice": "Gerçek UTC Güneş yönü — Güneş ölçeği ve kamera mesafesi sinematiktir.", "presets": { "earth": { "label": "Dünya", "detail": "Küresel görünüm" }, "leo": { "label": "Alçak Dünya Yörüngesi", "detail": "1.850 km" }, "iss": { "label": "ISS görünümü", "detail": "420 km" }, "moon": { "label": "Ay", "detail": "Gerçek konum" }, "sun": { "label": "Güneş", "detail": "Gerçek yön" } } }
+}

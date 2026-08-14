@@ -1,0 +1,16 @@
+{
+  "eyebrow": "LIVE INTELLIGENCE", "title": "Space News", "subtitle": "Verified aerospace reporting from Spaceflight News, translated without losing the English source.",
+  "types": { "article": "Article", "blog": "Blog", "report": "Report" },
+  "filters": { "label": "News filters", "all": "All", "article": "Articles", "blog": "Blogs", "report": "Reports", "featured": "Featured", "source": "Source", "allSources": "All sources", "search": "Search news" },
+  "translation": { "original": "Original English", "cached": "Machine translated", "pending": "English · translation pending", "failed": "English · translation unavailable" },
+  "relations": { "launch": "Related launch", "event": "Related event" },
+  "badges": { "featured": "FEATURED" },
+  "briefing": { "latest": "LATEST INTELLIGENCE BRIEF" },
+  "actions": { "details": "Open briefing", "openStory": "Open the {{title}} news briefing", "refresh": "Refresh", "retry": "Try again", "readFull": "Read at source", "original": "Show original English", "localized": "Show translation", "back": "Back to news", "loadMore": "Load more reports" },
+  "metrics": { "stories": "{{count}} reports", "loaded": "Loaded", "archive": "Archive", "never": "No successful sync yet" },
+  "overview": { "label": "Loaded news archive overview", "loaded": "VISIBLE REPORTS", "sources": "REAL SOURCES", "translated": "TRANSLATIONS READY", "linked": "MISSION LINKED" },
+  "empty": { "title": "No reports match this view", "description": "Adjust the source, type, or search filters. Cached reports remain available offline." },
+  "error": { "title": "Space News is unavailable", "description": "The last-known-good local archive is preserved. Check the provider connection and try again." },
+  "detail": { "briefingId": "Briefing · {{id}}", "sourceData": "Source record", "publisher": "Publisher", "published": "Published", "updated": "Source updated", "authors": "Authors", "related": "Mission relations", "noRelations": "No verified launch or event relation was supplied by the provider.", "externalNotice": "The complete article opens at the original copyright-holding source.", "unavailable": "Not provided" },
+  "search": { "meta": "{{source}} · {{date}}" }
+}

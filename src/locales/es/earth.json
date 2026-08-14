@@ -1,0 +1,32 @@
+{
+  "regionLabel": "Motor interactivo de la Tierra",
+  "canvasLabel": "Tierra 3D interactiva. Arrastra para girar, usa la rueda para acercar y los controles de cámara para cambiar la vista.",
+  "eyebrow": "TIERRA EN VIVO",
+  "title": "Tierra",
+  "utc": "UTC",
+  "loading": { "eyebrow": "MOTOR DE TIERRA Y ÓRBITA", "title": "Construyendo la Tierra viva", "description": "Iniciando el renderizado GPU, la atmósfera y las capas de superficie" },
+  "error": { "title": "No se pudo iniciar el renderizador terrestre", "description": "No se pudo iniciar un recurso gráfico o de superficie. Comprueba la conexión, actualiza el controlador o vuelve a intentarlo.", "retry": "Reintentar renderizador" },
+  "surface": {
+    "terrain": "Terreno", "imagery": "Imágenes", "earthData": "Superficie terrestre", "clouds": "Nubes", "cloudCount": "Referencia estática NASA GEOS-5", "launchesToday": "Lanzamientos hoy", "launchActivity": "{{today}} hoy · {{sites}} sitios",
+    "status": { "loading": "Transmitiendo", "highResolution": "Alta resolución", "adaptive": "Adaptativo", "fallback": "Reserva local" }
+  },
+  "telemetry": { "quality": "Calidad adaptable", "fps": "FPS", "renderer": "Renderizador" },
+  "quality": { "eco": "Eficiente", "balanced": "Equilibrada", "high": "Ultra" },
+  "layers": { "orbits": "Trayectorias orbitales", "groundTrack": "Traza terrestre seleccionada", "clouds": "Cobertura nubosa", "nightLights": "Luces nocturnas", "collapse": "Contraer control de capas", "expand": "Expandir control de capas" },
+  "rotation": { "pause": "Pausar la rotación cinematográfica", "resume": "Reanudar la rotación cinematográfica" },
+  "orbitLegend": { "eyebrow": "CONTROL DE CAPAS SSA", "title": "CAPAS ORBITALES EN VIVO", "subtitle": "Explora objetos reales del catálogo sin cambiar sus coordenadas.", "overview": "Vista general", "signals": "señales", "semantic": "marcadores", "satellites": "Satélites", "launchSites": "Sitios de lanzamiento", "visible": "{{count}} visibles · {{total}} catalogados", "orbits": "{{count}} órbitas reales", "rockets": "{{count}} cuerpos de cohete recientes", "openLayers": "Capas", "closeLayers": "Cerrar capas", "sceneOverlays": "Capas de escena", "groups": { "orbitalNetworks": "Redes orbitales", "scienceObservation": "Ciencia y observación", "vehiclesEnvironment": "Vehículos y entorno" }, "visibilityState": { "visible": "visible", "hidden": "oculto" }, "focusCategory": "Enfocar {{category}}, {{count}} objetos reales", "categoryVisibility": "{{category}}, {{count}} objetos, actualmente {{visibility}}" },
+  "context": { "title": "Objetos prioritarios", "station": "ESTACIÓN EN VIVO", "nextLaunch": "PRÓXIMO LANZAMIENTO", "norad": "NORAD {{id}}" },
+  "camera": {
+    "groupLabel": "Vistas de cámara",
+    "issNotice": "Vista de cámara — selecciona el marcador de la EEI para ver su posición actual.",
+    "moonNotice": "Posición lunar UTC real y superficie NASA LRO — la distancia de cámara es cinematográfica.",
+    "sunNotice": "Dirección solar UTC real — la escala y distancia de cámara son cinematográficas.",
+    "presets": {
+      "earth": { "label": "Tierra", "detail": "Vista global" },
+      "leo": { "label": "Órbita terrestre baja", "detail": "1.850 km" },
+      "iss": { "label": "Vista EEI", "detail": "420 km" },
+      "moon": { "label": "Luna", "detail": "Posición real" },
+      "sun": { "label": "Sol", "detail": "Dirección real" }
+    }
+  }
+}

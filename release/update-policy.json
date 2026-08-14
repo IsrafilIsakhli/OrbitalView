@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.0",
+  "severity": "optional",
+  "minimumSupportedVersion": "0.1.0",
+  "notes": {
+    "az": "İlk imzalı Orbital Vision yeniləmə kanalı.",
+    "tr": "İlk imzalı Orbital Vision güncelleme kanalı.",
+    "en": "Initial signed Orbital Vision update channel.",
+    "ru": "Первый подписанный канал обновлений Orbital Vision.",
+    "es": "Canal inicial de actualizaciones firmadas de Orbital Vision."
+  }
+}

@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="background" x1="62" y1="34" x2="448" y2="478" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111C2C"/>
+      <stop offset="1" stop-color="#03070D"/>
+    </linearGradient>
+    <linearGradient id="orbit" x1="102" y1="402" x2="423" y2="89" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#168FFF"/>
+      <stop offset="1" stop-color="#7AE6FF"/>
+    </linearGradient>
+    <filter id="glow" x="48" y="38" width="431" height="430" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#background)"/>
+  <rect x="16.75" y="16.75" width="478.5" height="478.5" rx="111.25" stroke="#A7DFFF" stroke-opacity="0.18" stroke-width="1.5"/>
+  <circle cx="257" cy="258" r="108" stroke="url(#orbit)" stroke-width="28"/>
+  <path d="M84 318C128 379 246 378 348 313C450 248 498 146 454 85" stroke="#2DA6F8" stroke-opacity="0.28" stroke-width="38" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M84 318C128 379 246 378 348 313C450 248 498 146 454 85" stroke="url(#orbit)" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="417" cy="124" r="32" fill="#DDFBFF"/>
+  <circle cx="417" cy="124" r="18" fill="#7AE6FF"/>
+</svg>

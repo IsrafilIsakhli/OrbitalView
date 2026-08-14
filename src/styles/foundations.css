@@ -1,0 +1,31 @@
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+:where(.module-canvas, .navigation-rail, .command-bar, .search-dialog, .settings-panel, .language-dialog) :where(p, span, small, label, dt, dd, time, li) {
+  font-size: max(11px, 1em);
+}
+
+:where(.module-canvas, .navigation-rail, .command-bar, .search-dialog, .settings-panel, .language-dialog) :where(button, input, select, textarea, [role="button"]) {
+  font-size: max(12px, 1em);
+}
+
+button,
+[role="button"] {
+  min-height: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

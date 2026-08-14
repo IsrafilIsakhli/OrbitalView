@@ -1,0 +1,7 @@
+{
+  "titlebar": { "minimize": "Minimize window", "maximize": "Maximize or restore window", "close": "Close window" },
+  "search": { "button": "Search everything", "placeholder": "Search Orbital Vision", "dialogTitle": "Search", "hint": "Navigate instantly", "empty": "No matching destination", "shortcut": "Ctrl K", "escapeKey": "Esc", "closeHint": "Press Esc to close", "satelliteMeta": "NORAD {{id}} · Live satellite", "missionMeta": "Mission · {{date}}", "rocketMeta": "Rocket · {{agency}}", "siteMeta": "Launch site · {{country}}", "nasaMeta": "NASA intelligence" },
+  "scene": { "eyebrow": "SYSTEM READY", "title": "Your window into orbit.", "description": "Explore Earth, satellites, launches and missions through one living view.", "engineLabel": "Orbital view", "engineStatus": "Preparing the 3D engine", "quality": "Adaptive quality", "localization": "Five languages", "runtime": "Secure desktop runtime" },
+  "module": { "title": "{{name}} is staged for the next module", "description": "The product shell is ready. This workspace will activate after its data and rendering layer passes quality review." },
+  "errors": { "title": "Orbital Vision encountered a problem", "description": "The interface was safely stopped before the error could affect local data." }
+}

@@ -1,0 +1,76 @@
+{
+  "eyebrow": "ЦЕНТР КОСМИЧЕСКИХ ОПЕРАЦИЙ",
+  "title": "Оперативный обзор",
+  "subtitle": "Актуальное состояние миссий и орбитальных объектов из проверенных источников.",
+  "actions": {
+    "earth": "Открыть вид Земли",
+    "launches": "Все запуски",
+    "missions": "Расписание миссий",
+    "news": "Новости космоса",
+    "nasa": "Данные NASA",
+    "weather": "Космическая погода",
+    "view": "Открыть миссию"
+  },
+  "labels": {
+    "active": "Активные",
+    "activeMission": "Активная миссия",
+    "cached": "Из кэша",
+    "catalogTotal": "Записи каталога",
+    "countdown": "Время запуска",
+    "debris": "Обломки и ступени",
+    "fresh": "Актуально",
+    "geomagnetic": "Геомагнитная",
+    "kp": "Индекс Kp",
+    "latestNews": "Последние проверенные новости",
+    "launchTime": "Время запуска",
+    "loading": "Обновляется",
+    "nextMission": "Следующая миссия",
+    "observed": "Наблюдение: {{time}}",
+    "payloads": "Полезные нагрузки",
+    "propagatableObjects": "Объекты с вычисляемой реальной орбитальной позицией",
+    "radioBlackout": "Радио",
+    "recentAlerts": "Сообщения за 24 ч",
+    "related": "Связано с запуском по реальному ID",
+    "solarRadiation": "Радиация",
+    "solarWind": "Солнечный ветер",
+    "unavailable": "Недоступно",
+    "upcomingLoaded": "Загружено предстоящих",
+    "updatedAt": "Обновлено: {{time}}",
+    "weatherMetric": "{{temperature}} · {{wind}}"
+  },
+  "countdown": {
+    "days": "Дни",
+    "hours": "Часы",
+    "minutes": "Минуты",
+    "seconds": "Секунды",
+    "counting": "До запуска",
+    "hold": "Запуск приостановлен",
+    "in-flight": "В полёте",
+    "elapsed": "После запуска",
+    "awaiting": "Ожидается обновление статуса",
+    "invalid": "Время недоступно"
+  },
+  "providers": {
+    "celestrak": "CelesTrak",
+    "launchLibrary": "Launch Library 2",
+    "noaaSwpc": "NOAA SWPC",
+    "openMeteo": "Open-Meteo",
+    "spaceflightNews": "Spaceflight News"
+  },
+  "modules": {
+    "nextLaunch": "Следующий запуск",
+    "mission": "Состояние миссий",
+    "satellites": "Орбитальный каталог",
+    "spaceWeather": "Космическая погода",
+    "news": "Последние новости космоса"
+  },
+  "states": {
+    "loading": "Синхронизация реальных данных…",
+    "unavailable": "Данные источника сейчас недоступны.",
+    "noLaunch": "Подтверждённый предстоящий запуск не найден.",
+    "noMission": "Активная или предстоящая миссия не найдена.",
+    "noNews": "Актуальные новости космоса не найдены.",
+    "noSpaceWeatherAlert": "За последние 24 часа активных предупреждений NOAA не было.",
+    "unknown": "Не опубликовано"
+  }
+}

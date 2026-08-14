@@ -1,0 +1,12 @@
+{
+  "common": { "unavailable": "Not available" },
+  "category": { "station": "Space station", "rocket-body": "Rocket body", "debris": "Orbital debris", "starlink": "Starlink", "navigation": "Navigation", "weather": "Weather", "science": "Science mission", "communications": "Communications", "other": "Other active" },
+  "data": { "label": "Live orbital objects", "loading": "Connecting", "error": "Data unavailable", "ready": "{{count}} tracked", "rendered": "{{count}} visible", "stale": "Cached data" },
+  "details": { "regionLabel": "Orbital object intelligence", "close": "Close object intelligence", "norad": "NORAD {{id}}", "livePosition": "LIVE POSITION", "updatedNow": "Updated now", "calculating": "Calculating orbit", "coordinates": "{{latitude}}°, {{longitude}}°", "earthOrbit": "Earth orbit", "source": "Orbital elements and catalog metadata: CelesTrak", "categoryProvenance": "Category is derived from CelesTrak object metadata and naming rules.", "fresh": "Live catalog · {{time}}", "cached": "Cached catalog · {{time}}" },
+  "media": { "alt": "Real reference image of {{name}}", "pending": "Checking Wikimedia Commons by exact NORAD identifier", "source": "Commons source", "creatorUnknown": "Creator not published" },
+  "sections": { "liveTelemetry": "Live telemetry", "orbit": "Orbit intelligence", "identity": "Identity and provenance" },
+  "actions": { "focus": "Focus", "follow": "Follow", "stopFollow": "Stop follow", "orbit": "Orbit", "groundTrack": "Ground track", "hide": "Hide", "details": "Full details", "less": "Less" },
+  "fields": { "altitude": "Altitude", "velocity": "Velocity", "latitude": "Latitude", "longitude": "Longitude", "period": "Period", "inclination": "Inclination", "owner": "Owner code", "launchDate": "Launch date", "launchSite": "Launch site", "status": "Status", "designator": "International ID", "orbit": "Orbit", "perigee": "Perigee", "apogee": "Apogee", "objectType": "Object type", "eccentricity": "Eccentricity", "meanMotion": "Mean motion / day", "epoch": "Elements epoch" },
+  "status": { "operational": "Operational", "partial": "Partially operational", "standby": "Standby / spare", "inactive": "Inactive", "unknown": "Status not published" },
+  "units": { "kilometers": "{{value}} km", "kilometersPerSecond": "{{value}} km/s", "minutes": "{{value}} min", "degrees": "{{value}}°" }
+}

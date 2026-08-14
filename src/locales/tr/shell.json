@@ -1,0 +1,7 @@
+{
+  "titlebar": { "minimize": "Pencereyi küçült", "maximize": "Pencereyi büyüt veya geri yükle", "close": "Pencereyi kapat" },
+  "search": { "button": "Her yerde ara", "placeholder": "Orbital Vision'da ara", "dialogTitle": "Arama", "hint": "Anında gezin", "empty": "Eşleşen sonuç yok", "shortcut": "Ctrl K", "escapeKey": "Esc", "closeHint": "Kapatmak için Esc tuşuna basın", "satelliteMeta": "NORAD {{id}} · Canlı uydu", "missionMeta": "Görev · {{date}}", "rocketMeta": "Roket · {{agency}}", "siteMeta": "Fırlatma sahası · {{country}}", "nasaMeta": "NASA istihbaratı" },
+  "scene": { "eyebrow": "SİSTEM HAZIR", "title": "Yörüngeye açılan pencereniz.", "description": "Dünya'yı, uyduları, fırlatmaları ve görevleri tek canlı görünümde keşfedin.", "engineLabel": "Yörünge görünümü", "engineStatus": "3B motor hazırlanıyor", "quality": "Uyarlanabilir kalite", "localization": "Beş dil", "runtime": "Güvenli masaüstü çalışma zamanı" },
+  "module": { "title": "{{name}} sonraki modül için hazır", "description": "Ürün kabuğu hazır. Veri ve görüntüleme katmanı kalite incelemesini geçince bu çalışma alanı etkinleşir." },
+  "errors": { "title": "Orbital Vision bir sorunla karşılaştı", "description": "Arayüz, sorun yerel verileri etkilemeden güvenli biçimde durduruldu." }
+}

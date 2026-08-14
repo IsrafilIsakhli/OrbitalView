@@ -1,0 +1,7 @@
+{
+  "titlebar": { "minimize": "Свернуть окно", "maximize": "Развернуть или восстановить окно", "close": "Закрыть окно" },
+  "search": { "button": "Искать везде", "placeholder": "Поиск в Orbital Vision", "dialogTitle": "Поиск", "hint": "Быстрый переход", "empty": "Совпадений нет", "shortcut": "Ctrl K", "escapeKey": "Esc", "closeHint": "Нажмите Esc, чтобы закрыть", "satelliteMeta": "NORAD {{id}} · Спутник", "missionMeta": "Миссия · {{date}}", "rocketMeta": "Ракета · {{agency}}", "siteMeta": "Стартовая площадка · {{country}}", "nasaMeta": "Данные NASA" },
+  "scene": { "eyebrow": "СИСТЕМА ГОТОВА", "title": "Ваше окно на орбиту.", "description": "Исследуйте Землю, спутники, запуски и миссии в едином живом пространстве.", "engineLabel": "Орбитальный обзор", "engineStatus": "Подготовка 3D-движка", "quality": "Адаптивное качество", "localization": "Пять языков", "runtime": "Защищённая настольная среда" },
+  "module": { "title": "{{name}} подготовлен для следующего модуля", "description": "Оболочка продукта готова. Рабочая область включится после проверки слоя данных и визуализации." },
+  "errors": { "title": "В Orbital Vision возникла ошибка", "description": "Интерфейс безопасно остановлен до того, как ошибка могла повлиять на локальные данные." }
+}

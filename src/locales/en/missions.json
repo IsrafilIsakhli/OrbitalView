@@ -1,0 +1,12 @@
+{
+  "eyebrow": "MISSION OPERATIONS", "title": "Mission control", "subtitle": "Track upcoming, active and completed missions from verified launch and orbital data.",
+  "tabs": { "upcoming": "Upcoming", "active": "Active", "completed": "Completed", "events": "Events" },
+  "filters": { "search": "Search missions, rockets, operators or orbits", "rangeLabel": "Time range", "ranges": { "sevenDays": "7 days", "thirtyDays": "30 days", "all": "All" } },
+  "queue": { "title": "Mission queue", "eventsTitle": "Space events", "loaded": "{{loaded}} loaded · {{total}} provider records", "showing": "{{count}} shown · {{total}} at provider", "empty": "No missions are available in this state.", "open": "Open {{name}}", "select": "Select {{name}}", "payload": "Payload" },
+  "detail": { "overview": "Mission overview", "payloads": "Payloads", "sources": "Source data", "back": "Back to mission queue", "showEarth": "Show on Earth", "watch": "Watch webcast", "notPublished": "Not published" },
+  "inspector": { "eyebrow": "MISSION INTELLIGENCE", "emptyTitle": "Select a mission", "emptyBody": "Choose a real mission from the queue to inspect its objective, payload and orbital tracking state.", "nextMilestone": "NEXT MILESTONE", "outcome": "MISSION OUTCOME", "providerContent": "Mission description supplied by the data provider" },
+  "tracking": { "title": "Live mission tracking", "available": "ORBITAL TELEMETRY AVAILABLE", "pending": "ORBITAL TELEMETRY PENDING", "pendingBody": "A matching CelesTrak international designator has not been published yet.", "checking": "Checking the real CelesTrak catalog for a match.", "noDesignator": "The launch designator has not been published; orbital telemetry cannot be matched.", "primary": "PRIMARY PAYLOAD", "matches": "Tracked orbital objects", "trackEarth": "Track on Earth", "position": "Current position", "altitude": "Altitude", "velocity": "Velocity", "groundTrack": "Ground track", "orbit": "Orbit visualization", "updated": "Telemetry updated {{time}}" },
+  "actions": { "fullDetails": "Full mission details", "launchOperations": "Launch operations" },
+  "events": { "emptyTitle": "Select an event", "emptyBody": "Choose a real space event to inspect its time, location and source information." },
+  "status": { "upcoming": "UPCOMING", "active": "ACTIVE", "completed": "COMPLETED", "events": "SPACE EVENTS", "unknown": "UNCLASSIFIED" }
+}

@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@satellite/bulk": ["node_modules/satellite.js/dist/wasm/bulk-propagator.js"],
+      "@satellite/ecf-calculator": ["node_modules/satellite.js/dist/wasm/calculators/ecf-position-calculator.js"],
+      "@satellite/eci-calculator": ["node_modules/satellite.js/dist/wasm/calculators/eci-base-calculator.js"],
+      "@satellite/geodetic-calculator": ["node_modules/satellite.js/dist/wasm/calculators/geodetic-position-calculator.js"],
+      "@satellite/gmst-calculator": ["node_modules/satellite.js/dist/wasm/calculators/gmst-calculator.js"],
+      "@satellite/io": ["node_modules/satellite.js/dist/io.js"],
+      "@satellite/propagation": ["node_modules/satellite.js/dist/propagation.js"],
+      "@satellite/runtime": ["node_modules/satellite.js/dist/wasm/runtimes/single-thread-runtime.js"],
+      "@satellite/transforms": ["node_modules/satellite.js/dist/transforms.js"],
+      "@satellite/wasm-module": ["node_modules/satellite.js/wasm-build/base-release/index.js"]
+    },
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

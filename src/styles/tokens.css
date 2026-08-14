@@ -1,0 +1,30 @@
+:root {
+  --font-sans: "Orbital UI", "Segoe UI Variable", "Segoe UI", sans-serif;
+  --font-mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --surface-canvas: #05070c;
+  --surface-mica: rgba(10, 17, 28, 0.78);
+  --surface-raised: rgba(15, 25, 39, 0.9);
+  --stroke-subtle: rgba(164, 201, 238, 0.14);
+  --stroke-focus: rgba(121, 230, 255, 0.8);
+  --text-primary: #f4f8ff;
+  --text-secondary: #a5b3c7;
+  --text-muted: #73859c;
+  --accent-cyan: #79e6ff;
+  --accent-blue: #2e9eff;
+  --accent-amber: #ffb85c;
+  --accent-green: #71df9a;
+  --accent-red: #ff737d;
+  --elevation-panel: 0 24px 64px rgba(0, 0, 0, 0.38), 0 2px 12px rgba(0, 0, 0, 0.24);
+  --motion-fast: 140ms;
+  --motion-normal: 240ms;
+  --z-shell: 20;
+  --z-overlay: 100;
+}

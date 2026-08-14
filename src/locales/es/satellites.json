@@ -1,0 +1,12 @@
+{
+  "common": { "unavailable": "No disponible" },
+  "category": { "station": "Estación espacial", "rocket-body": "Cuerpo de cohete", "debris": "Basura orbital", "starlink": "Starlink", "navigation": "Navegación", "weather": "Meteorología", "science": "Misión científica", "communications": "Comunicaciones", "other": "Otro activo" },
+  "data": { "label": "Objetos orbitales en vivo", "loading": "Conectando", "error": "Datos no disponibles", "ready": "{{count}} rastreados", "rendered": "{{count}} visibles", "stale": "Datos en caché" },
+  "details": { "regionLabel": "Inteligencia del objeto orbital", "close": "Cerrar inteligencia del objeto", "norad": "NORAD {{id}}", "livePosition": "POSICIÓN EN VIVO", "updatedNow": "Actualizado ahora", "calculating": "Calculando órbita", "coordinates": "{{latitude}}°, {{longitude}}°", "earthOrbit": "Órbita terrestre", "source": "Elementos orbitales y catálogo: CelesTrak", "categoryProvenance": "La categoría se deriva de los metadatos del objeto CelesTrak y de reglas de nomenclatura.", "fresh": "Catálogo en vivo · {{time}}", "cached": "Catálogo guardado · {{time}}" },
+  "media": { "alt": "Imagen de referencia real de {{name}}", "pending": "Comprobando Wikimedia Commons mediante el identificador NORAD exacto", "source": "Fuente de Commons", "creatorUnknown": "Autor no publicado" },
+  "sections": { "liveTelemetry": "Telemetría en vivo", "orbit": "Inteligencia orbital", "identity": "Identidad y procedencia" },
+  "actions": { "focus": "Enfocar", "follow": "Seguir", "stopFollow": "Dejar de seguir", "orbit": "Órbita", "groundTrack": "Traza", "hide": "Ocultar", "details": "Todos los datos", "less": "Menos" },
+  "fields": { "altitude": "Altitud", "velocity": "Velocidad", "latitude": "Latitud", "longitude": "Longitud", "period": "Periodo", "inclination": "Inclinación", "owner": "Código de operador", "launchDate": "Fecha de lanzamiento", "launchSite": "Base de lanzamiento", "status": "Estado", "designator": "ID internacional", "orbit": "Órbita", "perigee": "Perigeo", "apogee": "Apogeo", "objectType": "Tipo de objeto", "eccentricity": "Excentricidad", "meanMotion": "Vueltas por día", "epoch": "Época de elementos" },
+  "status": { "operational": "Operativo", "partial": "Parcialmente operativo", "standby": "En espera / reserva", "inactive": "Inactivo", "unknown": "Estado no publicado" },
+  "units": { "kilometers": "{{value}} km", "kilometersPerSecond": "{{value}} km/s", "minutes": "{{value}} min", "degrees": "{{value}}°" }
+}

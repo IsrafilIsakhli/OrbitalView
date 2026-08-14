@@ -1,0 +1,16 @@
+{
+  "eyebrow": "INTELIGENCIA EN VIVO", "title": "Noticias espaciales", "subtitle": "Información aeroespacial verificada de Spaceflight News, traducida sin perder la fuente original en inglés.",
+  "types": { "article": "Artículo", "blog": "Blog", "report": "Informe" },
+  "filters": { "label": "Filtros de noticias", "all": "Todo", "article": "Artículos", "blog": "Blogs", "report": "Informes", "featured": "Destacadas", "source": "Fuente", "allSources": "Todas las fuentes", "search": "Buscar noticias" },
+  "translation": { "original": "Original en inglés", "cached": "Traducción automática", "pending": "Inglés · traducción pendiente", "failed": "Inglés · traducción no disponible" },
+  "relations": { "launch": "Lanzamiento relacionado", "event": "Evento relacionado" },
+  "badges": { "featured": "DESTACADA" },
+  "briefing": { "latest": "ÚLTIMO INFORME DE INTELIGENCIA" },
+  "actions": { "details": "Abrir informe", "openStory": "Abrir el informe de {{title}}", "refresh": "Actualizar", "retry": "Reintentar", "readFull": "Leer en la fuente", "original": "Mostrar original en inglés", "localized": "Mostrar traducción", "back": "Volver a noticias", "loadMore": "Cargar más noticias" },
+  "metrics": { "stories": "{{count}} noticias", "loaded": "Cargadas", "archive": "Archivo", "never": "Aún no hay sincronización correcta" },
+  "overview": { "label": "Resumen del archivo de noticias cargado", "loaded": "NOTICIAS VISIBLES", "sources": "FUENTES REALES", "translated": "TRADUCCIONES LISTAS", "linked": "VINCULADAS A MISIÓN" },
+  "empty": { "title": "No hay noticias para esta vista", "description": "Ajusta la fuente, el tipo o la búsqueda. Las noticias en caché siguen disponibles sin conexión." },
+  "error": { "title": "Noticias espaciales no está disponible", "description": "Se conserva el último archivo local válido. Comprueba la conexión y vuelve a intentarlo." },
+  "detail": { "briefingId": "Informe · {{id}}", "sourceData": "Registro de origen", "publisher": "Fuente editorial", "published": "Publicado", "updated": "Fuente actualizada", "authors": "Autores", "related": "Relaciones de misión", "noRelations": "El proveedor no indicó una relación verificada con un lanzamiento o evento.", "externalNotice": "El artículo completo se abre en la fuente original titular de los derechos.", "unavailable": "No indicado" },
+  "search": { "meta": "{{source}} · {{date}}" }
+}

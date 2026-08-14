@@ -1,0 +1,12 @@
+{
+  "common": { "unavailable": "Kullanılamıyor" },
+  "category": { "station": "Uzay istasyonu", "rocket-body": "Roket gövdesi", "debris": "Yörünge enkazı", "starlink": "Starlink", "navigation": "Navigasyon", "weather": "Hava gözlemi", "science": "Bilim görevi", "communications": "Haberleşme", "other": "Diğer etkin" },
+  "data": { "label": "Canlı yörünge nesneleri", "loading": "Bağlanıyor", "error": "Veri kullanılamıyor", "ready": "{{count}} izleniyor", "rendered": "{{count}} görünür", "stale": "Önbellek verisi" },
+  "details": { "regionLabel": "Yörünge nesnesi istihbaratı", "close": "Nesne istihbaratını kapat", "norad": "NORAD {{id}}", "livePosition": "CANLI KONUM", "updatedNow": "Şimdi güncellendi", "calculating": "Yörünge hesaplanıyor", "coordinates": "{{latitude}}°, {{longitude}}°", "earthOrbit": "Dünya yörüngesi", "source": "Yörünge elemanları ve katalog metaverisi: CelesTrak", "categoryProvenance": "Kategori, CelesTrak nesne metaverisi ve adlandırma kurallarından türetilir.", "fresh": "Canlı katalog · {{time}}", "cached": "Önbellek kataloğu · {{time}}" },
+  "media": { "alt": "{{name}} için gerçek referans görüntüsü", "pending": "Kesin NORAD kimliğiyle Wikimedia Commons kontrol ediliyor", "source": "Commons kaynağı", "creatorUnknown": "Üretici yayımlanmadı" },
+  "sections": { "liveTelemetry": "Canlı telemetri", "orbit": "Yörünge istihbaratı", "identity": "Kimlik ve kaynak" },
+  "actions": { "focus": "Odakla", "follow": "Takip et", "stopFollow": "Takibi durdur", "orbit": "Yörünge", "groundTrack": "Yer izi", "hide": "Gizle", "details": "Tüm ayrıntılar", "less": "Daha az" },
+  "fields": { "altitude": "İrtifa", "velocity": "Hız", "latitude": "Enlem", "longitude": "Boylam", "period": "Periyot", "inclination": "Eğim", "owner": "Sahip kodu", "launchDate": "Fırlatma tarihi", "launchSite": "Fırlatma sahası", "status": "Durum", "designator": "Uluslararası kimlik", "orbit": "Yörünge", "perigee": "Yerberi", "apogee": "Yeröte", "objectType": "Nesne türü", "eccentricity": "Dış merkezlik", "meanMotion": "Günlük ortalama hareket", "epoch": "Eleman dönemi" },
+  "status": { "operational": "Operasyonel", "partial": "Kısmen operasyonel", "standby": "Beklemede / yedek", "inactive": "Etkin değil", "unknown": "Durum yayımlanmadı" },
+  "units": { "kilometers": "{{value}} km", "kilometersPerSecond": "{{value}} km/sn", "minutes": "{{value}} dk", "degrees": "{{value}}°" }
+}

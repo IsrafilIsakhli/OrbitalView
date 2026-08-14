@@ -1,0 +1,32 @@
+{
+  "regionLabel": "İnteraktiv Yer mühərriki",
+  "canvasLabel": "İnteraktiv 3D Yer. Fırlatmaq üçün sürüşdürün, yaxınlaşdırmaq üçün təkərdən və baxışı dəyişmək üçün kamera idarələrindən istifadə edin.",
+  "eyebrow": "CANLI YER",
+  "title": "Yer",
+  "utc": "UTC",
+  "loading": { "eyebrow": "YER VƏ ORBİT MÜHƏRRİKİ", "title": "Canlı Yer hazırlanır", "description": "GPU renderi, atmosfer və səth qatları başladılır" },
+  "error": { "title": "Yer renderi başladılmadı", "description": "Qrafika və ya səth resursu başladılmadı. Bağlantını yoxlayın, qrafika sürücüsünü yeniləyin və ya yenidən cəhd edin.", "retry": "Renderi yenidən yoxla" },
+  "surface": {
+    "terrain": "Relyef", "imagery": "Yer təsviri", "earthData": "Yer səthi", "clouds": "Buludlar", "cloudCount": "Statik NASA GEOS-5 referensi", "launchesToday": "Bugünkü buraxılışlar", "launchActivity": "Bu gün {{today}} · {{sites}} məntəqə",
+    "status": { "loading": "Yüklənir", "highResolution": "Yüksək keyfiyyət", "adaptive": "Adaptiv", "fallback": "Lokal ehtiyat" }
+  },
+  "telemetry": { "quality": "Adaptiv keyfiyyət", "fps": "FPS", "renderer": "Render" },
+  "quality": { "eco": "Səmərəli", "balanced": "Balanslı", "high": "Ultra" },
+  "layers": { "orbits": "Orbit yolları", "groundTrack": "Seçilmiş Yer izi", "clouds": "Bulud örtüyü", "nightLights": "Gecə işıqları", "collapse": "Qat idarəetməsini yığ", "expand": "Qat idarəetməsini aç" },
+  "rotation": { "pause": "Yerin kinematik fırlanmasını dayandır", "resume": "Yerin kinematik fırlanmasını davam etdir" },
+  "orbitLegend": { "eyebrow": "SSA QAT İDARƏSİ", "title": "CANLI ORBİT QATLARI", "subtitle": "Real kataloq obyektlərini koordinatlarını dəyişmədən araşdırın.", "overview": "Ümumi görünüş", "signals": "siqnal", "semantic": "marker", "satellites": "Peyklər", "launchSites": "Buraxılış məntəqələri", "visible": "{{count}} görünür · kataloqda {{total}}", "orbits": "{{count}} real orbit yolu", "rockets": "{{count}} yeni raket gövdəsi", "openLayers": "Qatlar", "closeLayers": "Qatları bağla", "sceneOverlays": "Səhnə qatları", "groups": { "orbitalNetworks": "Orbital şəbəkələr", "scienceObservation": "Elm və müşahidə", "vehiclesEnvironment": "Aparatlar və mühit" }, "visibilityState": { "visible": "görünür", "hidden": "gizlidir" }, "focusCategory": "{{category}} fokusla, {{count}} real obyekt", "categoryVisibility": "{{category}}, {{count}} obyekt, hazırda {{visibility}}" },
+  "context": { "title": "Prioritet canlı obyektlər", "station": "CANLI STANSİYA", "nextLaunch": "NÖVBƏTİ BURAXILIŞ", "norad": "NORAD {{id}}" },
+  "camera": {
+    "groupLabel": "Kamera görünüşləri",
+    "issNotice": "Kamera görünüşü — cari mövqeni yoxlamaq üçün canlı ISS markerini seçin.",
+    "moonNotice": "Real UTC Ay mövqeyi və NASA LRO səthi — kamera məsafəsi kinematikdir.",
+    "sunNotice": "Real UTC Günəş istiqaməti — Günəş miqyası və kamera məsafəsi kinematikdir.",
+    "presets": {
+      "earth": { "label": "Yer", "detail": "Qlobal görünüş" },
+      "leo": { "label": "Aşağı Yer orbiti", "detail": "1 850 km" },
+      "iss": { "label": "ISS görünüşü", "detail": "420 km" },
+      "moon": { "label": "Ay", "detail": "Real mövqe" },
+      "sun": { "label": "Günəş", "detail": "Real istiqamət" }
+    }
+  }
+}

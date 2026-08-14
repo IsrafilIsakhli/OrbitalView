@@ -1,0 +1,76 @@
+{
+  "eyebrow": "COMANDO DE OPERACIONES ESPACIALES",
+  "title": "Resumen operativo",
+  "subtitle": "Estado actual de misiones y órbitas a partir de proveedores aeroespaciales verificados.",
+  "actions": {
+    "earth": "Abrir vista de la Tierra",
+    "launches": "Todos los lanzamientos",
+    "missions": "Calendario de misiones",
+    "news": "Noticias espaciales",
+    "nasa": "Datos de NASA",
+    "weather": "Clima espacial",
+    "view": "Abrir misión"
+  },
+  "labels": {
+    "active": "Activas",
+    "activeMission": "Misión activa ahora",
+    "cached": "Desde caché",
+    "catalogTotal": "Registros del catálogo",
+    "countdown": "Reloj de lanzamiento",
+    "debris": "Desechos y cohetes",
+    "fresh": "Actual",
+    "geomagnetic": "Geomagnética",
+    "kp": "Índice Kp",
+    "latestNews": "Últimas noticias verificadas",
+    "launchTime": "Hora de lanzamiento",
+    "loading": "Actualizando",
+    "nextMission": "Próxima misión",
+    "observed": "Observado: {{time}}",
+    "payloads": "Cargas útiles",
+    "propagatableObjects": "Objetos con una posición orbital real calculable",
+    "radioBlackout": "Radio",
+    "recentAlerts": "Avisos de 24 horas",
+    "related": "Relacionado con el lanzamiento mediante un ID real",
+    "solarRadiation": "Radiación",
+    "solarWind": "Viento solar",
+    "unavailable": "No disponible",
+    "upcomingLoaded": "Próximas cargadas",
+    "updatedAt": "Actualizado: {{time}}",
+    "weatherMetric": "{{temperature}} · {{wind}}"
+  },
+  "countdown": {
+    "days": "Días",
+    "hours": "Horas",
+    "minutes": "Minutos",
+    "seconds": "Segundos",
+    "counting": "Cuenta atrás para el lanzamiento",
+    "hold": "Lanzamiento en espera",
+    "in-flight": "En vuelo",
+    "elapsed": "Tiempo desde el lanzamiento",
+    "awaiting": "Esperando actualización de estado",
+    "invalid": "Hora no disponible"
+  },
+  "providers": {
+    "celestrak": "CelesTrak",
+    "launchLibrary": "Launch Library 2",
+    "noaaSwpc": "NOAA SWPC",
+    "openMeteo": "Open-Meteo",
+    "spaceflightNews": "Spaceflight News"
+  },
+  "modules": {
+    "nextLaunch": "Próximo lanzamiento",
+    "mission": "Estado de misiones",
+    "satellites": "Catálogo orbital",
+    "spaceWeather": "Clima espacial",
+    "news": "Últimas noticias espaciales"
+  },
+  "states": {
+    "loading": "Sincronizando datos reales…",
+    "unavailable": "Los datos del proveedor no están disponibles.",
+    "noLaunch": "No se encontró un próximo lanzamiento verificado.",
+    "noMission": "No se encontró una misión activa o próxima.",
+    "noNews": "No se encontraron noticias espaciales actuales.",
+    "noSpaceWeatherAlert": "No hubo alertas activas de NOAA en las últimas 24 horas.",
+    "unknown": "No publicado"
+  }
+}

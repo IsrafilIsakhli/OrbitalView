@@ -1,0 +1,76 @@
+{
+  "eyebrow": "KOSMİK ƏMƏLİYYATLAR KOMANDASI",
+  "title": "Əməliyyat icmalı",
+  "subtitle": "Təsdiqlənmiş aerokosmik provayderlərdən aktual missiya və orbital vəziyyət.",
+  "actions": {
+    "earth": "Yer görünüşünü aç",
+    "launches": "Bütün buraxılışlar",
+    "missions": "Missiya cədvəli",
+    "news": "Kosmik xəbərlər",
+    "nasa": "NASA məlumatları",
+    "weather": "Kosmik hava",
+    "view": "Missiyanı aç"
+  },
+  "labels": {
+    "active": "Aktiv",
+    "activeMission": "Hazırda aktiv missiya",
+    "cached": "Keşdən",
+    "catalogTotal": "Kataloq qeydi",
+    "countdown": "Buraxılış saatı",
+    "debris": "Dağıntı və raket",
+    "fresh": "Aktual",
+    "geomagnetic": "Geomaqnit",
+    "kp": "Kp indeksi",
+    "latestNews": "Son real xəbərlər",
+    "launchTime": "Buraxılış vaxtı",
+    "loading": "Yenilənir",
+    "nextMission": "Növbəti missiya",
+    "observed": "Müşahidə: {{time}}",
+    "payloads": "Faydalı yüklər",
+    "propagatableObjects": "Real orbit mövqeyi hesablana bilən obyektlər",
+    "radioBlackout": "Radio",
+    "recentAlerts": "24 saatlıq bildiriş",
+    "related": "Bu buraxılışla real ID üzrə əlaqəli",
+    "solarRadiation": "Radiasiya",
+    "solarWind": "Günəş küləyi",
+    "unavailable": "Əlçatmaz",
+    "upcomingLoaded": "Yüklənmiş gələcək",
+    "updatedAt": "Yenilənib: {{time}}",
+    "weatherMetric": "{{temperature}} · {{wind}}"
+  },
+  "countdown": {
+    "days": "Gün",
+    "hours": "Saat",
+    "minutes": "Dəqiqə",
+    "seconds": "Saniyə",
+    "counting": "Buraxılışa geri sayım",
+    "hold": "Buraxılış gözləmədədir",
+    "in-flight": "Uçuşdadır",
+    "elapsed": "Buraxılışdan keçən vaxt",
+    "awaiting": "Status yenilənməsi gözlənilir",
+    "invalid": "Vaxt əlçatan deyil"
+  },
+  "providers": {
+    "celestrak": "CelesTrak",
+    "launchLibrary": "Launch Library 2",
+    "noaaSwpc": "NOAA SWPC",
+    "openMeteo": "Open-Meteo",
+    "spaceflightNews": "Spaceflight News"
+  },
+  "modules": {
+    "nextLaunch": "Növbəti buraxılış",
+    "mission": "Missiya vəziyyəti",
+    "satellites": "Orbital kataloq",
+    "spaceWeather": "Kosmik hava",
+    "news": "Son kosmik xəbərlər"
+  },
+  "states": {
+    "loading": "Real məlumat sinxronlaşdırılır…",
+    "unavailable": "Provayder məlumatı hazırda əlçatan deyil.",
+    "noLaunch": "Təsdiqlənmiş gələcək buraxılış tapılmadı.",
+    "noMission": "Hazırda aktiv və ya gələcək missiya tapılmadı.",
+    "noNews": "Aktual kosmik xəbər tapılmadı.",
+    "noSpaceWeatherAlert": "Son 24 saatda aktiv NOAA xəbərdarlığı yoxdur.",
+    "unknown": "Yayımlanmayıb"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Space weather",
+  "subtitle": "Official operational conditions from NOAA Space Weather Prediction Center.",
+  "actions": { "back": "Back" },
+  "status": { "fresh": "Current", "stale": "Cached", "unavailable": "Unavailable" },
+  "states": { "loading": "Loading official NOAA observations…", "unavailable": "Space-weather data is not available." },
+  "scale": { "none": "No active scale", "radioBlackout": "Radio blackout", "solarRadiation": "Solar radiation", "geomagneticStorm": "Geomagnetic storm" },
+  "metrics": { "kp": "Planetary K-index", "solarWind": "Solar-wind speed", "speed": "{{value}} km/s" },
+  "alerts": { "eyebrow": "Official notifications", "title": "NOAA watches, warnings and alerts", "empty": "No current official notification was returned.", "kind": { "alert": "Alert", "warning": "Warning", "watch": "Watch", "summary": "Summary", "cancellation": "Cancellation", "message": "Message" } }
+}

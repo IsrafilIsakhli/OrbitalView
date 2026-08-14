@@ -1,0 +1,76 @@
+{
+  "eyebrow": "SPACE OPERATIONS COMMAND",
+  "title": "Operational overview",
+  "subtitle": "Current mission and orbital status from verified aerospace providers.",
+  "actions": {
+    "earth": "Open Earth view",
+    "launches": "All launches",
+    "missions": "Mission schedule",
+    "news": "Space News",
+    "nasa": "NASA data",
+    "weather": "Space weather",
+    "view": "Open mission"
+  },
+  "labels": {
+    "active": "Active",
+    "activeMission": "Active mission now",
+    "cached": "From cache",
+    "catalogTotal": "Catalog records",
+    "countdown": "Launch clock",
+    "debris": "Debris and rockets",
+    "fresh": "Current",
+    "geomagnetic": "Geomagnetic",
+    "kp": "Kp index",
+    "latestNews": "Latest verified news",
+    "launchTime": "Launch time",
+    "loading": "Updating",
+    "nextMission": "Next mission",
+    "observed": "Observed: {{time}}",
+    "payloads": "Payloads",
+    "propagatableObjects": "Objects with a computable real orbital position",
+    "radioBlackout": "Radio",
+    "recentAlerts": "24-hour notices",
+    "related": "Related to this launch by real provider ID",
+    "solarRadiation": "Radiation",
+    "solarWind": "Solar wind",
+    "unavailable": "Unavailable",
+    "upcomingLoaded": "Upcoming loaded",
+    "updatedAt": "Updated: {{time}}",
+    "weatherMetric": "{{temperature}} · {{wind}}"
+  },
+  "countdown": {
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "counting": "Counting to launch",
+    "hold": "Launch hold",
+    "in-flight": "In flight",
+    "elapsed": "Time since launch",
+    "awaiting": "Awaiting status update",
+    "invalid": "Time unavailable"
+  },
+  "providers": {
+    "celestrak": "CelesTrak",
+    "launchLibrary": "Launch Library 2",
+    "noaaSwpc": "NOAA SWPC",
+    "openMeteo": "Open-Meteo",
+    "spaceflightNews": "Spaceflight News"
+  },
+  "modules": {
+    "nextLaunch": "Next launch",
+    "mission": "Mission status",
+    "satellites": "Orbital catalog",
+    "spaceWeather": "Space weather",
+    "news": "Latest space news"
+  },
+  "states": {
+    "loading": "Synchronizing real data…",
+    "unavailable": "Provider data is currently unavailable.",
+    "noLaunch": "No verified upcoming launch was found.",
+    "noMission": "No active or upcoming mission was found.",
+    "noNews": "No current space news was found.",
+    "noSpaceWeatherAlert": "No active NOAA warning was issued in the last 24 hours.",
+    "unknown": "Not published"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Uzay hava durumu",
+  "subtitle": "NOAA Uzay Hava Tahmin Merkezi'nden resmi operasyonel koşullar.",
+  "actions": { "back": "Geri" },
+  "status": { "fresh": "Güncel", "stale": "Önbellekten", "unavailable": "Kullanılamıyor" },
+  "states": { "loading": "Resmi NOAA gözlemleri yükleniyor…", "unavailable": "Uzay hava durumu verileri kullanılamıyor." },
+  "scale": { "none": "Aktif ölçek yok", "radioBlackout": "Radyo kesintisi", "solarRadiation": "Güneş radyasyonu", "geomagneticStorm": "Jeomanyetik fırtına" },
+  "metrics": { "kp": "Gezegensel K-indeksi", "solarWind": "Güneş rüzgârı hızı", "speed": "{{value}} km/s" },
+  "alerts": { "eyebrow": "Resmi bildirimler", "title": "NOAA izleme, uyarı ve alarmları", "empty": "Şu anda resmi bildirim yok.", "kind": { "alert": "Alarm", "warning": "Uyarı", "watch": "İzleme", "summary": "Özet", "cancellation": "İptal", "message": "Mesaj" } }
+}

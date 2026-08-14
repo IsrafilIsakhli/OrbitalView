@@ -1,0 +1,160 @@
+{
+  "eyebrow": "LIVE LAUNCH INTELLIGENCE",
+  "title": "Launch operations",
+  "subtitle": "A global operations view of real launch status, missions, rockets, sites and launch-window weather.",
+  "source": {
+    "live": "LIVE DATA",
+    "cached": "LAST KNOWN DATA",
+    "ll2": "Launch Library 2"
+  },
+  "loading": {
+    "title": "Synchronizing launch operations",
+    "description": "Receiving the latest schedules and mission manifests."
+  },
+  "error": {
+    "title": "Launch intelligence is temporarily unavailable",
+    "description": "Orbital Vision could not reach the live data service or a saved snapshot.",
+    "retry": "Try again"
+  },
+  "hero": {
+    "next": "NEXT LAUNCH",
+    "selected": "SELECTED LAUNCH",
+    "active": "ACTIVE LAUNCH",
+    "completed": "COMPLETED LAUNCH",
+    "watch": "Watch launch",
+    "streamPending": "Stream pending",
+    "mission": "Mission overview",
+    "weather": "Launch weather",
+    "imageCredit": "Image: {{credit}}"
+  },
+  "countdown": {
+    "days": "DAYS",
+    "hours": "HRS",
+    "minutes": "MIN",
+    "seconds": "SEC",
+    "now": "LAUNCH WINDOW OPEN",
+    "complete": "WINDOW PASSED",
+    "awaitingUpdate": "AWAITING STATUS UPDATE"
+  },
+  "fields": {
+    "agency": "Launch company",
+    "rocket": "Rocket",
+    "mission": "Mission",
+    "orbit": "Destination",
+    "pad": "Launch pad",
+    "status": "Status",
+    "window": "Launch window",
+    "probability": "Launch probability",
+    "temperature": "Temperature",
+    "wind": "Wind",
+    "gusts": "Gusts",
+    "humidity": "Humidity",
+    "clouds": "Cloud cover",
+    "precipitation": "Precipitation",
+    "providerType": "Provider type",
+    "location": "Location",
+    "payload": "Payload",
+    "designator": "Launch designator",
+    "visibility": "Visibility",
+    "country": "Country",
+    "net": "No-earlier-than time"
+  },
+  "timeline": {
+    "title": "Launch timeline",
+    "subtitle": "{{count}} upcoming missions",
+    "loaded": "{{loaded}} loaded · {{total}} at provider",
+    "queueLabel": "Launch queues",
+    "search": "Search missions, rockets or sites",
+    "rangeLabel": "Time range",
+    "tabs": { "upcoming": "Upcoming", "active": "Active", "completed": "Completed" },
+    "ranges": { "sevenDays": "7 days", "thirtyDays": "30 days", "all": "All" },
+    "loadingCompleted": "Loading completed launches",
+    "noResults": "No real launches match these filters.",
+    "empty": {
+      "upcoming": "No upcoming launch has been published by the provider.",
+      "active": "No launch is currently marked in flight.",
+      "completed": "No completed launch is available in the loaded history."
+    },
+    "emptyTitle": { "upcoming": "No upcoming launch", "active": "No active launch", "completed": "No completed launch" },
+    "showing": "Showing {{count}} · {{total}} in filter",
+    "select": "Open {{name}}",
+    "today": "Today",
+    "tomorrow": "Tomorrow"
+  },
+  "weather": {
+    "live": "LIVE AT PAD",
+    "forecast": "WINDOW FORECAST",
+    "loading": "Loading pad weather",
+    "unavailable": "Forecast available within 16 days of launch",
+    "stale": "Saved weather snapshot",
+    "validAt": "Forecast valid at {{time}}",
+    "historicalUnavailable": "Historical launch-site weather is not published by the provider.",
+    "availableIn": "A launch-window forecast should become available in about {{days}} days.",
+    "providerUnavailable": "The launch-site weather provider is currently unavailable.",
+    "condition": {
+      "clear": "Clear",
+      "cloudy": "Cloudy",
+      "fog": "Fog",
+      "rain": "Rain",
+      "snow": "Snow",
+      "storm": "Thunderstorm",
+      "unknown": "Conditions unavailable"
+    }
+  },
+  "status": {
+    "go": "GO",
+    "tbd": "TBD",
+    "hold": "HOLD",
+    "success": "SUCCESS",
+    "failure": "FAILURE",
+    "inFlight": "IN FLIGHT",
+    "partialFailure": "PARTIAL FAILURE",
+    "tbc": "TO BE CONFIRMED",
+    "deployed": "PAYLOAD DEPLOYED",
+    "unknown": "STATUS NOT PUBLISHED",
+    "other": "SCHEDULED"
+  },
+  "actions": { "details": "Mission details", "showEarth": "Show on Earth", "fullRecord": "Full mission record" },
+  "intelligence": {
+    "label": "Launch intelligence sections",
+    "tabs": { "overview": "Overview", "payload": "Payload", "rocket": "Rocket", "site": "Site & weather" },
+    "providerContent": "Mission description supplied by the data provider",
+    "notPublished": "The provider has not published this information."
+  },
+  "missions": {
+    "eyebrow": "MISSION OPERATIONS",
+    "title": "Active mission calendar",
+    "subtitle": "Spacewalks, dockings, landings and major mission milestones from around the world.",
+    "events": "Upcoming space events",
+    "manifest": "Mission manifest",
+    "openInfo": "Open mission information",
+    "watch": "Watch live",
+    "noDescription": "More mission information will appear when published.",
+    "empty": "No upcoming events were published."
+  },
+  "search": {
+    "launchMeta": "Launch · {{agency}} · {{date}}",
+    "eventMeta": "Mission event · {{date}}"
+  },
+  "globe": {
+    "label": "LAUNCH SITES",
+    "ready": "{{count}} live",
+    "details": "Open Launches for full mission details",
+    "close": "Close launch site",
+    "siteEyebrow": "LAUNCH SITE",
+    "focus": "Focus site",
+    "openDetails": "Full details",
+    "less": "Less",
+    "upcomingAtSite": "Upcoming from this site",
+    "upcomingCount": "{{count}} upcoming",
+    "source": "Launch Library 2.3",
+    "fresh": "Live data · {{time}}",
+    "cached": "Cached data · {{time}}",
+    "officialSource": "Official launch source",
+    "rocketSource": "Rocket source"
+  },
+  "rocket": { "height": "Height", "diameter": "Diameter", "mass": "Launch mass", "leo": "LEO capacity", "gto": "GTO capacity", "thrust": "Lift-off thrust", "launches": "Total launches", "successes": "Successful launches", "manufacturer": "Manufacturer", "family": "Rocket family", "loading": "Loading verified rocket specifications", "unavailable": "Detailed rocket specifications are not currently available" },
+  "common": {
+    "unavailable": "Not published"
+  }
+}

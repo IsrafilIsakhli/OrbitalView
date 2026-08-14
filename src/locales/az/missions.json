@@ -1,0 +1,12 @@
+{
+  "eyebrow": "MİSSİYA ƏMƏLİYYATLARI", "title": "Missiya idarəetməsi", "subtitle": "Gələcək, aktiv və tamamlanmış missiyaları təsdiqlənmiş buraxılış və orbital məlumatlarla izləyin.",
+  "tabs": { "upcoming": "Gələcək", "active": "Aktiv", "completed": "Tamamlanmış", "events": "Hadisələr" },
+  "filters": { "search": "Missiya, raket, operator və ya orbit axtar", "rangeLabel": "Zaman aralığı", "ranges": { "sevenDays": "7 gün", "thirtyDays": "30 gün", "all": "Hamısı" } },
+  "queue": { "title": "Missiya növbəsi", "eventsTitle": "Kosmik hadisələr", "loaded": "{{loaded}} yüklənib · provayderdə {{total}} qeyd", "showing": "{{count}} göstərilir · provayderdə {{total}}", "empty": "Bu vəziyyətdə missiya yoxdur.", "open": "{{name}} missiyasını aç", "select": "{{name}} missiyasını seç", "payload": "Faydalı yük" },
+  "detail": { "overview": "Missiya icmalı", "payloads": "Faydalı yüklər", "sources": "Mənbə məlumatları", "back": "Missiya növbəsinə qayıt", "showEarth": "Yer üzərində göstər", "watch": "Yayımı izlə", "notPublished": "Dərc edilməyib" },
+  "inspector": { "eyebrow": "MİSSİYA KƏŞFİYYATI", "emptyTitle": "Missiya seçin", "emptyBody": "Məqsəd, faydalı yük və orbital izləmə vəziyyətini görmək üçün növbədən real missiya seçin.", "nextMilestone": "NÖVBƏTİ MƏRHƏLƏ", "outcome": "MİSSİYA NƏTİCƏSİ", "providerContent": "Missiya təsviri məlumat provayderi tərəfindən verilib" },
+  "tracking": { "title": "Canlı missiya izləmə", "available": "ORBİTAL TELEMETRİYA MÖVCUDDUR", "pending": "ORBİTAL TELEMETRİYA GÖZLƏNİLİR", "pendingBody": "Uyğun CelesTrak beynəlxalq identifikatoru hələ dərc edilməyib.", "checking": "Real CelesTrak kataloqunda uyğunluq yoxlanılır.", "noDesignator": "Buraxılış identifikatoru yayımlanmayıb; orbital telemetriya uyğunlaşdırıla bilmir.", "primary": "ƏSAS FAYDALI YÜK", "matches": "İzlənən orbital obyektlər", "trackEarth": "Yer görünüşündə izlə", "position": "Cari mövqe", "altitude": "Hündürlük", "velocity": "Sürət", "groundTrack": "Yer izi", "orbit": "Orbit görünüşü", "updated": "Telemetriya {{time}} yenilənib" },
+  "actions": { "fullDetails": "Tam missiya məlumatı", "launchOperations": "Buraxılış əməliyyatları" },
+  "events": { "emptyTitle": "Hadisə seçin", "emptyBody": "Vaxt, məkan və mənbə məlumatını görmək üçün real kosmik hadisə seçin." },
+  "status": { "upcoming": "GƏLƏCƏK", "active": "AKTİV", "completed": "TAMAMLANIB", "events": "KOSMİK HADİSƏLƏR", "unknown": "TƏSNİF EDİLMƏYİB" }
+}

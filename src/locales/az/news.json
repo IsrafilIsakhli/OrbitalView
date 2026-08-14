@@ -1,0 +1,16 @@
+{
+  "eyebrow": "CANLI KƏŞFİYYAT", "title": "Kosmos xəbərləri", "subtitle": "Spaceflight News-dan təsdiqlənmiş aerokosmik xəbərlər — İngilis mənbə qorunmaqla tərcümə edilir.",
+  "types": { "article": "Məqalə", "blog": "Bloq", "report": "Hesabat" },
+  "filters": { "label": "Xəbər filtrləri", "all": "Hamısı", "article": "Məqalələr", "blog": "Bloqlar", "report": "Hesabatlar", "featured": "Seçilmiş", "source": "Mənbə", "allSources": "Bütün mənbələr", "search": "Xəbərlərdə axtar" },
+  "translation": { "original": "Orijinal İngilis mətn", "cached": "Maşın tərcüməsi", "pending": "İngiliscə · tərcümə gözlənilir", "failed": "İngiliscə · tərcümə əlçatan deyil" },
+  "relations": { "launch": "Əlaqəli buraxılış", "event": "Əlaqəli hadisə" },
+  "badges": { "featured": "SEÇİLMİŞ" },
+  "briefing": { "latest": "SON KƏŞFİYYAT BRİFİNQİ" },
+  "actions": { "details": "Brifinqi aç", "openStory": "{{title}} xəbər brifinqini aç", "refresh": "Yenilə", "retry": "Yenidən sına", "readFull": "Mənbədə tam oxu", "original": "Orijinal İngilis mətni göstər", "localized": "Tərcüməni göstər", "back": "Xəbərlərə qayıt", "loadMore": "Daha çox xəbər yüklə" },
+  "metrics": { "stories": "{{count}} xəbər", "loaded": "Yüklənib", "archive": "Arxiv", "never": "Hələ uğurlu sinxronizasiya yoxdur" },
+  "overview": { "label": "Yüklənmiş xəbər arxivinin icmalı", "loaded": "GÖRÜNƏN XƏBƏR", "sources": "REAL MƏNBƏ", "translated": "HAZIR TƏRCÜMƏ", "linked": "MİSSİYA ƏLAQƏSİ" },
+  "empty": { "title": "Bu görünüşə uyğun xəbər yoxdur", "description": "Mənbə, növ və ya axtarış filtrlərini dəyişin. Keşlənmiş xəbərlər oflayn da qalır." },
+  "error": { "title": "Kosmos xəbərləri əlçatan deyil", "description": "Son etibarlı lokal arxiv qorunub. Provider bağlantısını yoxlayın və yenidən sınayın." },
+  "detail": { "briefingId": "Brifinq · {{id}}", "sourceData": "Mənbə qeydi", "publisher": "Nəşr mənbəyi", "published": "Dərc edilib", "updated": "Mənbə yenilənib", "authors": "Müəlliflər", "related": "Missiya əlaqələri", "noRelations": "Provayder tərəfindən təsdiqlənmiş buraxılış və ya hadisə əlaqəsi verilməyib.", "externalNotice": "Tam məqalə müəllif hüquqları qorunan orijinal mənbədə açılır.", "unavailable": "Təqdim edilməyib" },
+  "search": { "meta": "{{source}} · {{date}}" }
+}

@@ -1,0 +1,71 @@
+{
+  "eyebrow": "SPACE INTELLIGENCE",
+  "title": "Mission overview",
+  "subtitle": "NASA astronomy, near-Earth objects and recent space-weather events in one verified operational view.",
+  "source": "NASA Open APIs",
+  "status": {
+    "fresh": "CURRENT",
+    "stale": "CACHED",
+    "degraded": "DEGRADED",
+    "unavailable": "UNAVAILABLE"
+  },
+  "configuration": {
+    "title": "NASA API key is not configured",
+    "description": "Set NASA_API_KEY in the native runtime environment. No key is ever included in the web interface or frontend bundle."
+  },
+  "apod": {
+    "label": "ASTRONOMY PICTURE OF THE DAY",
+    "credit": "Image credit: {{credit}}",
+    "publicDomain": "NASA astronomy media",
+    "unavailable": "Today's astronomy feature is temporarily unavailable."
+  },
+  "actions": {
+    "openMedia": "Open source",
+    "openEvent": "Open NASA event",
+    "retry": "Try again"
+  },
+  "summary": {
+    "label": "PROVIDER STATUS",
+    "title": "Operational snapshot",
+    "approaches": "Close approaches",
+    "spaceWeather": "Space-weather events",
+    "sourcesReady": "Feeds ready",
+    "retrieved": "Dashboard checked {{date}} UTC"
+  },
+  "components": {
+    "apod": "APOD",
+    "neo": "NeoWs",
+    "cmes": "DONKI CME",
+    "flares": "DONKI flares",
+    "storms": "DONKI storms"
+  },
+  "neo": {
+    "label": "NEAR EARTH",
+    "title": "Upcoming close approaches",
+    "distance": "Miss distance {{value}}",
+    "velocity": "{{value}} relative velocity",
+    "designated": "NASA PHA",
+    "monitored": "MONITORED",
+    "empty": "NASA reports no close approaches in the current seven-day window."
+  },
+  "donki": {
+    "label": "SPACE WEATHER",
+    "title": "Recent DONKI events",
+    "types": {
+      "cme": "Coronal mass ejection",
+      "flare": "Solar flare",
+      "storm": "Geomagnetic storm"
+    },
+    "locationUnavailable": "Source region unavailable",
+    "window": "NASA DONKI · Last 7 days",
+    "empty": "No CME, solar-flare or geomagnetic-storm events were returned for the current window."
+  },
+  "loading": {
+    "title": "Connecting to NASA intelligence",
+    "description": "Checking native caches and refreshing only the feeds that have expired."
+  },
+  "error": {
+    "title": "NASA intelligence is unavailable",
+    "description": "The application remained stable, but no valid live or cached NASA response could be loaded."
+  }
+}

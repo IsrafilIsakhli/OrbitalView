@@ -1,0 +1,12 @@
+{
+  "common": { "unavailable": "Нет данных" },
+  "category": { "station": "Космическая станция", "rocket-body": "Ступень ракеты", "debris": "Орбитальный мусор", "starlink": "Starlink", "navigation": "Навигация", "weather": "Метеорология", "science": "Научная миссия", "communications": "Связь", "other": "Другой активный" },
+  "data": { "label": "Орбитальные объекты", "loading": "Подключение", "error": "Данные недоступны", "ready": "Отслеживается: {{count}}", "rendered": "Видимо: {{count}}", "stale": "Сохранённые данные" },
+  "details": { "regionLabel": "Данные об орбитальном объекте", "close": "Закрыть данные объекта", "norad": "NORAD {{id}}", "livePosition": "ТЕКУЩАЯ ПОЗИЦИЯ", "updatedNow": "Обновлено сейчас", "calculating": "Расчёт орбиты", "coordinates": "{{latitude}}°, {{longitude}}°", "earthOrbit": "Орбита Земли", "source": "Орбитальные элементы и каталог: CelesTrak", "categoryProvenance": "Категория получена из метаданных объекта CelesTrak и правил именования.", "fresh": "Живой каталог · {{time}}", "cached": "Сохранённый каталог · {{time}}" },
+  "media": { "alt": "Реальное справочное изображение {{name}}", "pending": "Проверка Wikimedia Commons по точному идентификатору NORAD", "source": "Источник Commons", "creatorUnknown": "Автор не указан" },
+  "sections": { "liveTelemetry": "Текущая телеметрия", "orbit": "Параметры орбиты", "identity": "Идентификация и источник" },
+  "actions": { "focus": "Фокус", "follow": "Следовать", "stopFollow": "Остановить", "orbit": "Орбита", "groundTrack": "Трасса", "hide": "Скрыть", "details": "Все данные", "less": "Свернуть" },
+  "fields": { "altitude": "Высота", "velocity": "Скорость", "latitude": "Широта", "longitude": "Долгота", "period": "Период", "inclination": "Наклонение", "owner": "Код владельца", "launchDate": "Дата запуска", "launchSite": "Место запуска", "status": "Статус", "designator": "Международный ID", "orbit": "Орбита", "perigee": "Перигей", "apogee": "Апогей", "objectType": "Тип объекта", "eccentricity": "Эксцентриситет", "meanMotion": "Оборотов в сутки", "epoch": "Эпоха элементов" },
+  "status": { "operational": "Работает", "partial": "Частично работает", "standby": "Резервный режим", "inactive": "Неактивен", "unknown": "Статус не опубликован" },
+  "units": { "kilometers": "{{value}} км", "kilometersPerSecond": "{{value}} км/с", "minutes": "{{value}} мин", "degrees": "{{value}}°" }
+}
