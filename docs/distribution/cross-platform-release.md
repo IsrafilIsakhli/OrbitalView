@@ -43,6 +43,10 @@ Required GitHub Actions secrets for macOS:
 - `APPLE_API_KEY`;
 - `APPLE_API_KEY_BASE64`: base64-encoded App Store Connect private key.
 
+Required non-secret GitHub Actions variable:
+
+- `WIKIMEDIA_CONTACT`: a current public project or operator contact URL used in the descriptive Wikimedia API User-Agent. Satellite media enrichment remains disabled if it is missing.
+
 When all Apple secrets are configured, the Mac build is signed, submitted for notarization and stapled by Tauri. Without them, the same workflow creates a universal ad-hoc DMG that can be published for free. On first launch, macOS users must use `System Settings → Privacy & Security → Open Anyway`. After approval, macOS remembers the exception for that application.
 
 Unsigned Windows packages may trigger Microsoft Defender SmartScreen. This is separate from installer creation and does not prevent website download.
@@ -58,6 +62,8 @@ Linux release files are accompanied by `SHA256SUMS.txt`. AppImage itself does no
 5. If signing secrets exist, the workflow uses them; otherwise it produces unsigned/ad-hoc packages and records that fact in the manifest.
 6. The publish job creates a draft GitHub release, `SHA256SUMS.txt`, `release-manifest.json`, signed updater artifacts and `latest.json`.
 7. Publish the draft only after native smoke tests have passed on at least one Windows machine, one Apple Silicon Mac, one Intel Mac or Rosetta path, one Debian-family system and one RPM-family system.
+
+The complete sign-off list is maintained in [release-checklist.md](release-checklist.md). A draft must remain unpublished while any required native package gate is incomplete.
 
 Updater key setup, optional/critical release policy and runtime behavior are documented in [automatic-updates.md](automatic-updates.md).
 

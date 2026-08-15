@@ -82,4 +82,14 @@ Cross-platform packaging, signing, native QA and website download integration ar
 
 Signed optional and critical update behavior is documented in [docs/distribution/automatic-updates.md](docs/distribution/automatic-updates.md).
 
+The mandatory legal, security, native QA and release-integrity gates are tracked in [docs/distribution/release-checklist.md](docs/distribution/release-checklist.md).
+
 Architecture is documented in [docs/architecture](docs/architecture), decisions in [docs/decisions](docs/decisions), and release evidence in [docs/performance](docs/performance) and [docs/screenshots](docs/screenshots).
+
+## Legal, privacy and security
+
+Orbital Vision is proprietary software. Use and redistribution are governed by [LICENSE](LICENSE) and [TERMS.md](TERMS.md). Local data handling and third-party network requests are described in [PRIVACY.md](PRIVACY.md). Provider, map, imagery and open-source acknowledgements are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Please report security vulnerabilities privately using the process in [SECURITY.md](SECURITY.md). Do not publish credentials or vulnerability details in a public issue.
+
+Orbital Vision is an informational and analytical product. It is not certified for safety-critical navigation, launch operations, space-traffic coordination or collision-avoidance decisions.

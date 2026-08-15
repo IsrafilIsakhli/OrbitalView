@@ -13,6 +13,7 @@ env:
   CARGO_TERM_COLOR: always
   NODE_VERSION: "22"
   PNPM_VERSION: "11.20.0"
+  WIKIMEDIA_CONTACT: ${{ vars.WIKIMEDIA_CONTACT }}
 
 jobs:
   verify:
@@ -47,6 +48,8 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: test -n "$TAURI_SIGNING_PRIVATE_KEY"
+      - name: Verify Wikimedia API contact
+        run: test -n "$WIKIMEDIA_CONTACT"
 
   native-quality:
     runs-on: ubuntu-22.04
