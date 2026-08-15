@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "severity": "optional",
   "minimumSupportedVersion": "0.1.0",
   "notes": {
-    "az": "İlk imzalı Orbital Vision yeniləmə kanalı.",
-    "tr": "İlk imzalı Orbital Vision güncelleme kanalı.",
-    "en": "Initial signed Orbital Vision update channel.",
-    "ru": "Первый подписанный канал обновлений Orbital Vision.",
-    "es": "Canal inicial de actualizaciones firmadas de Orbital Vision."
+    "az": "İmzalı Orbital Vision yeniləmə kanalı və Linux paketləmə düzəlişi.",
+    "tr": "İmzalı Orbital Vision güncelleme kanalı ve Linux paketleme düzeltmesi.",
+    "en": "Signed Orbital Vision update channel and Linux packaging correction.",
+    "ru": "Подписанный канал обновлений Orbital Vision и исправление сборки Linux.",
+    "es": "Canal firmado de actualizaciones de Orbital Vision y corrección del empaquetado para Linux."
   }
 }

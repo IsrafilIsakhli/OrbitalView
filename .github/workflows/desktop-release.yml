@@ -210,6 +210,7 @@ jobs:
   linux:
     needs: [verify, native-quality]
     strategy:
+      fail-fast: false
       matrix:
         include:
           - runner: ubuntu-22.04
@@ -236,7 +237,7 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev libdbus-1-dev patchelf pkg-config rpm
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev libdbus-1-dev patchelf pkg-config rpm xdg-utils
       - run: pnpm install --frozen-lockfile
       - name: Build Linux packages and updater
         shell: bash
