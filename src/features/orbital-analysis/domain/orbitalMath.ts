@@ -1,3 +1,4 @@
+import { parseUtcEpoch } from "@/shared/data/utcEpoch";
 import type { AnalysisSatelliteInput, AnalysisWarning, ProximityEvent } from "./analysis";
 
 export const SGP4_MU_KM3_PER_SECOND2 = 398_600.8;
@@ -84,7 +85,7 @@ export function epochWarnings(
 ): AnalysisWarning[] {
   const warnings: AnalysisWarning[] = stale ? [{ code: "catalog-stale" }] : [];
   for (const record of records) {
-    const epoch = Date.parse(record.epoch);
+    const epoch = parseUtcEpoch(record.epoch);
     if (!Number.isFinite(epoch)) continue;
     const ageDays = Math.abs(nowUnixMs - epoch) / 86_400_000;
     if (ageDays > 14) warnings.push({ code: "element-old", objectId: record.id });

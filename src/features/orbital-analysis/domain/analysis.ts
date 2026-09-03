@@ -7,6 +7,9 @@ export const analysisTabs = [
   "groundStation",
   "constellation",
   "proximity",
+  "changeWatch",
+  "coverage",
+  "missionDesign",
 ] as const;
 
 export type AnalysisTab = (typeof analysisTabs)[number];
@@ -25,6 +28,7 @@ export interface AnalysisWarning {
 }
 
 export interface AnalysisEnvelope<Result> {
+  context: AnalysisRunContext;
   catalogFetchedAtUnixMs: number;
   frame: AnalysisFrame;
   generatedAtUnixMs: number;
@@ -36,7 +40,19 @@ export interface AnalysisEnvelope<Result> {
   warnings: AnalysisWarning[];
 }
 
+export interface AnalysisRunContext {
+  kind: string;
+  objectIds: string[];
+  catalogVersion: string;
+  catalogSource: string;
+  parameters: Record<string, unknown>;
+  sourceObjects: SatelliteRecord[];
+  startUnixMs: number | null;
+  endUnixMs: number | null;
+}
+
 export interface AnalysisSatelliteInput {
+  sourceRecord: SatelliteRecord;
   apogeeKm: number | null;
   category: SatelliteCategory;
   eccentricity: number;
@@ -57,6 +73,7 @@ export interface AnalysisSatelliteInput {
 
 export function toAnalysisSatelliteInput(record: SatelliteRecord): AnalysisSatelliteInput {
   return {
+    sourceRecord: record,
     apogeeKm: record.apogeeKm,
     category: record.category,
     eccentricity: record.eccentricity,
@@ -121,7 +138,7 @@ export interface PassSample {
   azimuthDegrees: number;
   dopplerShiftHz: number | null;
   elevationDegrees: number;
-  radialVelocityKmPerSecond: number;
+  radialVelocityKmPerSecond: number | null;
   rangeKm: number;
   timestampUnixMs: number;
 }
@@ -144,6 +161,36 @@ export interface GroundStationAccessResult {
   passes: GroundStationPass[];
   satelliteId: string;
   station: GroundStationInput;
+}
+
+export interface GroundNetworkStationResult {
+  invalidSampleCount: number;
+  passes: GroundStationPass[];
+  station: GroundStationInput;
+}
+
+export interface GroundNetworkContactWindow {
+  endUnixMs: number;
+  startUnixMs: number;
+  stationIds: string[];
+}
+
+export interface GroundNetworkGap {
+  durationSeconds: number;
+  endUnixMs: number;
+  startUnixMs: number;
+}
+
+export interface GroundNetworkResult {
+  availabilityPercent: number;
+  contactWindows: GroundNetworkContactWindow[];
+  endUnixMs: number;
+  gaps: GroundNetworkGap[];
+  longestGapSeconds: number;
+  satelliteId: string;
+  startUnixMs: number;
+  stationResults: GroundNetworkStationResult[];
+  totalContactSeconds: number;
 }
 
 export interface ConstellationFilter {
@@ -195,14 +242,74 @@ export interface ProximityEvent {
 }
 
 export interface ProximityResult {
+  invalidSampleCount: number;
   candidateCount: number;
+  endUnixMs: number;
   events: ProximityEvent[];
   primaryId: string;
   screenedObjectCount: number;
+  startUnixMs: number;
+  thresholdKm: number;
 }
 
 export interface AnalysisCatalogMetadata {
   fetchedAtUnixMs: number;
   source: string;
   stale: boolean;
+}
+
+export interface OrbitalElementSnapshot {
+  apogeeKm: number | null;
+  argumentPerigeeDegrees: number;
+  bstar: number | null;
+  capturedAtUnixMs: number;
+  eccentricity: number;
+  inclinationDegrees: number;
+  meanAnomalyDegrees: number;
+  meanMotion: number;
+  noradId: string;
+  perigeeKm: number | null;
+  raanDegrees: number;
+  sourceEpochUnixMs: number;
+}
+
+export interface CoverageTarget {
+  altitudeMeters: number;
+  latitudeDegrees: number;
+  longitudeDegrees: number;
+  minimumElevationDegrees: number;
+  name: string;
+}
+
+export interface CoveragePass extends GroundStationPass {
+  lighting: "day" | "twilight" | "night";
+  satelliteId: string;
+  satelliteName: string;
+  sunElevationDegrees: number;
+}
+
+export interface CoverageWindow {
+  endUnixMs: number;
+  satelliteIds: string[];
+  startUnixMs: number;
+}
+
+export interface CoverageRevisitGap {
+  kind: "leading" | "between-passes" | "trailing" | "no-access";
+  durationSeconds: number;
+  endUnixMs: number;
+  startUnixMs: number;
+}
+
+export interface CoverageResult {
+  availabilityPercent: number;
+  endUnixMs: number;
+  invalidSampleCount: number;
+  longestRevisitSeconds: number | null;
+  passes: CoveragePass[];
+  revisitGaps: CoverageRevisitGap[];
+  satelliteIds: string[];
+  startUnixMs: number;
+  target: CoverageTarget;
+  windows: CoverageWindow[];
 }

@@ -6,6 +6,7 @@ import { usePreferencesStore } from "@/features/settings/model/preferences";
 import { formatNumber } from "@/shared/i18n/formatters";
 
 import type { AnalysisEnvelope, ConstellationFilter, ConstellationResult } from "../domain/analysis";
+import { AnalysisMetric, AnalysisRunSummary, AnalysisSectionHeading } from "./AnalysisOutput";
 import { AnalysisWarnings } from "./AnalysisWarnings";
 import { ConstellationCanvas } from "./ConstellationCanvas";
 
@@ -13,12 +14,13 @@ interface ConstellationPanelProps {
   envelope: AnalysisEnvelope<ConstellationResult> | null;
   onRun: (filter: ConstellationFilter) => void;
   onSelect: (satelliteId: string) => void;
+  running: boolean;
   selectedId: string;
 }
 
 const emptyBand = { maximum: "", minimum: "" };
 
-export function ConstellationPanel({ envelope, onRun, onSelect, selectedId }: ConstellationPanelProps) {
+export function ConstellationPanel({ envelope, onRun, onSelect, running, selectedId }: ConstellationPanelProps) {
   const { t } = useTranslation(["orbitalAnalysis", "satellites"]);
   const locale = usePreferencesStore((state) => state.locale);
   const [category, setCategory] = useState<"all" | SatelliteCategory>("all");
@@ -46,23 +48,25 @@ export function ConstellationPanel({ envelope, onRun, onSelect, selectedId }: Co
 
   return (
     <section className="analysis-panel-stack">
-      <div className="analysis-filter-grid">
+      <div data-analysis-input className="analysis-filter-grid">
         <label><span>{t("constellation.category")}</span><select value={category} onChange={(event) => setCategory(event.target.value as typeof category)}><option value="all">{t("constellation.all")}</option>{satelliteCategories.map((item) => <option key={item} value={item}>{t(`satellites:category.${item}`)}</option>)}</select></label>
         <label><span>{t("constellation.owner")}</span><input onChange={(event) => setOwner(event.target.value)} placeholder={t("constellation.all")} value={owner} /></label>
         <label><span>{t("constellation.objectType")}</span><input onChange={(event) => setObjectType(event.target.value)} placeholder={t("constellation.all")} value={objectType} /></label>
         <label><span>{t("constellation.status")}</span><input onChange={(event) => setStatus(event.target.value)} placeholder={t("constellation.all")} value={status} /></label>
         <BandInput label={t("constellation.altitudeBand")} maximumLabel={t("constellation.maximum")} minimumLabel={t("constellation.minimum")} onChange={setAltitude} value={altitude} />
         <BandInput label={t("constellation.inclinationBand")} maximumLabel={t("constellation.maximum")} minimumLabel={t("constellation.minimum")} onChange={setInclination} value={inclination} />
-        <button className="primary-button" onClick={run} type="button">{t("actions.run")}</button>
+        <button className="primary-button" disabled={running} onClick={run} type="button">{running ? t("status.running") : t("actions.run")}</button>
       </div>
       <p className="analysis-derived-notice">{t("constellation.derivedNotice")}</p>
       {envelope ? (
         <>
+          <AnalysisRunSummary envelope={envelope} resultCount={points.length} resultLabel={t("constellation.points")} />
           <AnalysisWarnings warnings={envelope.warnings} />
+          <AnalysisSectionHeading description={t("constellation.outputDescription")} title={t("constellation.outputTitle")} />
           <div className="analysis-metric-grid analysis-metric-grid--compact">
-            <Metric label={t("constellation.points")} value={formatNumber(points.length, locale)} />
-            <Metric label={t("constellation.catalog")} value={formatNumber(envelope.result.totalCatalogCount, locale)} />
-            {topCategories.slice(0, 4).map(([label, value]) => <Metric key={label} label={t(`satellites:category.${label as SatelliteCategory}` as const)} value={formatNumber(value, locale)} />)}
+            <AnalysisMetric emphasis="primary" label={t("constellation.points")} value={formatNumber(points.length, locale)} />
+            <AnalysisMetric label={t("constellation.catalog")} value={formatNumber(envelope.result.totalCatalogCount, locale)} />
+            {topCategories.slice(0, 4).map(([label, value]) => <AnalysisMetric key={label} label={t(`satellites:category.${label as SatelliteCategory}` as const)} value={formatNumber(value, locale)} />)}
           </div>
           <div className="analysis-chart-grid">
             <article className="analysis-chart-card"><h3>{t("constellation.scatter")}</h3><ConstellationCanvas ariaLabel={t("constellation.scatter")} mode="scatter" onSelect={onSelect} points={points} selectedId={selectedId} /></article>
@@ -85,4 +89,3 @@ function BandInput({ label, maximumLabel, minimumLabel, onChange, value }: { lab
 
 function splitFilter(value: string): string[] { return value.trim() ? value.split(",").map((part) => part.trim()).filter(Boolean) : []; }
 function numberOrNull(value: string): number | null { const parsed = Number(value); return value.trim() && Number.isFinite(parsed) ? parsed : null; }
-function Metric({ label, value }: { label: string; value: string }) { return <article className="analysis-metric"><span>{label}</span><strong>{value}</strong></article>; }

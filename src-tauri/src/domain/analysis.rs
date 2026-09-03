@@ -26,6 +26,39 @@ pub struct SaveGroundStationRequest {
     pub downlink_frequency_hz: Option<f64>,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordOrbitalSnapshotRequest {
+    pub norad_id: String,
+    pub source_epoch_unix_ms: i64,
+    pub mean_motion: f64,
+    pub eccentricity: f64,
+    pub inclination_degrees: f64,
+    pub raan_degrees: f64,
+    pub argument_perigee_degrees: f64,
+    pub mean_anomaly_degrees: f64,
+    pub bstar: Option<f64>,
+    pub perigee_km: Option<f64>,
+    pub apogee_km: Option<f64>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OrbitalElementSnapshot {
+    pub norad_id: String,
+    pub source_epoch_unix_ms: i64,
+    pub captured_at_unix_ms: i64,
+    pub mean_motion: f64,
+    pub eccentricity: f64,
+    pub inclination_degrees: f64,
+    pub raan_degrees: f64,
+    pub argument_perigee_degrees: f64,
+    pub mean_anomaly_degrees: f64,
+    pub bstar: Option<f64>,
+    pub perigee_km: Option<f64>,
+    pub apogee_km: Option<f64>,
+}
+
 #[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AnalysisExportFormat {
@@ -119,6 +152,60 @@ pub fn validate_station(request: &SaveGroundStationRequest) -> Result<(), Analys
             "invalid_station_id",
             "Ground station identifier is invalid",
         ));
+    }
+    Ok(())
+}
+
+pub fn validate_orbital_snapshot(
+    request: &RecordOrbitalSnapshotRequest,
+) -> Result<(), AnalysisError> {
+    if request.norad_id.is_empty()
+        || request.norad_id.len() > 6
+        || !request
+            .norad_id
+            .chars()
+            .all(|character| character.is_ascii_digit())
+    {
+        return Err(AnalysisError::new(
+            "invalid_norad_id",
+            "NORAD identifier is invalid",
+        ));
+    }
+    if request.source_epoch_unix_ms <= 0 {
+        return Err(AnalysisError::new(
+            "invalid_orbital_epoch",
+            "Orbital element epoch is invalid",
+        ));
+    }
+    validate_finite_range(request.mean_motion, 0.000_001, 25.0, "invalid_mean_motion")?;
+    validate_finite_range(request.eccentricity, 0.0, 0.999_999, "invalid_eccentricity")?;
+    validate_finite_range(
+        request.inclination_degrees,
+        0.0,
+        180.0,
+        "invalid_inclination",
+    )?;
+    validate_finite_range(request.raan_degrees, -360.0, 720.0, "invalid_raan")?;
+    validate_finite_range(
+        request.argument_perigee_degrees,
+        -360.0,
+        720.0,
+        "invalid_argument_perigee",
+    )?;
+    validate_finite_range(
+        request.mean_anomaly_degrees,
+        -360.0,
+        720.0,
+        "invalid_mean_anomaly",
+    )?;
+    for (value, code) in [
+        (request.bstar, "invalid_bstar"),
+        (request.perigee_km, "invalid_perigee"),
+        (request.apogee_km, "invalid_apogee"),
+    ] {
+        if value.is_some_and(|candidate| !candidate.is_finite()) {
+            return Err(AnalysisError::new(code, "Orbital element value is invalid"));
+        }
     }
     Ok(())
 }

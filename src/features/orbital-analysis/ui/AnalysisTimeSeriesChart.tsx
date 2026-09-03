@@ -8,7 +8,7 @@ export interface AnalysisSeries {
   dash?: number[];
   label: string;
   spanGaps?: boolean;
-  values: number[];
+  values: Array<number | null>;
 }
 
 interface AnalysisTimeSeriesChartProps {
@@ -42,7 +42,7 @@ export function AnalysisTimeSeriesChart({
         const UPlot = module.default;
         const data = [
           timestampsUnixMs.map((value) => value / 1_000),
-          ...series.map((entry) => entry.values),
+          ...series.map((entry) => entry.values.map((value) => value !== null && Number.isFinite(value) ? value : null)),
         ] as UPlotInstance.AlignedData;
         plot = new UPlot(
           {
@@ -64,16 +64,16 @@ export function AnalysisTimeSeriesChart({
               ...series.map((entry) => ({
                 ...(entry.dash ? { dash: entry.dash } : {}),
                 label: entry.label,
-                spanGaps: entry.spanGaps ?? true,
+                spanGaps: entry.spanGaps ?? false,
                 stroke: entry.color,
                 value: (_self: unknown, value: number | null) =>
-                  value === null
+                  value === null || !Number.isFinite(value)
                     ? "—"
                     : `${formatNumber(value, locale, { maximumFractionDigits: 3 })} ${unit}`,
                 width: 1.6,
               })),
             ],
-            width: Math.max(320, host.clientWidth),
+            width: Math.max(1, host.clientWidth),
           },
           data,
           host,
@@ -83,12 +83,12 @@ export function AnalysisTimeSeriesChart({
           if (!plot || !entry) return;
           plot.setSize({
             height: entry.contentRect.width < 520 ? 220 : 250,
-            width: Math.max(280, Math.floor(entry.contentRect.width)),
+            width: Math.max(1, Math.floor(entry.contentRect.width)),
           });
         });
         observer.observe(host);
       },
-    );
+    ).catch(() => { if (!disposed) host.replaceChildren(); });
     return () => {
       disposed = true;
       observer?.disconnect();
@@ -118,7 +118,7 @@ export function AnalysisTimeSeriesChart({
                   <tr key={timestamp}>
                     <td>{formatDateTime(timestamp, locale, "utc-only").primary}</td>
                     {series.map((entry) => (
-                      <td key={entry.label}>{formatNumber(entry.values[index] ?? 0, locale, { maximumFractionDigits: 3 })} {unit}</td>
+                      <td key={entry.label}>{formatChartValue(entry.values[index], locale, unit)}</td>
                     ))}
                   </tr>
                 );
@@ -129,4 +129,9 @@ export function AnalysisTimeSeriesChart({
       </details>
     </div>
   );
+}
+
+function formatChartValue(value: number | null | undefined, locale: string, unit: string): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
+  return `${formatNumber(value, locale, { maximumFractionDigits: 3 })} ${unit}`;
 }

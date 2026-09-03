@@ -5,6 +5,7 @@ use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::OpenFlags;
 
 const ANALYSIS_MIGRATION_V1: &str = include_str!("../../migrations/0001_orbital_analysis.sql");
+const ANALYSIS_MIGRATION_V2: &str = include_str!("../../migrations/0002_orbital_change_watch.sql");
 
 #[derive(Clone)]
 pub struct AnalysisDatabase {
@@ -42,6 +43,11 @@ impl AnalysisDatabase {
             .connection()
             .map_err(|error| error.to_string())?
             .execute_batch(ANALYSIS_MIGRATION_V1)
+            .map_err(|error| error.to_string())?;
+        database
+            .connection()
+            .map_err(|error| error.to_string())?
+            .execute_batch(ANALYSIS_MIGRATION_V2)
             .map_err(|error| error.to_string())?;
         Ok(database)
     }

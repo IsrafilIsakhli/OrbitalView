@@ -1,5 +1,8 @@
 use crate::{
-    domain::analysis::{AnalysisError, GroundStationProfile, SaveGroundStationRequest},
+    domain::analysis::{
+        AnalysisError, GroundStationProfile, OrbitalElementSnapshot, RecordOrbitalSnapshotRequest,
+        SaveGroundStationRequest,
+    },
     storage::{analysis_database::AnalysisDatabase, analysis_repository::AnalysisRepository},
 };
 use std::{path::PathBuf, sync::Arc};
@@ -38,6 +41,21 @@ impl AnalysisService {
 
     pub async fn delete_ground_station(&self, id: String) -> Result<bool, AnalysisError> {
         self.repository()?.delete_ground_station(id).await
+    }
+
+    pub async fn record_orbital_snapshot(
+        &self,
+        request: RecordOrbitalSnapshotRequest,
+    ) -> Result<OrbitalElementSnapshot, AnalysisError> {
+        self.repository()?.record_orbital_snapshot(request).await
+    }
+
+    pub async fn orbital_history(
+        &self,
+        norad_id: String,
+        limit: u16,
+    ) -> Result<Vec<OrbitalElementSnapshot>, AnalysisError> {
+        self.repository()?.orbital_history(norad_id, limit).await
     }
 
     fn repository(&self) -> Result<&AnalysisRepository, AnalysisError> {

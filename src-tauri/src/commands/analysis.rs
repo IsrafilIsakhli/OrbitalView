@@ -6,7 +6,7 @@ use tauri_plugin_dialog::DialogExt;
 use crate::{
     domain::analysis::{
         AnalysisError, AnalysisExportRequest, AnalysisExportResult, GroundStationProfile,
-        SaveGroundStationRequest,
+        OrbitalElementSnapshot, RecordOrbitalSnapshotRequest, SaveGroundStationRequest,
     },
     services::analysis_service::AnalysisService,
 };
@@ -34,6 +34,25 @@ pub async fn delete_analysis_ground_station(
     service: State<'_, AnalysisService>,
 ) -> Result<bool, AnalysisError> {
     service.delete_ground_station(id).await
+}
+
+#[tauri::command]
+pub async fn record_analysis_orbital_snapshot(
+    request: RecordOrbitalSnapshotRequest,
+    service: State<'_, AnalysisService>,
+) -> Result<OrbitalElementSnapshot, AnalysisError> {
+    service.record_orbital_snapshot(request).await
+}
+
+#[tauri::command]
+pub async fn analysis_orbital_history(
+    norad_id: String,
+    limit: Option<u16>,
+    service: State<'_, AnalysisService>,
+) -> Result<Vec<OrbitalElementSnapshot>, AnalysisError> {
+    service
+        .orbital_history(norad_id, limit.unwrap_or(512))
+        .await
 }
 
 #[tauri::command]

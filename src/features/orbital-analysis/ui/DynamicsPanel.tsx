@@ -7,6 +7,7 @@ import { formatDateTime, formatNumber } from "@/shared/i18n/formatters";
 import { formatDistanceFromKm, formatOrbitalSpeed } from "@/shared/formatting/units";
 
 import type { AnalysisEnvelope, DynamicsResult } from "../domain/analysis";
+import { AnalysisMetric, AnalysisRunSummary, AnalysisSectionHeading } from "./AnalysisOutput";
 import { AnalysisTimeSeriesChart } from "./AnalysisTimeSeriesChart";
 import { AnalysisWarnings } from "./AnalysisWarnings";
 import { OrbitSchematicCanvas } from "./OrbitSchematicCanvas";
@@ -14,6 +15,8 @@ import { OrbitSchematicCanvas } from "./OrbitSchematicCanvas";
 interface DynamicsPanelProps {
   envelope: AnalysisEnvelope<DynamicsResult> | null;
   onRun: (hours: number, samples: number) => void;
+  onShowEarthAtTime: (timestampUnixMs: number) => void;
+  running: boolean;
   satellite: SatelliteRecord;
 }
 
@@ -24,7 +27,7 @@ const intervals = [
   { hours: 168, key: "week", samples: 1_440 },
 ] as const;
 
-export function DynamicsPanel({ envelope, onRun, satellite }: DynamicsPanelProps) {
+export function DynamicsPanel({ envelope, onRun, onShowEarthAtTime, running, satellite }: DynamicsPanelProps) {
   const { t } = useTranslation("orbitalAnalysis");
   const locale = usePreferencesStore((state) => state.locale);
   const units = usePreferencesStore((state) => state.units);
@@ -43,7 +46,7 @@ export function DynamicsPanel({ envelope, onRun, satellite }: DynamicsPanelProps
       energy: [{ color: "#9a8cff", label: t("dynamics.energy"), values: samples.map((sample) => sample.specificEnergyKm2PerSecond2) }],
       position: [
         { color: "#79c7ff", label: t("dynamics.latitude"), values: samples.map((sample) => sample.latitudeDegrees) },
-        { color: "#ffb85c", dash: [6, 4], label: t("dynamics.longitude"), values: samples.map((sample) => sample.longitudeDegrees) },
+        { color: "#ffb85c", dash: [6, 4], label: t("dynamics.longitude"), spanGaps: false, values: samples.map((sample, index) => index > 0 && Math.abs(sample.longitudeDegrees - samples[index - 1]!.longitudeDegrees) > 180 ? null : sample.longitudeDegrees) },
       ],
       velocity: [{ color: "#71df9a", label: t("dynamics.velocity"), values: samples.map((sample) => sample.velocityKmPerSecond) }],
     };
@@ -52,36 +55,64 @@ export function DynamicsPanel({ envelope, onRun, satellite }: DynamicsPanelProps
 
   return (
     <section className="analysis-panel-stack">
-      <div className="analysis-control-card">
+      <div data-analysis-input className="analysis-control-card">
         <label>
           <span>{t("dynamics.interval")}</span>
           <select value={intervalKey} onChange={(event) => setIntervalKey(event.target.value as typeof intervalKey)}>
             {intervals.map((item) => <option key={item.key} value={item.key}>{t(`dynamics.${item.key}`)}</option>)}
           </select>
         </label>
-        <button className="primary-button" onClick={() => onRun(selectedInterval.hours || satellite.periodMinutes / 60, selectedInterval.samples)} type="button">
-          {t("actions.run")}
+        <button className="primary-button" disabled={running} onClick={() => onRun(selectedInterval.hours || satellite.periodMinutes / 60, selectedInterval.samples)} type="button">
+          {running ? t("status.running") : t("actions.run")}
         </button>
       </div>
 
-      <div className="analysis-metric-grid">
-        <Metric label={t("dynamics.altitude")} value={firstSample ? formatDistanceFromKm(firstSample.altitudeKm, units, locale, 2) : "—"} />
-        <Metric label={t("dynamics.velocity")} value={firstSample ? formatOrbitalSpeed(firstSample.velocityKmPerSecond, units, locale, 3) : "—"} />
-        <Metric label={t("dynamics.period")} value={`${formatNumber(satellite.periodMinutes, locale, { maximumFractionDigits: 2 })} ${t("units.minutes")}`} source />
-        <Metric label={t("dynamics.inclination")} value={`${formatNumber(satellite.inclinationDegrees, locale, { maximumFractionDigits: 4 })}°`} source />
-        <Metric label={t("dynamics.perigee")} value={formatDistanceFromKm(satellite.perigeeKm ?? envelope?.result.derivedPerigeeKm ?? 0, units, locale, 1)} source={satellite.perigeeKm !== null} />
-        <Metric label={t("dynamics.apogee")} value={formatDistanceFromKm(satellite.apogeeKm ?? envelope?.result.derivedApogeeKm ?? 0, units, locale, 1)} source={satellite.apogeeKm !== null} />
-        <Metric label={t("dynamics.eccentricity")} value={formatNumber(satellite.eccentricity, locale, { maximumFractionDigits: 8 })} source />
-        <Metric label={t("dynamics.raan")} value={`${formatNumber(satellite.rightAscensionDegrees, locale, { maximumFractionDigits: 4 })}°`} source />
-        <Metric label={t("dynamics.argument")} value={`${formatNumber(satellite.argumentOfPerigeeDegrees, locale, { maximumFractionDigits: 4 })}°`} source />
-        <Metric label={t("dynamics.meanAnomaly")} value={`${formatNumber(satellite.meanAnomalyDegrees, locale, { maximumFractionDigits: 4 })}°`} source />
-        <Metric label={t("dynamics.bstar")} value={String(omm.BSTAR ?? "—")} source />
-        <Metric label={t("dynamics.motionDerivative")} value={String(omm.MEAN_MOTION_DOT ?? "—")} source />
-      </div>
+      {firstSample && (
+        <section className="analysis-time-machine-card">
+          <div>
+            <span>{t("dynamics.timeMachine")}</span>
+            <strong>{formatDateTime(firstSample.timestampUnixMs, locale, "utc-only").primary}</strong>
+            <small>{t("dynamics.timeMachineDescription")}</small>
+          </div>
+          <div className="analysis-time-machine-card__state">
+            <span>{t("dynamics.selectedInstant")}</span>
+            <b>{String(selectedSampleIndex + 1).padStart(3, "0")} / {String(envelope?.result.samples.length ?? 0).padStart(3, "0")}</b>
+          </div>
+          <button className="primary-button" onClick={() => onShowEarthAtTime(firstSample.timestampUnixMs)} type="button">{t("actions.openSelectedTime")}</button>
+        </section>
+      )}
+
+      <section className="analysis-output-section">
+        <AnalysisSectionHeading description={t("dynamics.propagatedStateDescription")} title={t("dynamics.propagatedState")} />
+        <div className="analysis-metric-grid analysis-metric-grid--primary">
+          <AnalysisMetric emphasis="primary" label={t("dynamics.altitude")} source="derived" value={firstSample ? formatDistanceFromKm(firstSample.altitudeKm, units, locale, 2) : "—"} />
+          <AnalysisMetric emphasis="primary" label={t("dynamics.velocity")} source="derived" value={firstSample ? formatOrbitalSpeed(firstSample.velocityKmPerSecond, units, locale, 3) : "—"} />
+          <AnalysisMetric emphasis="primary" label={t("dynamics.radius")} source="derived" value={firstSample ? formatDistanceFromKm(firstSample.radiusKm, units, locale, 2) : "—"} />
+          <AnalysisMetric emphasis="primary" label={t("dynamics.energy")} source="derived" value={firstSample ? `${formatNumber(firstSample.specificEnergyKm2PerSecond2, locale, { maximumFractionDigits: 4 })} km²/s²` : "—"} />
+        </div>
+      </section>
+
+      <section className="analysis-output-section">
+        <AnalysisSectionHeading description={t("dynamics.orbitalElementsDescription")} title={t("dynamics.orbitalElements")} />
+        <div className="analysis-metric-grid">
+          <AnalysisMetric label={t("dynamics.period")} source="source" value={`${formatNumber(satellite.periodMinutes, locale, { maximumFractionDigits: 2 })} ${t("units.minutes")}`} />
+          <AnalysisMetric label={t("dynamics.inclination")} source="source" value={`${formatNumber(satellite.inclinationDegrees, locale, { maximumFractionDigits: 4 })}°`} />
+          <AnalysisMetric label={t("dynamics.perigee")} source={satellite.perigeeKm !== null ? "source" : "derived"} value={formatOptionalDistance(satellite.perigeeKm ?? envelope?.result.derivedPerigeeKm, units, locale)} />
+          <AnalysisMetric label={t("dynamics.apogee")} source={satellite.apogeeKm !== null ? "source" : "derived"} value={formatOptionalDistance(satellite.apogeeKm ?? envelope?.result.derivedApogeeKm, units, locale)} />
+          <AnalysisMetric label={t("dynamics.eccentricity")} source="source" value={formatNumber(satellite.eccentricity, locale, { maximumFractionDigits: 8 })} />
+          <AnalysisMetric label={t("dynamics.raan")} source="source" value={`${formatNumber(satellite.rightAscensionDegrees, locale, { maximumFractionDigits: 4 })}°`} />
+          <AnalysisMetric label={t("dynamics.argument")} source="source" value={`${formatNumber(satellite.argumentOfPerigeeDegrees, locale, { maximumFractionDigits: 4 })}°`} />
+          <AnalysisMetric label={t("dynamics.meanAnomaly")} source="source" value={`${formatNumber(satellite.meanAnomalyDegrees, locale, { maximumFractionDigits: 4 })}°`} />
+          <AnalysisMetric label={t("dynamics.bstar")} source="source" value={String(omm.BSTAR ?? "—")} />
+          <AnalysisMetric label={t("dynamics.motionDerivative")} source="source" value={String(omm.MEAN_MOTION_DOT ?? "—")} />
+        </div>
+      </section>
 
       {envelope ? (
         <>
+          <AnalysisRunSummary envelope={envelope} resultCount={envelope.result.samples.length} resultLabel={t("dynamics.timeline")} />
           <AnalysisWarnings warnings={envelope.warnings} />
+          <AnalysisSectionHeading description={t("dynamics.timelineDescription")} title={t("dynamics.timeline")} />
           <div className="analysis-chart-grid">
             <ChartCard title={t("dynamics.altitude")}>
               <AnalysisTimeSeriesChart ariaLabel={t("dynamics.altitude")} locale={locale} onCursorIndexChange={setSelectedSampleIndex} series={chartSeries.altitude} timestampsUnixMs={timestamps} unit="km" />
@@ -104,9 +135,8 @@ export function DynamicsPanel({ envelope, onRun, satellite }: DynamicsPanelProps
   );
 }
 
-function Metric({ label, source = false, value }: { label: string; source?: boolean; value: string }) {
-  const { t } = useTranslation("orbitalAnalysis");
-  return <article className="analysis-metric"><span>{label}</span><strong>{value}</strong><small>{t(source ? "dynamics.sourceData" : "dynamics.derived")}</small></article>;
+function formatOptionalDistance(value: number | null | undefined, units: "metric" | "imperial", locale: string): string {
+  return value === null || value === undefined ? "—" : formatDistanceFromKm(value, units, locale, 1);
 }
 
 function ChartCard({ children, title }: { children: React.ReactNode; title: string }) {

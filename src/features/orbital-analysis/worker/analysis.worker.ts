@@ -10,6 +10,10 @@ import {
   eciToGeodetic,
 } from "@satellite/transforms";
 import createWasmModule from "@satellite/wasm-module";
+import { parseUtcEpoch } from "@/shared/data/utcEpoch";
+import { createRunContext, type CalculationRequest } from "../domain/runContext";
+import { deduplicateProximityEvents } from "../domain/proximityEvents";
+import { minimizeBounded, refineCrossing } from "../domain/numerics";
 
 import type {
   AnalysisCatalogMetadata,
@@ -18,10 +22,13 @@ import type {
   ConstellationFilter,
   ConstellationPoint,
   ConstellationResult,
+  CoveragePass,
+  CoverageResult,
   DynamicsResult,
   GroundStationAccessResult,
   GroundStationInput,
   GroundStationPass,
+  GroundNetworkResult,
   PassSample,
   ProximityEvent,
   ProximityResult,
@@ -39,6 +46,8 @@ import {
   vectorMagnitude,
   type Vector3,
 } from "../domain/orbitalMath";
+import { calculateGroundNetworkGaps, mergeGroundNetworkWindows } from "../domain/groundNetwork";
+import { calculateCoverageGaps, mergeCoverageWindows, solarElevationDegrees } from "../domain/coverage";
 import type {
   AnalysisWorkerRequest,
   AnalysisWorkerResponse,
@@ -69,14 +78,38 @@ let indexById = new Map<string, number>();
 let metadata: AnalysisCatalogMetadata | null = null;
 let bulkRuntime: BulkRuntime | null = null;
 const cancelled = new Set<string>();
+let pending: AnalysisWorkerRequest | null = null;
+let processing = false;
+let activeRequest: CalculationRequest | null = null;
 
 scope.onmessage = (event) => {
   if (event.data.type === "cancel") {
-    cancelled.add(event.data.requestId);
+    if (activeRequest?.requestId === event.data.requestId
+      || (pending && "requestId" in pending && pending.requestId === event.data.requestId)) cancelled.add(event.data.requestId);
     return;
   }
-  void handleRequest(event.data);
+  if (activeRequest) cancelled.add(activeRequest.requestId);
+  if (pending && "requestId" in pending) {
+    scope.postMessage({ requestId: pending.requestId, type: "cancelled" });
+  }
+  pending = event.data;
+  void drainRequests();
 };
+
+async function drainRequests() {
+  if (processing) return;
+  processing = true;
+  try {
+    while (pending) {
+      const request = pending;
+      pending = null;
+      activeRequest = "requestId" in request && request.type !== "cancel" ? request : null;
+      await handleRequest(request);
+      if (activeRequest) cancelled.delete(activeRequest.requestId);
+      activeRequest = null;
+    }
+  } finally { processing = false; }
+}
 
 async function handleRequest(request: AnalysisWorkerRequest): Promise<void> {
   if (request.type === "cancel") return;
@@ -89,7 +122,6 @@ async function handleRequest(request: AnalysisWorkerRequest): Promise<void> {
       recordsById = new Map(records.map((record) => [record.id, record]));
       indexById = new Map(records.map((record, index) => [record.id, index]));
       satrecs = records.map((record) => json2satrec(record.omm));
-      bulkRuntime = await createBulkRuntime(satrecs);
       scope.postMessage({ count: records.length, type: "ready" });
       return;
     }
@@ -99,21 +131,27 @@ async function handleRequest(request: AnalysisWorkerRequest): Promise<void> {
       return;
     }
     ensureReady();
-    cancelled.delete(request.requestId);
+    checkCancelled(request.requestId);
     let analysis: AnalysisWorkerResult;
-    let kind: "dynamics" | "groundStation" | "constellation" | "proximity";
+    let kind: "dynamics" | "groundStation" | "groundNetwork" | "constellation" | "proximity" | "coverage";
     if (request.type === "dynamics") {
-      analysis = calculateDynamics(request);
+      analysis = await calculateDynamics(request);
       kind = "dynamics";
     } else if (request.type === "ground-station") {
       analysis = await calculateGroundStationAccess(request);
       kind = "groundStation";
+    } else if (request.type === "ground-network") {
+      analysis = await calculateGroundNetwork(request);
+      kind = "groundNetwork";
     } else if (request.type === "constellation") {
-      analysis = calculateConstellation(request);
+      analysis = await calculateConstellation(request);
       kind = "constellation";
     } else if (request.type === "proximity") {
       analysis = await calculateProximity(request);
       kind = "proximity";
+    } else if (request.type === "coverage") {
+      analysis = await calculateCoverage(request);
+      kind = "coverage";
     } else {
       return;
     }
@@ -151,15 +189,17 @@ async function createBulkRuntime(currentSatrecs: Satrec[]) {
   return { propagator, wasmRuntime };
 }
 
-function calculateDynamics(request: Extract<AnalysisWorkerRequest, { type: "dynamics" }>): AnalysisEnvelope<DynamicsResult> {
+async function calculateDynamics(request: Extract<AnalysisWorkerRequest, { type: "dynamics" }>): Promise<AnalysisEnvelope<DynamicsResult>> {
   const { record, satrec } = selectedRecord(request.satelliteId);
   const start = finiteTime(request.startUnixMs, "invalid-start");
   const end = finiteTime(request.endUnixMs, "invalid-end");
-  if (end <= start) throw new AnalysisError("invalid-interval", "Analysis interval is invalid");
-  const count = Math.min(MAX_DYNAMICS_SAMPLES, Math.max(2, Math.round(request.sampleCount)));
+  if (end <= start || end - start > MAX_PASS_HORIZON_MS || !Number.isInteger(request.sampleCount)
+    || request.sampleCount < 2 || request.sampleCount > MAX_DYNAMICS_SAMPLES) throw new AnalysisError("invalid-interval", "Analysis interval is invalid");
+  const count = request.sampleCount;
   const samples: DynamicsResult["samples"] = [];
   let invalidSampleCount = 0;
   for (let index = 0; index < count; index += 1) {
+    if (index % 64 === 0) await yieldToMessages();
     checkCancelled(request.requestId);
     const timestampUnixMs = start + (end - start) * index / (count - 1);
     const state = propagateState(satrec, timestampUnixMs);
@@ -194,72 +234,19 @@ async function calculateGroundStationAccess(
 ): Promise<AnalysisEnvelope<GroundStationAccessResult>> {
   const { record, satrec } = selectedRecord(request.satelliteId);
   const start = finiteTime(request.startUnixMs, "invalid-start");
-  const requestedEnd = finiteTime(request.endUnixMs, "invalid-end");
-  const end = Math.min(requestedEnd, start + MAX_PASS_HORIZON_MS);
-  if (end <= start) throw new AnalysisError("invalid-interval", "Pass interval is invalid");
+  const end = finiteTime(request.endUnixMs, "invalid-end");
+  if (end <= start || end - start > MAX_PASS_HORIZON_MS) throw new AnalysisError("invalid-interval", "Pass interval is invalid");
   validateStation(request.station);
-  const threshold = request.station.minimumElevationDegrees;
-  const periodSeconds = Math.max(1, record.periodMinutes * 60);
-  const stepMs = Math.max(5_000, Math.min(30_000, periodSeconds * 1_000 / 240));
-  const passes: GroundStationPass[] = [];
-  let invalidSampleCount = 0;
-  let previousTime = start;
-  let previous = lookSample(satrec, request.station, start);
-  if (!previous) invalidSampleCount += 1;
-  let passStart: number | null = previous && previous.elevationDegrees >= threshold ? start : null;
-  let startedAbove = passStart !== null;
-
-  let iteration = 0;
-  const estimatedSteps = Math.max(1, Math.ceil((end - start) / stepMs));
-  for (let timestamp = start + stepMs; timestamp <= end + stepMs; timestamp += stepMs) {
-    checkCancelled(request.requestId);
-    const currentTime = Math.min(timestamp, end);
-    const current = lookSample(satrec, request.station, currentTime);
-    if (!current) invalidSampleCount += 1;
-    if (previous && current) {
-      const wasAbove = previous.elevationDegrees >= threshold;
-      const isAbove = current.elevationDegrees >= threshold;
-      if (!wasAbove && isAbove) {
-        passStart = refineElevationCrossing(
-          satrec,
-          request.station,
-          threshold,
-          previousTime,
-          currentTime,
-          true,
-        );
-        startedAbove = false;
-      } else if (wasAbove && !isAbove && passStart !== null) {
-        const passEnd = refineElevationCrossing(
-          satrec,
-          request.station,
-          threshold,
-          previousTime,
-          currentTime,
-          false,
-        );
-        passes.push(buildPass(satrec, request.station, passStart, passEnd, false));
-        passStart = null;
-        startedAbove = false;
-      }
-    }
-    previous = current;
-    previousTime = currentTime;
-    iteration += 1;
-    if (iteration % 256 === 0) {
-      scope.postMessage({
-        progress: Math.min(0.95, iteration / estimatedSteps),
-        requestId: request.requestId,
-        stage: "pass-detection",
-        type: "progress",
-      });
-      await yieldToMessages();
-    }
-    if (currentTime === end) break;
-  }
-  if (passStart !== null) {
-    passes.push(buildPass(satrec, request.station, passStart, end, startedAbove));
-  }
+  const { invalidSampleCount, passes } = await detectPasses(
+    request.requestId,
+    record,
+    satrec,
+    request.station,
+    start,
+    end,
+    0,
+    1,
+  );
 
   return envelope(request.requestId, "ECF", [record], warningsFor([record], invalidSampleCount > 0), {
     invalidSampleCount,
@@ -269,13 +256,222 @@ async function calculateGroundStationAccess(
   });
 }
 
-function calculateConstellation(
+async function calculateGroundNetwork(
+  request: Extract<AnalysisWorkerRequest, { type: "ground-network" }>,
+): Promise<AnalysisEnvelope<GroundNetworkResult>> {
+  const { record, satrec } = selectedRecord(request.satelliteId);
+  const start = finiteTime(request.startUnixMs, "invalid-start");
+  const end = finiteTime(request.endUnixMs, "invalid-end");
+  if (end <= start || end - start > MAX_PASS_HORIZON_MS) throw new AnalysisError("invalid-interval", "Network interval is invalid");
+  if (request.stations.length < 1 || request.stations.length > 12) {
+    throw new AnalysisError("invalid-network", "Select between 1 and 12 ground stations");
+  }
+  const stationIds = new Set<string>();
+  for (const station of request.stations) {
+    validateStation(station);
+    if (stationIds.has(station.id)) throw new AnalysisError("invalid-network", "Ground station IDs must be unique");
+    stationIds.add(station.id);
+  }
+
+  const stationResults: GroundNetworkResult["stationResults"] = [];
+  for (let index = 0; index < request.stations.length; index += 1) {
+    checkCancelled(request.requestId);
+    const station = request.stations[index]!;
+    const result = await detectPasses(
+      request.requestId,
+      record,
+      satrec,
+      station,
+      start,
+      end,
+      index / request.stations.length,
+      1 / request.stations.length,
+    );
+    stationResults.push({ ...result, station });
+  }
+
+  const contactWindows = mergeGroundNetworkWindows(stationResults);
+  const gaps = calculateGroundNetworkGaps(start, end, contactWindows);
+  const totalContactSeconds = contactWindows.reduce(
+    (total, window) => total + (window.endUnixMs - window.startUnixMs) / 1_000,
+    0,
+  );
+  const intervalSeconds = (end - start) / 1_000;
+  const invalidSampleCount = stationResults.reduce((total, result) => total + result.invalidSampleCount, 0);
+  return envelope(request.requestId, "ECF", [record], warningsFor([record], invalidSampleCount > 0), {
+    availabilityPercent: intervalSeconds > 0 ? totalContactSeconds / intervalSeconds * 100 : 0,
+    contactWindows,
+    endUnixMs: end,
+    gaps,
+    longestGapSeconds: gaps.reduce((longest, gap) => Math.max(longest, gap.durationSeconds), 0),
+    satelliteId: record.id,
+    startUnixMs: start,
+    stationResults,
+    totalContactSeconds,
+  });
+}
+
+async function calculateCoverage(
+  request: Extract<AnalysisWorkerRequest, { type: "coverage" }>,
+): Promise<AnalysisEnvelope<CoverageResult>> {
+  const start = finiteTime(request.startUnixMs, "invalid-start");
+  const end = finiteTime(request.endUnixMs, "invalid-end");
+  if (end <= start || end - start > MAX_PASS_HORIZON_MS) throw new AnalysisError("invalid-interval", "Coverage interval is invalid");
+  if (request.satelliteIds.length < 1 || request.satelliteIds.length > 24) {
+    throw new AnalysisError("invalid-coverage", "Select between 1 and 24 catalog objects");
+  }
+  const satelliteIds = [...new Set(request.satelliteIds)];
+  if (satelliteIds.length !== request.satelliteIds.length) {
+    throw new AnalysisError("invalid-coverage", "Coverage object IDs must be unique");
+  }
+  const station: GroundStationInput = {
+    altitudeMeters: request.target.altitudeMeters,
+    downlinkFrequencyHz: null,
+    id: "coverage-target",
+    latitudeDegrees: request.target.latitudeDegrees,
+    longitudeDegrees: request.target.longitudeDegrees,
+    minimumElevationDegrees: request.target.minimumElevationDegrees,
+    name: request.target.name,
+  };
+  validateStation(station);
+  const related = satelliteIds.map((id) => selectedRecord(id));
+  const passes: CoveragePass[] = [];
+  let invalidSampleCount = 0;
+  for (let index = 0; index < related.length; index += 1) {
+    checkCancelled(request.requestId);
+    const { record, satrec } = related[index]!;
+    const detected = await detectPasses(
+      request.requestId,
+      record,
+      satrec,
+      station,
+      start,
+      end,
+      index / related.length,
+      1 / related.length,
+    );
+    invalidSampleCount += detected.invalidSampleCount;
+    for (const pass of detected.passes) {
+      const sunElevationDegrees = solarElevationDegrees(
+        request.target.latitudeDegrees,
+        request.target.longitudeDegrees,
+        pass.tcaUnixMs,
+      );
+      passes.push({
+        ...pass,
+        lighting: sunElevationDegrees >= 0 ? "day" : sunElevationDegrees >= -6 ? "twilight" : "night",
+        satelliteId: record.id,
+        satelliteName: record.name,
+        sunElevationDegrees,
+      });
+    }
+  }
+  passes.sort((left, right) => left.aosUnixMs - right.aosUnixMs);
+  const windows = mergeCoverageWindows(passes);
+  const revisitGaps = calculateCoverageGaps(start, end, windows);
+  const coveredMilliseconds = windows.reduce(
+    (total, window) => total + window.endUnixMs - window.startUnixMs,
+    0,
+  );
+  return envelope(
+    request.requestId,
+    "ECF",
+    related.map(({ record }) => record),
+    warningsFor(related.map(({ record }) => record), invalidSampleCount > 0),
+    {
+      availabilityPercent: coveredMilliseconds / (end - start) * 100,
+      endUnixMs: end,
+      invalidSampleCount,
+      longestRevisitSeconds: revisitGaps.some((gap) => gap.kind === "between-passes") ? revisitGaps.filter((gap) => gap.kind === "between-passes").reduce(
+        (longest, gap) => Math.max(longest, gap.durationSeconds),
+        0,
+      ) : null,
+      passes,
+      revisitGaps,
+      satelliteIds,
+      startUnixMs: start,
+      target: request.target,
+      windows,
+    },
+  );
+}
+
+async function detectPasses(
+  requestId: string,
+  record: AnalysisSatelliteInput,
+  satrec: Satrec,
+  station: GroundStationInput,
+  start: number,
+  end: number,
+  progressOffset: number,
+  progressScale: number,
+): Promise<{ invalidSampleCount: number; passes: GroundStationPass[] }> {
+  const threshold = station.minimumElevationDegrees;
+  const periodSeconds = Math.max(1, record.periodMinutes * 60);
+  const stepMs = Math.max(5_000, Math.min(30_000, periodSeconds * 1_000 / 240));
+  const passes: GroundStationPass[] = [];
+  let invalidSampleCount = 0;
+  let previousTime = start;
+  let previous = lookSample(satrec, station, start);
+  if (!previous) invalidSampleCount += 1;
+  let passStart: number | null = previous && previous.elevationDegrees >= threshold ? start : null;
+  let startedAbove = passStart !== null;
+  let iteration = 0;
+  const estimatedSteps = Math.max(1, Math.ceil((end - start) / stepMs));
+  for (let timestamp = start + stepMs; timestamp <= end + stepMs; timestamp += stepMs) {
+    checkCancelled(requestId);
+    const currentTime = Math.min(timestamp, end);
+    const current = lookSample(satrec, station, currentTime);
+    if (!current) { invalidSampleCount += 1; passStart = null; startedAbove = false; }
+    if (previous && current) {
+      const wasAbove = previous.elevationDegrees >= threshold;
+      const isAbove = current.elevationDegrees >= threshold;
+      if (!wasAbove && !isAbove && Math.max(previous.elevationDegrees, current.elevationDegrees) > threshold - 5) {
+        const peakTime = maximizeElevation(satrec, station, previousTime, currentTime);
+        const peak = lookSample(satrec, station, peakTime, false);
+        if (peak && peak.elevationDegrees >= threshold) {
+          const aos = refineElevationCrossing(satrec, station, threshold, previousTime, peakTime, true);
+          const los = refineElevationCrossing(satrec, station, threshold, peakTime, currentTime, false);
+          passes.push(buildPass(satrec, station, aos, los, false));
+        }
+      }
+      if (!wasAbove && isAbove) {
+        passStart = refineElevationCrossing(satrec, station, threshold, previousTime, currentTime, true);
+        startedAbove = false;
+      } else if (wasAbove && !isAbove && passStart !== null) {
+        const passEnd = refineElevationCrossing(satrec, station, threshold, previousTime, currentTime, false);
+        passes.push(buildPass(satrec, station, passStart, passEnd, false));
+        passStart = null;
+        startedAbove = false;
+      }
+    }
+    previous = current;
+    previousTime = currentTime;
+    iteration += 1;
+    if (iteration % 256 === 0) {
+      scope.postMessage({
+        progress: Math.min(0.99, progressOffset + iteration / estimatedSteps * progressScale),
+        requestId,
+        stage: progressScale < 1 ? "network-planning" : "pass-detection",
+        type: "progress",
+      });
+      await yieldToMessages();
+    }
+    if (currentTime === end) break;
+  }
+  if (passStart !== null) passes.push(buildPass(satrec, station, passStart, end, startedAbove));
+  return { invalidSampleCount, passes };
+}
+
+async function calculateConstellation(
   request: Extract<AnalysisWorkerRequest, { type: "constellation" }>,
-): AnalysisEnvelope<ConstellationResult> {
+): Promise<AnalysisEnvelope<ConstellationResult>> {
   const points: ConstellationPoint[] = [];
   const categoryCounts: ConstellationResult["categoryCounts"] = {};
   const ownerCountMap = new Map<string, number>();
+  let iteration = 0;
   for (const record of records) {
+    if (iteration++ % 256 === 0) await yieldToMessages();
     checkCancelled(request.requestId);
     const envelopeValues = radialEnvelope(record);
     const altitudeKm = (envelopeValues.perigeeKm + envelopeValues.apogeeKm) / 2;
@@ -304,7 +500,8 @@ function calculateConstellation(
     .map(([ownerCode, count]) => ({ count, ownerCode }))
     .sort((left, right) => right.count - left.count || left.ownerCode.localeCompare(right.ownerCode))
     .slice(0, 20);
-  return envelope(request.requestId, "SGP4-ECI", [], warningsFor([], false), {
+  const included = points.map((point) => recordsById.get(point.id)!);
+  return envelope(request.requestId, "SGP4-ECI", included, warningsFor(included, false), {
     categoryCounts,
     ownerCounts,
     points,
@@ -315,12 +512,14 @@ function calculateConstellation(
 async function calculateProximity(
   request: Extract<AnalysisWorkerRequest, { type: "proximity" }>,
 ): Promise<AnalysisEnvelope<ProximityResult>> {
-  if (!bulkRuntime) throw new AnalysisError("not-ready", "Analysis runtime is not ready");
+  if (!bulkRuntime) bulkRuntime = await createBulkRuntime(satrecs);
+  checkCancelled(request.requestId);
   const primary = selectedRecord(request.primaryId);
   const start = finiteTime(request.startUnixMs, "invalid-start");
-  const end = Math.min(finiteTime(request.endUnixMs, "invalid-end"), start + MAX_PROXIMITY_HORIZON_MS);
-  if (end <= start) throw new AnalysisError("invalid-interval", "Screening interval is invalid");
-  const thresholdKm = Math.min(250, Math.max(1, request.thresholdKm));
+  const end = finiteTime(request.endUnixMs, "invalid-end");
+  if (end <= start || end - start > MAX_PROXIMITY_HORIZON_MS) throw new AnalysisError("invalid-interval", "Screening interval is invalid");
+  if (!inRange(request.thresholdKm, 1, 250)) throw new AnalysisError("invalid-interval", "Invalid screening threshold");
+  const thresholdKm = request.thresholdKm;
   const primaryEnvelope = radialEnvelope(primary.record);
   const candidateIndices = records.flatMap((record, index) => {
     if (record.id === primary.record.id) return [];
@@ -329,7 +528,9 @@ async function calculateProximity(
       && candidateEnvelope.apogeeKm >= primaryEnvelope.perigeeKm - RADIAL_FILTER_MARGIN_KM;
     return overlaps ? [index] : [];
   });
-  const potentialByIndex = new Map<number, { distanceKm: number; estimatedTcaUnixMs: number }>();
+  let invalidSampleCount = 0;
+  const potentials: Array<[number, { estimatedTcaUnixMs: number }]> = [];
+  const recent = new Map<number, { distance: number; time: number; previousDistance: number }>();
   const stepCount = Math.max(1, Math.ceil((end - start) / PROXIMITY_COARSE_STEP_MS));
   for (let step = 0; step <= stepCount; step += 1) {
     checkCancelled(request.requestId);
@@ -338,12 +539,17 @@ async function calculateProximity(
     bulkRuntime.propagator.run({ eci: { communityDecayCheckEnabled: true } });
     const raw = bulkRuntime.propagator.getRawOutput().eci;
     const primaryIndex = indexById.get(primary.record.id)!;
-    if (raw.error[primaryIndex] !== 0) continue;
+    if (raw.error[primaryIndex] !== 0) {
+      invalidSampleCount += candidateIndices.length;
+      recent.clear();
+      await yieldToMessages();
+      continue;
+    }
     const primaryPosition = vectorFromArray(raw.position, primaryIndex * 3);
     const primaryVelocity = vectorFromArray(raw.velocity, primaryIndex * 3);
     const remainingSeconds = Math.min(PROXIMITY_COARSE_STEP_MS, end - timestampUnixMs) / 1_000;
     for (const candidateIndex of candidateIndices) {
-      if (raw.error[candidateIndex] !== 0) continue;
+      if (raw.error[candidateIndex] !== 0) { invalidSampleCount++; recent.delete(candidateIndex); continue; }
       const relativePosition = subtractVectors(
         vectorFromArray(raw.position, candidateIndex * 3),
         primaryPosition,
@@ -362,16 +568,21 @@ async function calculateProximity(
         z: relativePosition.z + relativeVelocity.z * closestSeconds,
       };
       const estimatedDistance = vectorMagnitude(estimated);
-      if (estimatedDistance > thresholdKm + PROXIMITY_GUARD_KM) continue;
-      const previous = potentialByIndex.get(candidateIndex);
-      if (!previous || estimatedDistance < previous.distanceKm) {
-        potentialByIndex.set(candidateIndex, {
-          distanceKm: estimatedDistance,
-          estimatedTcaUnixMs: timestampUnixMs + closestSeconds * 1_000,
-        });
+      if (!Number.isFinite(estimatedDistance) || estimatedDistance > thresholdKm + PROXIMITY_GUARD_KM) {
+        const last = recent.get(candidateIndex);
+        if (last && last.distance <= last.previousDistance) potentials.push([candidateIndex, { estimatedTcaUnixMs: last.time }]);
+        recent.delete(candidateIndex);
+        continue;
       }
+      const prior = recent.get(candidateIndex);
+      const estimateTime = timestampUnixMs + closestSeconds * 1_000;
+      if (prior && prior.distance <= prior.previousDistance && prior.distance < estimatedDistance) {
+        potentials.push([candidateIndex, { estimatedTcaUnixMs: prior.time }]);
+      }
+      recent.set(candidateIndex, { distance: estimatedDistance, time: estimateTime, previousDistance: prior?.distance ?? Infinity });
     }
-    if (step % 6 === 0 || step === stepCount) {
+    if (potentials.length > 100_000) throw new AnalysisError("screening-too-dense", "Narrow the screening interval");
+    {
       scope.postMessage({
         progress: step / Math.max(1, stepCount) * 0.78,
         requestId: request.requestId,
@@ -382,8 +593,10 @@ async function calculateProximity(
     }
   }
 
+  for (const [index, last] of recent) {
+    if (last.distance <= last.previousDistance) potentials.push([index, { estimatedTcaUnixMs: last.time }]);
+  }
   const events: ProximityEvent[] = [];
-  const potentials = [...potentialByIndex.entries()];
   for (let index = 0; index < potentials.length; index += 1) {
     checkCancelled(request.requestId);
     const [candidateIndex, potential] = potentials[index]!;
@@ -394,6 +607,7 @@ async function calculateProximity(
       Math.max(start, potential.estimatedTcaUnixMs - PROXIMITY_COARSE_STEP_MS),
       Math.min(end, potential.estimatedTcaUnixMs + PROXIMITY_COARSE_STEP_MS),
     );
+    if (!refined) invalidSampleCount++;
     if (refined && refined.missDistanceKm <= thresholdKm) {
       const rtn = projectRelativePositionToRtn(
         refined.primaryPosition,
@@ -423,21 +637,25 @@ async function calculateProximity(
       await yieldToMessages();
     }
   }
-  events.sort((left, right) => left.missDistanceKm - right.missDistanceKm || left.tcaUnixMs - right.tcaUnixMs);
-  const bounded = events.length > MAX_PROXIMITY_RESULTS;
-  const resultEvents = events.slice(0, MAX_PROXIMITY_RESULTS);
+  const uniqueEvents = deduplicateProximityEvents(events, primary.record.id);
+  const bounded = uniqueEvents.length > MAX_PROXIMITY_RESULTS;
+  const resultEvents = uniqueEvents.slice(0, MAX_PROXIMITY_RESULTS);
   const relatedRecords = [primary.record, ...resultEvents.flatMap((event) => {
     const record = recordsById.get(event.secondaryId);
     return record ? [record] : [];
   })];
-  const warnings = warningsFor(relatedRecords, false);
+  const warnings = warningsFor(relatedRecords, invalidSampleCount > 0);
   warnings.push({ code: "no-covariance" });
   if (bounded) warnings.push({ code: "bounded-result" });
   return envelope(request.requestId, "SGP4-ECI", relatedRecords, warnings, {
     candidateCount: candidateIndices.length,
+    invalidSampleCount,
+    endUnixMs: end,
     events: resultEvents,
     primaryId: primary.record.id,
     screenedObjectCount: Math.max(0, records.length - 1),
+    startUnixMs: start,
+    thresholdKm,
   });
 }
 
@@ -449,10 +667,12 @@ function buildPass(
   continuous: boolean,
 ): GroundStationPass {
   const tcaUnixMs = maximizeElevation(satrec, station, aosUnixMs, losUnixMs);
+  const minimumRangeTime = minimizeBounded((time) => lookSample(satrec, station, time, false)?.rangeKm ?? null, aosUnixMs, losUnixMs);
+  const minimumRange = lookSample(satrec, station, minimumRangeTime, false);
   const aos = lookSample(satrec, station, aosUnixMs);
   const los = lookSample(satrec, station, losUnixMs);
   const tca = lookSample(satrec, station, tcaUnixMs);
-  if (!aos || !los || !tca) throw new AnalysisError("propagation-failed", "Pass refinement failed");
+  if (!aos || !los || !tca || !minimumRange) throw new AnalysisError("propagation-failed", "Pass refinement failed");
   const duration = Math.max(0, losUnixMs - aosUnixMs);
   const sampleCount = Math.min(180, Math.max(24, Math.ceil(duration / 15_000)));
   const samples: PassSample[] = [];
@@ -469,13 +689,13 @@ function buildPass(
     losAzimuthDegrees: los.azimuthDegrees,
     losUnixMs,
     maximumElevationDegrees: tca.elevationDegrees,
-    minimumRangeKm: tca.rangeKm,
+    minimumRangeKm: minimumRange.rangeKm,
     samples,
     tcaUnixMs,
   };
 }
 
-function lookSample(satrec: Satrec, station: GroundStationInput, timestampUnixMs: number): PassSample | null {
+function lookSample(satrec: Satrec, station: GroundStationInput, timestampUnixMs: number, includeRate = true): PassSample | null {
   const state = propagateState(satrec, timestampUnixMs);
   if (!state) return null;
   const observer = {
@@ -485,9 +705,9 @@ function lookSample(satrec: Satrec, station: GroundStationInput, timestampUnixMs
   };
   const look = ecfToLookAngles(observer, state.ecf);
   const halfSecond = 500;
-  const before = propagateState(satrec, timestampUnixMs - halfSecond);
-  const after = propagateState(satrec, timestampUnixMs + halfSecond);
-  let radialVelocityKmPerSecond = 0;
+  const before = includeRate ? propagateState(satrec, timestampUnixMs - halfSecond) : null;
+  const after = includeRate ? propagateState(satrec, timestampUnixMs + halfSecond) : null;
+  let radialVelocityKmPerSecond: number | null = null;
   if (before && after) {
     const beforeRange = ecfToLookAngles(observer, before.ecf).rangeSat;
     const afterRange = ecfToLookAngles(observer, after.ecf).rangeSat;
@@ -495,7 +715,7 @@ function lookSample(satrec: Satrec, station: GroundStationInput, timestampUnixMs
   }
   return {
     azimuthDegrees: normalizeAzimuthDegrees(radiansToDegrees(look.azimuth)),
-    dopplerShiftHz: station.downlinkFrequencyHz === null
+    dopplerShiftHz: station.downlinkFrequencyHz === null || radialVelocityKmPerSecond === null
       ? null
       : classicalDopplerShiftHz(radialVelocityKmPerSecond, station.downlinkFrequencyHz),
     elevationDegrees: radiansToDegrees(look.elevation),
@@ -513,17 +733,7 @@ function refineElevationCrossing(
   upperUnixMs: number,
   rising: boolean,
 ): number {
-  let lower = lowerUnixMs;
-  let upper = upperUnixMs;
-  while (upper - lower > 1_000) {
-    const middle = (lower + upper) / 2;
-    const sample = lookSample(satrec, station, middle);
-    if (!sample) break;
-    const above = sample.elevationDegrees >= threshold;
-    if (rising ? above : !above) upper = middle;
-    else lower = middle;
-  }
-  return Math.round((lower + upper) / 2);
+  return refineCrossing((time) => lookSample(satrec, station, time, false)?.elevationDegrees ?? null, threshold, lowerUnixMs, upperUnixMs, rising);
 }
 
 function maximizeElevation(
@@ -532,17 +742,10 @@ function maximizeElevation(
   startUnixMs: number,
   endUnixMs: number,
 ): number {
-  let left = startUnixMs;
-  let right = endUnixMs;
-  for (let iteration = 0; iteration < 28 && right - left > 500; iteration += 1) {
-    const first = left + (right - left) / 3;
-    const second = right - (right - left) / 3;
-    const firstElevation = lookSample(satrec, station, first)?.elevationDegrees ?? -90;
-    const secondElevation = lookSample(satrec, station, second)?.elevationDegrees ?? -90;
-    if (firstElevation < secondElevation) left = first;
-    else right = second;
-  }
-  return Math.round((left + right) / 2);
+  return minimizeBounded((time) => {
+    const sample = lookSample(satrec, station, time, false);
+    return sample ? -sample.elevationDegrees : null;
+  }, startUnixMs, endUnixMs);
 }
 
 function refineClosestApproach(
@@ -551,15 +754,10 @@ function refineClosestApproach(
   startUnixMs: number,
   endUnixMs: number,
 ) {
-  let left = startUnixMs;
-  let right = endUnixMs;
-  for (let iteration = 0; iteration < 30 && right - left > 500; iteration += 1) {
-    const first = left + (right - left) / 3;
-    const second = right - (right - left) / 3;
-    if (separationAt(primary, secondary, first) > separationAt(primary, secondary, second)) left = first;
-    else right = second;
-  }
-  const tcaUnixMs = Math.round((left + right) / 2);
+  let tcaUnixMs: number;
+  try {
+    tcaUnixMs = minimizeBounded((time) => separationAt(primary, secondary, time), startUnixMs, endUnixMs);
+  } catch { return null; }
   const primaryState = propagateState(primary, tcaUnixMs);
   const secondaryState = propagateState(secondary, tcaUnixMs);
   if (!primaryState || !secondaryState) return null;
@@ -586,7 +784,9 @@ function separationAt(primary: Satrec, secondary: Satrec, timestampUnixMs: numbe
 function propagateState(satrec: Satrec, timestampUnixMs: number) {
   const date = new Date(timestampUnixMs);
   const propagated = propagate(satrec, date, { communityDecayCheckEnabled: true });
-  if (!propagated?.position || !propagated.velocity) return null;
+  if (!propagated?.position || !propagated.velocity
+    || !Number.isFinite(vectorMagnitude(propagated.position))
+    || !Number.isFinite(vectorMagnitude(propagated.velocity))) return null;
   const gmst = gstime(date);
   return {
     ecf: eciToEcf(propagated.position, gmst),
@@ -622,8 +822,11 @@ function envelope<Result>(
   warnings: AnalysisEnvelope<Result>["warnings"],
   result: Result,
 ): AnalysisEnvelope<Result> {
-  if (!metadata) throw new AnalysisError("not-ready", "Analysis metadata is unavailable");
+  if (!metadata || !activeRequest) throw new AnalysisError("not-ready", "Analysis metadata is unavailable");
+  const context = createRunContext(activeRequest, metadata, activeRequest.type === "constellation" ? [] : relatedRecords);
+  if (activeRequest.type === "constellation") context.objectIds = relatedRecords.map((record) => record.id);
   return {
+    context,
     catalogFetchedAtUnixMs: metadata.fetchedAtUnixMs,
     frame,
     generatedAtUnixMs: Date.now(),
@@ -665,8 +868,9 @@ function vectorFromArray(values: Float64Array, offset: number): Vector3 {
 }
 
 function epochMs(record: Pick<AnalysisSatelliteInput, "epoch">): number {
-  const value = Date.parse(record.epoch);
-  return Number.isFinite(value) ? value : 0;
+  const value = parseUtcEpoch(record.epoch);
+  if (!Number.isFinite(value)) throw new AnalysisError("invalid-epoch", "Invalid source epoch");
+  return value;
 }
 
 function finiteTime(value: number, code: string): number {
@@ -675,7 +879,7 @@ function finiteTime(value: number, code: string): number {
 }
 
 function ensureReady(): void {
-  if (!metadata || records.length === 0 || !bulkRuntime) {
+  if (!metadata || records.length === 0) {
     throw new AnalysisError("not-ready", "Analysis worker is not initialized");
   }
 }

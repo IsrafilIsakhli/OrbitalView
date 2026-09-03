@@ -1,15 +1,19 @@
 import type {
   AnalysisEnvelope,
   ConstellationResult,
+  CoverageResult,
   DynamicsResult,
   GroundStationAccessResult,
+  GroundNetworkResult,
   ProximityResult,
 } from "./analysis";
 
 type ExportableResult =
   | DynamicsResult
   | GroundStationAccessResult
+  | GroundNetworkResult
   | ConstellationResult
+  | CoverageResult
   | ProximityResult;
 
 export function analysisToJson(
@@ -22,11 +26,19 @@ export function analysisToCsv(
   envelope: AnalysisEnvelope<ExportableResult>,
 ): string {
   const result = envelope.result;
+  const writeRows = (rows: Array<Record<string, unknown>>) => rowsToCsv([{
+    model: envelope.model, frame: envelope.frame, requestId: envelope.requestId,
+    recordType: "analysis-metadata", resultCount: rows.length,
+    catalogSource: envelope.context.catalogSource, catalogVersion: envelope.context.catalogVersion,
+    catalogFetchedAtUnixMs: envelope.catalogFetchedAtUnixMs, generatedAtUnixMs: envelope.generatedAtUnixMs,
+    objectIds: envelope.context.objectIds.join(";"), objectEpochs: envelope.objectEpochs,
+    parameters: envelope.context.parameters, warnings: envelope.warnings,
+  }, ...rows.map((row) => ({ ...row, recordType: "measurement", model: envelope.model, frame: envelope.frame, requestId: envelope.requestId }))]);
   if ("samples" in result) {
-    return rowsToCsv(result.samples as unknown as Array<Record<string, unknown>>);
+    return writeRows(result.samples as unknown as Array<Record<string, unknown>>);
   }
   if ("passes" in result) {
-    return rowsToCsv(
+    return writeRows(
       result.passes.map((pass) => ({
         aosAzimuthDegrees: pass.aosAzimuthDegrees,
         aosUnixMs: pass.aosUnixMs,
@@ -36,14 +48,32 @@ export function analysisToCsv(
         losUnixMs: pass.losUnixMs,
         maximumElevationDegrees: pass.maximumElevationDegrees,
         minimumRangeKm: pass.minimumRangeKm,
+        ...("satelliteId" in pass ? {
+          lighting: pass.lighting,
+          satelliteId: pass.satelliteId,
+          satelliteName: pass.satelliteName,
+          sunElevationDegrees: pass.sunElevationDegrees,
+        } : {}),
         tcaUnixMs: pass.tcaUnixMs,
       })),
     );
   }
   if ("events" in result) {
-    return rowsToCsv(result.events as unknown as Array<Record<string, unknown>>);
+    return writeRows(result.events as unknown as Array<Record<string, unknown>>);
   }
-  return rowsToCsv(result.points as unknown as Array<Record<string, unknown>>);
+  if ("stationResults" in result) {
+    return writeRows(result.stationResults.flatMap((stationResult) => stationResult.passes.map((pass) => ({
+      aosUnixMs: pass.aosUnixMs,
+      durationSeconds: pass.durationSeconds,
+      losUnixMs: pass.losUnixMs,
+      maximumElevationDegrees: pass.maximumElevationDegrees,
+      minimumRangeKm: pass.minimumRangeKm,
+      stationId: stationResult.station.id,
+      stationName: stationResult.station.name,
+      tcaUnixMs: pass.tcaUnixMs,
+    }))));
+  }
+  return writeRows(result.points as unknown as Array<Record<string, unknown>>);
 }
 
 function rowsToCsv(rows: Array<Record<string, unknown>>): string {
@@ -56,12 +86,13 @@ function rowsToCsv(rows: Array<Record<string, unknown>>): string {
 }
 
 function csvCell(value: unknown): string {
-  const serialized = value === null || value === undefined
+  const safeValue = typeof value === "string" && /^[=+@\-\t\r]/.test(value) ? `'${value}` : value;
+  const serialized = safeValue === null || safeValue === undefined
     ? ""
-    : typeof value === "object"
-      ? JSON.stringify(value)
-      : typeof value === "string" || typeof value === "number" || typeof value === "boolean"
-        ? String(value)
+    : typeof safeValue === "object"
+      ? JSON.stringify(safeValue)
+      : typeof safeValue === "string" || typeof safeValue === "number" || typeof safeValue === "boolean"
+        ? String(safeValue)
         : JSON.stringify(value);
   return /[",\r\n]/.test(serialized)
     ? `"${serialized.replace(/"/g, '""')}"`

@@ -29,13 +29,29 @@ export function OrbitSchematicCanvas({
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
       const maxRadius = Math.max(...samples.map((sample) => sample.radiusKm));
-      const scale = Math.max(1, Math.min(rect.width, rect.height) * 0.43 / maxRadius);
-      context.fillStyle = "#0b5e8d";
+      const drawableRadius = Math.max(1, Math.min(rect.width, rect.height) * 0.42);
+      const scale = drawableRadius / Math.max(1, maxRadius);
+      const earthRadius = 6_378.135 * scale;
+      const atmosphere = context.createRadialGradient(centerX, centerY, earthRadius * 0.82, centerX, centerY, earthRadius * 1.08);
+      atmosphere.addColorStop(0, "rgba(15, 94, 139, .98)");
+      atmosphere.addColorStop(0.78, "rgba(8, 64, 101, .98)");
+      atmosphere.addColorStop(0.92, "rgba(89, 196, 240, .42)");
+      atmosphere.addColorStop(1, "rgba(89, 196, 240, 0)");
+      context.fillStyle = atmosphere;
       context.beginPath();
-      context.arc(centerX, centerY, 6_378.135 * scale, 0, Math.PI * 2);
+      context.arc(centerX, centerY, earthRadius * 1.08, 0, Math.PI * 2);
       context.fill();
+      context.strokeStyle = "rgba(145, 211, 240, .2)";
+      context.lineWidth = 1;
+      for (const fraction of [0.35, 0.68, 1]) {
+        context.beginPath();
+        context.arc(centerX, centerY, drawableRadius * fraction, 0, Math.PI * 2);
+        context.stroke();
+      }
       context.strokeStyle = "#79e6ff";
-      context.lineWidth = 1.4;
+      context.lineWidth = 1.6;
+      context.shadowColor = "rgba(121, 230, 255, .4)";
+      context.shadowBlur = 7;
       context.beginPath();
       samples.forEach((sample, index) => {
         const angle = index / Math.max(1, samples.length - 1) * Math.PI * 2 - Math.PI / 2;
@@ -44,6 +60,7 @@ export function OrbitSchematicCanvas({
         if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
       });
       context.stroke();
+      context.shadowBlur = 0;
       const selected = samples[Math.min(samples.length - 1, Math.max(0, selectedIndex))];
       if (selected) {
         const angle = Math.min(samples.length - 1, Math.max(0, selectedIndex)) / Math.max(1, samples.length - 1) * Math.PI * 2 - Math.PI / 2;
