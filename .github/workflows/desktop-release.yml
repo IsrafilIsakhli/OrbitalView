@@ -136,7 +136,7 @@ jobs:
           $configPath = Join-Path $env:RUNNER_TEMP "tauri-updater-config.json"
           node scripts/create-tauri-updater-config.mjs $configPath
           pnpm tauri build --bundles ${{ matrix.bundle }} --config $configPath
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows-x64-${{ matrix.bundle }}
           if-no-files-found: error
@@ -212,7 +212,7 @@ jobs:
           CONFIG_PATH="$RUNNER_TEMP/tauri-updater-config.json"
           node scripts/create-tauri-updater-config.mjs "$CONFIG_PATH"
           pnpm tauri build --target universal-apple-darwin --bundles app,dmg --config "$CONFIG_PATH"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: macos-universal
           if-no-files-found: error
@@ -263,7 +263,7 @@ jobs:
           CONFIG_PATH="$RUNNER_TEMP/tauri-updater-config.json"
           node scripts/create-tauri-updater-config.mjs "$CONFIG_PATH"
           pnpm tauri build --bundles ${{ matrix.bundle }} --config "$CONFIG_PATH"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}-${{ matrix.bundle }}
           if-no-files-found: error
