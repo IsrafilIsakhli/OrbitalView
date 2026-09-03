@@ -22,15 +22,33 @@ export function UpdatePrompt() {
   const release = useAppUpdateStore((state) => state.release);
   const status = useAppUpdateStore((state) => state.status);
   const totalBytes = useAppUpdateStore((state) => state.totalBytes);
+  const dialogRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    if (promptOpen) headingRef.current?.focus();
+    if (!promptOpen) return;
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    headingRef.current?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { event.preventDefault(); event.stopImmediatePropagation(); dismissOptionalUpdate(); }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const buttons = [...dialogRef.current.querySelectorAll<HTMLElement>("button:not(:disabled),a[href],[tabindex='0']")];
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === headingRef.current)) {
+        event.preventDefault(); last?.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === headingRef.current)) {
+        event.preventDefault(); first.focus();
+      }
+    };
+    document.addEventListener("keydown", keydown, true);
+    return () => { document.removeEventListener("keydown", keydown, true); if (previous?.isConnected) previous.focus(); };
   }, [promptOpen]);
 
   if (!promptOpen) return null;
 
-  const required = release?.required ?? false;
+  const required = (release?.required ?? false) && (release?.automatic ?? true);
+  const manualPackage = release && !release.automatic;
   const checkError = status === "error" && !release;
   const busy = status === "downloading" || status === "installing" || status === "ready";
   const progress = totalBytes && totalBytes > 0
@@ -47,6 +65,7 @@ export function UpdatePrompt() {
         className="update-prompt glass-surface"
         data-required={required}
         role="alertdialog"
+        ref={dialogRef}
       >
         <header className="update-prompt__header">
           <span className="update-prompt__icon">
@@ -83,6 +102,7 @@ export function UpdatePrompt() {
               <strong>{release.version}</strong>
             </div>
           )}
+          {manualPackage && <p>{t("updates.manualPackage")}</p>}
           {release?.notes && <p className="update-release-notes">{release.notes}</p>}
 
           {busy && (
@@ -112,10 +132,10 @@ export function UpdatePrompt() {
               {t("updates.later")}
             </button>
           )}
-          {status === "available" && !required && (
+          {status === "available" && !required && (!manualPackage || release.manualDownloadUrl) && (
             <button className="primary-button" onClick={() => void installAppUpdate()} type="button">
               <ArrowDownload24Regular aria-hidden />
-              {t("updates.updateNow")}
+              {t(manualPackage ? "updates.downloadPackage" : "updates.updateNow")}
             </button>
           )}
           {status === "error" && (

@@ -18,11 +18,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@satellite/io": satelliteModule("dist/io.js"),
       "@satellite/propagation": satelliteModule("dist/propagation.js"),
       "@satellite/transforms": satelliteModule("dist/transforms.js"),
     },
   },
   test: {
+    include: ["src/**/*.test.{ts,tsx}"],
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     css: true,

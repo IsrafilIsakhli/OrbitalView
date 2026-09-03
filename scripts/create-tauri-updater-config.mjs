@@ -1,18 +1,20 @@
+import { releaseRepository, assertReleaseChannel } from "./release-channel.mjs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-const [outputPathArg, repositoryArg] = process.argv.slice(2);
+const [outputPathArg, repositoryArg = releaseRepository] = process.argv.slice(2);
 
 if (!outputPathArg || !repositoryArg || !/^[^/]+\/[^/]+$/.test(repositoryArg)) {
   throw new Error("Usage: create-tauri-updater-config <output-path> <owner/repo>");
 }
 
+assertReleaseChannel(repositoryArg);
 const publicKey = (await readFile(resolve("release/updater-public-key.txt"), "utf8")).trim();
 if (!publicKey) throw new Error("Updater public key is empty");
 
 const config = {
   bundle: {
-    createUpdaterArtifacts: true,
+    createUpdaterArtifacts: !["deb", "rpm"].includes(process.env.ORBITAL_PACKAGE_KIND),
   },
   plugins: {
     updater: {

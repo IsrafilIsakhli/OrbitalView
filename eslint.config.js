@@ -17,7 +17,7 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
-    files: ["**/*.{ts,tsx}"],
+    files: ["**/*.{ts,tsx,mts}"],
     languageOptions: {
       globals: globals.browser,
       parserOptions: {
@@ -46,6 +46,11 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-floating-promises": "error",
     },
+  },
+  {
+    ...tseslint.configs.disableTypeChecked,
+    files: ["**/*.{js,mjs}"],
+    languageOptions: { globals: globals.node },
   },
   {
     files: ["**/*.test.{ts,tsx}", "src/test/**"],

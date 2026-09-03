@@ -7,6 +7,8 @@ import { i18n } from "@/shared/i18n/i18n";
 import { UpdatePrompt } from "./UpdatePrompt";
 
 const release = {
+  automatic: true,
+  manualDownloadUrl: null,
   currentVersion: "1.0.0",
   date: null,
   minimumSupportedVersion: "1.0.0",

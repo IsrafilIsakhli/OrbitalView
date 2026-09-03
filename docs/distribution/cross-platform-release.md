@@ -72,7 +72,7 @@ Updater key setup, optional/critical release policy and runtime behavior are doc
 The website must not hardcode versioned installer filenames. It reads:
 
 ```text
-https://github.com/OWNER/REPOSITORY/releases/latest/download/release-manifest.json
+https://github.com/IsrafilIsakhli/OrbitalVision-Releases/releases/latest/download/release-manifest.json
 ```
 
 The manifest includes platform, CPU architecture, package format, SHA-256 and the exact release URL. Website logic should:
@@ -83,6 +83,10 @@ The manifest includes platform, CPU architecture, package format, SHA-256 and th
 4. recommend DMG on macOS, EXE on Windows and AppImage on unknown Linux distributions;
 5. never silently choose x86_64 for an ARM64 Linux device;
 6. display the current version and checksum source.
+
+The binary repository is configured in `release/channel.json`; source remains private. `PUBLIC_RELEASES_TOKEN` is restricted to Contents write on the binary repository. The workflow uploads a draft only after frontend/native checks and a complete nine-installer manifest audit. Publication is a separate human decision. A successful build is not proof of native installation or runtime compatibility.
+
+Build each package with its own `ORBITAL_PACKAGE_KIND`: `nsis`, `msi`, `dmg`, `appimage`, `deb`, or `rpm`. The workflow does this for every matrix job. MSI and NSIS update targets are separate; DEB/RPM updates remain manual. Ad-hoc macOS/unsigned Windows are explicitly identified in the manifest; absence of security warnings is not promised.
 7. inspect `trust.requiresManualSecurityApproval`; for an ad-hoc macOS build, show the first-launch `Open Anyway` instructions beside the download button.
 
 Because the manifest is attached to the GitHub `latest` release, a new tagged release updates the website's installer selection without editing the website.

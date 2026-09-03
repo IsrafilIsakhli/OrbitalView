@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Orbital Vision",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "identifier": "com.orbitalvision.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -32,6 +32,17 @@
       },
       "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; img-src 'self' asset: http://asset.localhost data: blob: https://services.arcgisonline.com https://server.arcgisonline.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src ipc: http://ipc.localhost http://tauri.localhost https://tauri.localhost https://services.arcgisonline.com https://server.arcgisonline.com https://elevation3d.arcgis.com; worker-src 'self' blob:; child-src 'self' blob:",
       "devCsp": "default-src 'self' http://localhost:1420; script-src 'self' 'wasm-unsafe-eval' http://localhost:1420; img-src 'self' asset: http://asset.localhost data: blob: https://services.arcgisonline.com https://server.arcgisonline.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src ipc: http://ipc.localhost http://tauri.localhost https://tauri.localhost http://localhost:1420 ws://localhost:1421 https://services.arcgisonline.com https://server.arcgisonline.com https://elevation3d.arcgis.com; worker-src 'self' blob:; child-src 'self' blob:"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/IsrafilIsakhli/OrbitalVision-Releases/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ5ODA1RUNENzI1RjRCNEEKUldSS1MxOXl6VjZBU1FBMmNBT1IveG5PbVRYTmxTQmVqS2NKNlJGR29YakdKdXdNQ3U2ZS9FSkYK",
+      "windows": {
+        "installMode": "passive"
+      }
     }
   },
   "bundle": {

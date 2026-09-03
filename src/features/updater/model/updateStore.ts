@@ -12,6 +12,8 @@ export type AppUpdateStatus =
   | "disabled";
 
 export interface AppUpdateRelease {
+  automatic: boolean;
+  manualDownloadUrl: string | null;
   currentVersion: string;
   date: string | null;
   minimumSupportedVersion: string;

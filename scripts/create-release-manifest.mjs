@@ -1,3 +1,4 @@
+import { assertReleaseChannel } from "./release-channel.mjs";
 import { createHash } from "node:crypto";
 import { copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { basename, extname, join, relative, resolve, sep } from "node:path";
@@ -10,6 +11,7 @@ if (!artifactRootArg || !versionArg || !repositoryArg || !tagArg) {
   );
 }
 
+assertReleaseChannel(repositoryArg, versionArg, tagArg);
 const artifactRoot = resolve(artifactRootArg);
 const publishRoot = join(artifactRoot, "publish");
 const allowedExtensions = new Set([".appimage", ".deb", ".dmg", ".exe", ".msi", ".rpm"]);
@@ -104,6 +106,7 @@ for (const sourcePath of sourceFiles.sort()) {
     format,
     filename,
     sha256,
+    sizeBytes: content.byteLength,
     trust: trustMetadata(platform),
     downloadUrl: `https://github.com/${repositoryArg}/releases/download/${tagArg}/${encodeURIComponent(filename)}`,
   });

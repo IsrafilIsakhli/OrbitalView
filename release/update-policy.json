@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "severity": "optional",
   "minimumSupportedVersion": "0.1.0",
   "notes": {
-    "az": "İmzalı Orbital Vision yeniləmə kanalı və Linux paketləmə düzəlişi.",
-    "tr": "İmzalı Orbital Vision güncelleme kanalı ve Linux paketleme düzeltmesi.",
-    "en": "Signed Orbital Vision update channel and Linux packaging correction.",
-    "ru": "Подписанный канал обновлений Orbital Vision и исправление сборки Linux.",
-    "es": "Canal firmado de actualizaciones de Orbital Vision y corrección del empaquetado para Linux."
+    "az": "Analiz nəticələrinin obyekt və parametrlərlə uyğunluğu, UTC hesablamaları, fiziki orbit yoxlamaları və paket növünü qoruyan public yeniləmə kanalı. Köhnə kanaldakı quraşdırmalar üçün bir dəfə yeni installer tələb oluna bilər.",
+    "tr": "Analiz sonuçlarının nesne ve parametrelerle eşleşmesi, UTC hesaplamaları, fiziksel yörünge denetimleri ve paket türünü koruyan herkese açık güncelleme kanalı. Eski kanaldaki kurulumlar için bir kez yeni yükleyici gerekebilir.",
+    "en": "Analysis result identity, UTC calculations, physical orbit validation and a public update channel that preserves package type. Installations on the old channel may need a one-time installer migration.",
+    "ru": "Привязка результатов анализа к объекту и параметрам, расчёты UTC, физическая проверка орбит и публичный канал обновлений с сохранением типа пакета. Для старого канала может потребоваться однократная установка нового пакета.",
+    "es": "Identidad de los resultados del análisis, cálculos UTC, validación física de órbitas y un canal público de actualizaciones que conserva el tipo de paquete. Las instalaciones del canal anterior pueden requerir una migración manual única."
   }
 }

@@ -1,8 +1,12 @@
-import { isTauri } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 
 import { usePreferencesStore } from "@/features/settings/model/preferences";
+import { prepareUpdate } from "../domain/updateBarrier";
+import { manualPackageUrl, type UpdateCapability } from "../domain/packageUpdate";
+import { compareSemanticVersions } from "@/shared/data/semver";
+import { openExternalUrl } from "@/shared/security/externalUrl";
 import { parseUpdatePolicy } from "@/features/updater/domain/updatePolicy";
 import { useAppUpdateStore } from "@/features/updater/model/updateStore";
 
@@ -33,14 +37,11 @@ export function checkForAppUpdate({ manual = false }: { manual?: boolean } = {})
 
     const current = useAppUpdateStore.getState();
     if (current.status === "downloading" || current.status === "installing") return;
-    if (current.release) {
-      if (manual) useAppUpdateStore.setState({ promptOpen: true });
-      return;
-    }
 
     useAppUpdateStore.setState({ errorCode: null, status: "checking" });
     try {
-      const update = await check({ timeout: 15_000 });
+      const capability = await invoke<UpdateCapability>("app_update_capability");
+      const update = await check({ timeout: 15_000, target: capability.target });
       const checkedAt = Date.now();
       if (!update) {
         await closePendingUpdate();
@@ -53,13 +54,17 @@ export function checkForAppUpdate({ manual = false }: { manual?: boolean } = {})
         return;
       }
 
+      let policy;
+      try {
+        policy = parseUpdatePolicy(update.body, update.currentVersion, update.version, usePreferencesStore.getState().locale);
+        if (compareSemanticVersions(update.version, update.currentVersion) <= 0
+          || (current.release && compareSemanticVersions(update.version, current.release.version) < 0)) throw new Error("outdated-update");
+      } catch (error) { await update.close().catch(() => undefined); throw error; }
       if (pendingUpdate && pendingUpdate !== update) {
         await pendingUpdate.close().catch(() => undefined);
       }
       pendingUpdate = update;
 
-      const locale = usePreferencesStore.getState().locale;
-      const policy = parseUpdatePolicy(update.body, update.currentVersion, update.version, locale);
       const dismissed = window.sessionStorage.getItem(DISMISSED_UPDATE_KEY) === update.version;
       useAppUpdateStore.setState({
         downloadedBytes: 0,
@@ -67,6 +72,8 @@ export function checkForAppUpdate({ manual = false }: { manual?: boolean } = {})
         lastCheckedAtUnixMs: checkedAt,
         promptOpen: policy.required || manual || !dismissed,
         release: {
+          automatic: capability.automatic,
+          manualDownloadUrl: manualPackageUrl(capability, update.version),
           currentVersion: update.currentVersion,
           date: update.date ?? null,
           minimumSupportedVersion: policy.minimumSupportedVersion,
@@ -82,7 +89,7 @@ export function checkForAppUpdate({ manual = false }: { manual?: boolean } = {})
       useAppUpdateStore.setState({
         errorCode: "checkFailed",
         lastCheckedAtUnixMs: Date.now(),
-        promptOpen: manual,
+        promptOpen: manual || current.promptOpen,
         status: "error",
       });
     }
@@ -104,6 +111,11 @@ export function installAppUpdate(): Promise<void> {
       return;
     }
 
+    if (!release.automatic) {
+      if (release.manualDownloadUrl) await openExternalUrl(release.manualDownloadUrl).catch(() => useAppUpdateStore.setState({ errorCode: "installFailed", status: "error" }));
+      return;
+    }
+
     useAppUpdateStore.setState({
       downloadedBytes: 0,
       errorCode: null,
@@ -112,9 +124,10 @@ export function installAppUpdate(): Promise<void> {
       totalBytes: null,
     });
 
+    let resume: (() => void) | undefined;
     try {
       let downloadedBytes = 0;
-      await update.downloadAndInstall((event) => {
+      await update.download((event) => {
         if (event.event === "Started") {
           useAppUpdateStore.setState({ totalBytes: event.data.contentLength ?? null });
         } else if (event.event === "Progress") {
@@ -125,9 +138,15 @@ export function installAppUpdate(): Promise<void> {
         }
       }, { timeout: 120_000 });
 
+      useAppUpdateStore.setState({ status: "installing" });
+      resume = await prepareUpdate();
+      await invoke("prepare_app_update");
+      await update.install();
       useAppUpdateStore.setState({ status: "ready" });
       await relaunch();
     } catch {
+      resume?.();
+      await invoke("resume_after_failed_update").catch(() => undefined);
       useAppUpdateStore.setState({
         errorCode: "installFailed",
         promptOpen: true,
@@ -142,9 +161,10 @@ export function installAppUpdate(): Promise<void> {
 }
 
 export function dismissOptionalUpdate(): void {
-  const release = useAppUpdateStore.getState().release;
-  if (!release || release.required) return;
-  window.sessionStorage.setItem(DISMISSED_UPDATE_KEY, release.version);
+  const { release, status } = useAppUpdateStore.getState();
+  if (["downloading", "installing", "ready"].includes(status)) return;
+  if (release?.required && release.automatic) return;
+  if (release) window.sessionStorage.setItem(DISMISSED_UPDATE_KEY, release.version);
   useAppUpdateStore.setState({ promptOpen: false });
 }
 
@@ -175,7 +195,7 @@ export function synchronizeUpdateLocale(): void {
 }
 
 export function retryAppUpdate(): Promise<void> {
-  return pendingUpdate
+  return pendingUpdate && useAppUpdateStore.getState().errorCode !== "checkFailed"
     ? installAppUpdate()
     : checkForAppUpdate({ manual: true });
 }

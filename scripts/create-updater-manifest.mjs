@@ -1,3 +1,4 @@
+import { assertReleaseChannel } from "./release-channel.mjs";
 import { copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { basename, join, relative, resolve, sep } from "node:path";
 
@@ -7,6 +8,7 @@ if (!artifactRootArg || !versionArg || !repositoryArg || !tagArg || !policyPathA
   throw new Error("Usage: create-updater-manifest <artifact-root> <version> <owner/repo> <tag> <policy-path>");
 }
 
+assertReleaseChannel(repositoryArg, versionArg, tagArg);
 const artifactRoot = resolve(artifactRootArg);
 const publishRoot = join(artifactRoot, "publish");
 const policy = JSON.parse(await readFile(resolve(policyPathArg), "utf8"));
@@ -34,7 +36,7 @@ function sourceGroup(path) {
 function one(files, predicate, label) {
   const matches = files.filter(predicate);
   if (matches.length !== 1) {
-    throw new Error(`Expected one ${label} updater artifact, found ${matches.length}: ${matches.map(basename).join(", ")}`);
+    throw new Error(`Expected one ${label} updater artifact, found ${matches.length}: ${matches.map((path) => basename(path)).join(", ")}`);
   }
   return matches[0];
 }
@@ -48,9 +50,10 @@ function signatureFor(files, artifact) {
 await mkdir(publishRoot, { recursive: true });
 const files = await collectFiles(artifactRoot);
 const windowsArtifact = one(files, (path) => sourceGroup(path).includes("windows") && path.toLowerCase().endsWith(".exe"), "Windows");
+const windowsMsiArtifact = one(files, (path) => sourceGroup(path).includes("windows") && path.toLowerCase().endsWith(".msi"), "Windows MSI");
 const macosArtifact = one(files, (path) => sourceGroup(path).includes("macos") && path.toLowerCase().endsWith(".app.tar.gz"), "macOS");
-const linuxX64Artifact = one(files, (path) => sourceGroup(path) === "linux-x64" && path.toLowerCase().endsWith(".appimage"), "Linux x64");
-const linuxArm64Artifact = one(files, (path) => sourceGroup(path) === "linux-arm64" && path.toLowerCase().endsWith(".appimage"), "Linux arm64");
+const linuxX64Artifact = one(files, (path) => sourceGroup(path).startsWith("linux-x64") && path.toLowerCase().endsWith(".appimage"), "Linux x64");
+const linuxArm64Artifact = one(files, (path) => sourceGroup(path).startsWith("linux-arm64") && path.toLowerCase().endsWith(".appimage"), "Linux arm64");
 
 async function publishArtifact(artifact, filename) {
   const signaturePath = signatureFor(files, artifact);
@@ -63,6 +66,7 @@ async function publishArtifact(artifact, filename) {
 }
 
 const windows = await publishArtifact(windowsArtifact, `orbital-vision-${versionArg}-windows-x86_64-updater.exe`);
+const windowsMsi = await publishArtifact(windowsMsiArtifact, `orbital-vision-${versionArg}-windows-x86_64-updater.msi`);
 const macos = await publishArtifact(macosArtifact, `orbital-vision-${versionArg}-macos-universal-updater.tar.gz`);
 const linuxX64 = await publishArtifact(linuxX64Artifact, `orbital-vision-${versionArg}-linux-x86_64-updater.AppImage`);
 const linuxArm64 = await publishArtifact(linuxArm64Artifact, `orbital-vision-${versionArg}-linux-aarch64-updater.AppImage`);
@@ -72,7 +76,8 @@ const latest = {
   notes: JSON.stringify(policy),
   pub_date: new Date().toISOString(),
   platforms: {
-    "windows-x86_64": windows,
+    "windows-x86_64-nsis": windows,
+    "windows-x86_64-msi": windowsMsi,
     "darwin-x86_64": macos,
     "darwin-aarch64": macos,
     "linux-x86_64": linuxX64,

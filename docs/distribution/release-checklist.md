@@ -24,6 +24,8 @@ Use this checklist for every public Orbital Vision release. A generated draft is
 - [ ] TypeScript typecheck, ESLint, frontend tests and production build pass.
 - [ ] Rustfmt, Clippy with `-D warnings`, native tests and translation-gateway tests pass.
 - [ ] Update policy validation passes.
+- [ ] Every non-Cesium JavaScript chunk is at most 550,000 bytes and all emitted CSS totals at most 150,000 bytes (uncompressed); `check-bundle-budget.mjs` passes.
+- [ ] Result context, UTC, invalid phasing, pass refinement, nullable Doppler and cancellation tests pass.
 - [ ] Native runtime has no console errors or unhandled rejections.
 - [ ] Real CelesTrak, LL2, NASA, NOAA, Open-Meteo and SFN smoke tests pass without fake data.
 - [ ] Existing caches, preferences, favorites and notification history survive upgrade.
@@ -35,6 +37,8 @@ Use this checklist for every public Orbital Vision release. A generated draft is
 - [ ] Intel Mac or Rosetta path is tested.
 - [ ] Linux x64 AppImage, DEB and RPM are tested on their intended families.
 - [ ] Linux ARM64 AppImage is tested on ARM64 hardware.
+- [ ] Linux ARM64 DEB on Ubuntu and RPM on Fedora are tested on ARM64 hardware.
+- [ ] Windows 10/11, Intel macOS and Apple Silicon macOS each have actual install/update results; emulation is separately labeled.
 - [ ] Credential stores, notifications, external links, exports and offline restart work on each supported OS.
 - [ ] Earth renders the real 16K+ catalog without a second Cesium instance or sustained memory growth.
 
@@ -42,6 +46,9 @@ Use this checklist for every public Orbital Vision release. A generated draft is
 
 - [ ] `SHA256SUMS.txt` matches every distributed artifact.
 - [ ] Tauri updater signatures validate and `latest.json` references the intended tag.
+- [ ] MSI remains MSI; NSIS remains NSIS; DEB/RPM offer only matching manual packages.
+- [ ] Optional/critical, stale offer replacement, interrupted download, invalid signature and unsupported architecture are tested natively.
+- [ ] `PUBLIC_RELEASES_TOKEN` can write only to the public binary repository, not source.
 - [ ] `release-manifest.json` reports the real Windows/macOS trust state.
 - [ ] Website download detection is tested but still exposes all platforms.
 - [ ] The draft release is published only after all required native checks are signed off.

@@ -11,6 +11,14 @@ const policy = JSON.stringify({
 });
 
 describe("update policy", () => {
+  it("rejects damaged or mismatched structured policy instead of making it optional", () => {
+    expect(() => parseUpdatePolicy("{broken", "1.0.0", "1.1.0", "en")).toThrow();
+    expect(() => parseUpdatePolicy(policy, "1.4.0", "1.6.0", "en")).toThrow();
+  });
+
+  it("requires the minimum stable version when the installation is a prerelease", () => {
+    expect(parseUpdatePolicy(policy, "1.4.0-rc.1", "1.5.0", "en").required).toBe(true);
+  });
   it("compares ordinary semantic versions", () => {
     expect(compareSemanticVersions("1.2.0", "1.1.9")).toBe(1);
     expect(compareSemanticVersions("v1.2.0", "1.2.0")).toBe(0);

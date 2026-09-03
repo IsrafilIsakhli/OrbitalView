@@ -44,7 +44,7 @@ export function UpdateCoordinator() {
   }, [locale]);
 
   useEffect(() => {
-    if (status === "available" && release?.required) {
+    if (status === "available" && release?.required && release.automatic) {
       void installAppUpdate();
     }
   }, [release, status]);

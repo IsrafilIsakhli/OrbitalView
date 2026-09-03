@@ -1,6 +1,8 @@
 import { resolve } from "node:path";
 import { fileURLToPath, URL } from "node:url";
 
+import cssnano from "cssnano";
+import styleCascade from "./scripts/style-cascade.mjs";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
@@ -16,8 +18,9 @@ const satelliteSource = fileURLToPath(
 const satelliteModule = (path: string) => resolve(satelliteSource, path);
 
 export default defineConfig({
+  css: { postcss: { plugins: [styleCascade(), cssnano({ preset: "default" })] } },
   build: {
-    chunkSizeWarningLimit: 6_000,
+    chunkSizeWarningLimit: 550,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -25,7 +28,7 @@ export default defineConfig({
           "fluent-icons": ["@fluentui/react-icons"],
           localization: ["i18next", "react-i18next"],
           motion: ["motion"],
-          "react-vendor": ["react", "react-dom"],
+          "react-vendor": ["react", "react-dom", "react-dom/client"],
           state: ["@tanstack/react-query", "zustand", "zod"],
         },
       },
@@ -90,7 +93,7 @@ export default defineConfig({
         }
       : undefined,
     watch: {
-      ignored: ["**/src-tauri/**"],
+      ignored: ["**/src-tauri/**", "**/.release-baselines/**"],
     },
   },
   worker: {
