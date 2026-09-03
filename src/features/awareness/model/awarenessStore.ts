@@ -13,6 +13,13 @@ const MAX_FAVORITES = 250;
 const MAX_NOTIFICATIONS = 120;
 const MAX_DELIVERED_KEYS = 500;
 
+function isOperationalNoiseKey(key: string): boolean {
+  return key.startsWith("sync:")
+    || key.startsWith("stale:")
+    || key.startsWith("provider:")
+    || key.startsWith("satellite-catalog:stale:");
+}
+
 interface AwarenessState {
   alertPreferences: AlertPreferences;
   deliveredKeys: string[];
@@ -116,16 +123,21 @@ export const useAwarenessStore = create<AwarenessState>()(
           alertPreferences: {
             ...defaultAlertPreferences,
             ...(candidate?.alertPreferences ?? {}),
+            providerAlerts: false,
+            satelliteAlerts: false,
           },
           deliveredKeys: Array.isArray(candidate?.deliveredKeys)
             ? candidate.deliveredKeys.filter((key): key is string => typeof key === "string")
+                .filter((key) => !isOperationalNoiseKey(key))
                 .slice(0, MAX_DELIVERED_KEYS)
             : [],
           favorites: Array.isArray(candidate?.favorites)
             ? candidate.favorites.slice(0, MAX_FAVORITES)
             : [],
           notifications: Array.isArray(candidate?.notifications)
-            ? candidate.notifications.slice(0, MAX_NOTIFICATIONS)
+            ? candidate.notifications
+                .filter((notification) => !isOperationalNoiseKey(notification.dedupeKey))
+                .slice(0, MAX_NOTIFICATIONS)
             : [],
           nativeDeliveryTimes: Array.isArray(candidate?.nativeDeliveryTimes)
             ? candidate.nativeDeliveryTimes.filter((value): value is string => typeof value === "string").slice(-3)
@@ -141,7 +153,7 @@ export const useAwarenessStore = create<AwarenessState>()(
         nativeDeliveryTimes,
       }) => ({ alertPreferences, deliveredKeys, favorites, nativeDeliveryTimes, notifications }),
       storage: createJSONStorage(() => window.localStorage),
-      version: 2,
+      version: 3,
     },
   ),
 );

@@ -139,6 +139,10 @@ impl OperationsService {
         }
     }
 
+    pub(crate) fn set_background_sync(&self, enabled: bool) {
+        self.background_sync.store(enabled, Ordering::Relaxed);
+    }
+
     pub fn background_sync_enabled(&self) -> bool {
         self.background_sync.load(Ordering::Relaxed)
     }
@@ -577,6 +581,9 @@ pub async fn clear_provider_cache(
         .lock()
         .unwrap_or_else(|error| error.into_inner());
     providers.remove(&provider);
+    if let Ok(serde_json::Value::String(key)) = serde_json::to_value(provider) {
+        crate::services::local_snapshots::clear(&key);
+    }
     operations.persist(&providers);
     Ok(CacheInventory {
         bytes: 0,

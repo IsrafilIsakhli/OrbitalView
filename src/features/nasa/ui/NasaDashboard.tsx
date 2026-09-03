@@ -1,6 +1,5 @@
 import {
   Alert24Regular,
-  ArrowClockwise24Regular,
   CalendarClock24Regular,
   Globe24Regular,
   Image24Regular,
@@ -23,7 +22,6 @@ import {
 import { useNasaIntelligence } from "../api/useNasaIntelligence";
 import type {
   DonkiEvent,
-  NasaComponentMetadata,
   NearEarthApproach,
 } from "../domain/nasa";
 
@@ -37,7 +35,7 @@ export function NasaDashboard() {
     return <NasaState kind="loading" />;
   }
   if (query.isError) {
-    return <NasaState kind="error" onRetry={() => void query.refetch()} />;
+    return <NasaState kind="error" />;
   }
   const intelligence = query.data;
   const apodImage = intelligence.apod?.mediaType === "image"
@@ -52,11 +50,6 @@ export function NasaDashboard() {
           <p className="eyebrow"><span />{t("eyebrow")}</p>
           <h1>{t("title")}</h1>
           <p>{t("subtitle")}</p>
-        </div>
-        <div className="nasa-provider-state" data-status={intelligence.overallStatus}>
-          <i />
-          <span>{t(`status.${intelligence.overallStatus}`)}</span>
-          <small>{t("source")}</small>
         </div>
       </header>
 
@@ -88,7 +81,6 @@ export function NasaDashboard() {
               <>
                 <div className="nasa-card-topline">
                   <time>{formatDate(intelligence.apod.date, locale)}</time>
-                  <ProviderBadge metadata={intelligence.components.apod} />
                 </div>
                 <h2>{intelligence.apod.title}</h2>
                 <p>{intelligence.apod.explanation}</p>
@@ -117,18 +109,6 @@ export function NasaDashboard() {
           <div className="nasa-summary__metrics">
             <Metric label={t("summary.approaches")} value={intelligence.approaches.length} />
             <Metric label={t("summary.spaceWeather")} value={intelligence.spaceWeatherEvents.length} />
-            <Metric label={t("summary.sourcesReady")} value={
-              Object.values(intelligence.components).filter((component) => component.status !== "unavailable").length
-            } suffix="/5" />
-          </div>
-          <div className="nasa-source-matrix">
-            {Object.values(intelligence.components).map((component) => (
-              <div data-status={component.status} key={component.name}>
-                <i />
-                <span>{t(`components.${component.name}`)}</span>
-                <small>{t(`status.${component.status}`)}</small>
-              </div>
-            ))}
           </div>
           <p className="nasa-summary__footnote">
             {t("summary.retrieved", { date: formatDateTime(intelligence.retrievedAt, locale) })}
@@ -151,7 +131,6 @@ export function NasaDashboard() {
           ) : (
             <EmptyState icon={<Globe24Regular aria-hidden />} text={t("neo.empty")} />
           )}
-          <footer><ProviderBadge metadata={intelligence.components.neo} /></footer>
         </section>
 
         <section className="nasa-feed glass-surface">
@@ -220,22 +199,11 @@ function Metric({ label, value, suffix = "" }: { label: string; value: number; s
   return <div><strong>{value}<small>{suffix}</small></strong><span>{label}</span></div>;
 }
 
-function ProviderBadge({ metadata }: { metadata: NasaComponentMetadata }) {
-  const { t } = useTranslation("nasa");
-  return <span className="nasa-provider-badge" data-status={metadata.status}><i />{t(`status.${metadata.status}`)}</span>;
-}
-
 function EmptyState({ icon, text }: { icon: ReactNode; text: string }) {
   return <div className="nasa-empty">{icon}<p>{text}</p></div>;
 }
 
-function NasaState({
-  kind,
-  onRetry,
-}: {
-  kind: "loading" | "error";
-  onRetry?: () => void;
-}) {
+function NasaState({ kind }: { kind: "loading" | "error" }) {
   const { t } = useTranslation("nasa");
   return (
     <section className="launch-state nasa-state">
@@ -243,9 +211,6 @@ function NasaState({
       <p className="eyebrow">{t("eyebrow")}</p>
       <h1>{t(`${kind}.title`)}</h1>
       <p>{t(`${kind}.description`)}</p>
-      {kind === "error" && (
-        <button onClick={onRetry} type="button"><ArrowClockwise24Regular aria-hidden />{t("actions.retry")}</button>
-      )}
     </section>
   );
 }

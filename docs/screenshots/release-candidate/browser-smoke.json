@@ -1,0 +1,154 @@
+{
+  "environment": "Chromium browser without Tauri/native providers; not native or real-data QA",
+  "cases": [
+    {
+      "locale": "en",
+      "width": 320,
+      "height": 568,
+      "scroll": 320,
+      "language": "en",
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "height": 844,
+      "scroll": 390,
+      "language": "en",
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 768,
+      "height": 1024,
+      "scroll": 768,
+      "language": "en",
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 1024,
+      "height": 768,
+      "scroll": 1024,
+      "language": "en",
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "height": 900,
+      "scroll": 1440,
+      "language": "en",
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 1920,
+      "height": 1080,
+      "scroll": 1920,
+      "language": "en",
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 3840,
+      "height": 2160,
+      "scroll": 3840,
+      "language": "en",
+      "overflow": false
+    },
+    {
+      "workspace": "Launches",
+      "heading": "Launch intelligence is temporarily unavailable"
+    },
+    {
+      "workspace": "Missions",
+      "heading": "Launch intelligence is temporarily unavailable"
+    },
+    {
+      "workspace": "Space News",
+      "heading": "Space News"
+    },
+    {
+      "workspace": "Orbital Analysis",
+      "heading": "Orbital Analysis Lab"
+    },
+    {
+      "workspace": "Favorites",
+      "heading": "Favorites"
+    },
+    {
+      "workspace": "Notifications",
+      "heading": "Notifications"
+    },
+    {
+      "workspace": "Settings",
+      "lazyLoad": "passed"
+    },
+    {
+      "locale": "az",
+      "width": 390,
+      "height": 844,
+      "scroll": 390,
+      "language": "az",
+      "overflow": false
+    },
+    {
+      "locale": "az",
+      "width": 1440,
+      "height": 900,
+      "scroll": 1440,
+      "language": "az",
+      "overflow": false
+    },
+    {
+      "locale": "tr",
+      "width": 390,
+      "height": 844,
+      "scroll": 390,
+      "language": "tr",
+      "overflow": false
+    },
+    {
+      "locale": "tr",
+      "width": 1440,
+      "height": 900,
+      "scroll": 1440,
+      "language": "tr",
+      "overflow": false
+    },
+    {
+      "locale": "ru",
+      "width": 390,
+      "height": 844,
+      "scroll": 390,
+      "language": "ru",
+      "overflow": false
+    },
+    {
+      "locale": "ru",
+      "width": 1440,
+      "height": 900,
+      "scroll": 1440,
+      "language": "ru",
+      "overflow": false
+    },
+    {
+      "locale": "es",
+      "width": 390,
+      "height": 844,
+      "scroll": 390,
+      "language": "es",
+      "overflow": false
+    },
+    {
+      "locale": "es",
+      "width": 1440,
+      "height": 900,
+      "scroll": 1440,
+      "language": "es",
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

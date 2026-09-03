@@ -22,27 +22,21 @@ import {
 } from "@/shared/formatting/units";
 
 interface LaunchGlobePanelProps {
-  fetchedAt: string | null;
   launch: LaunchRecord;
   nowIso: string;
   onClose: () => void;
   onFocus: () => void;
   onSelectLaunch: (id: string) => void;
   site: LaunchSiteRecord;
-  source: string | null;
-  stale: boolean;
 }
 
 export function LaunchGlobePanel({
-  fetchedAt,
   launch,
   nowIso,
   onClose,
   onFocus,
   onSelectLaunch,
   site,
-  source,
-  stale,
 }: LaunchGlobePanelProps) {
   const { i18n, t } = useTranslation("launches");
   const [expanded, setExpanded] = useState(false);
@@ -213,12 +207,6 @@ export function LaunchGlobePanel({
         </div>
       )}
 
-      <footer>
-        <strong>{source ?? t("globe.source")}</strong>
-        <span>{t(stale ? "globe.cached" : "globe.fresh", {
-          time: fetchedAt ? formatDateTime(fetchedAt, locale) : t("common.unavailable"),
-        })}</span>
-      </footer>
     </ObjectInspector>
   );
 }

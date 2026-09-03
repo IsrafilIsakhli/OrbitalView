@@ -1,0 +1,1 @@
+export const AUTOMATIC_REFRESH_INTERVAL_MS = 3.5 * 60_000;

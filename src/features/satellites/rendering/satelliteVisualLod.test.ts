@@ -36,6 +36,17 @@ describe("satellite visual LOD", () => {
     expect(result.semanticIndices.every((index) => catalog[index]?.category === "debris")).toBe(true);
   });
 
+  it("keeps a real 16K catalog inside the global GPU signal budget", () => {
+    const catalog = Array.from({ length: 16_307 }, (_, index) =>
+      satellite(index, satelliteCategories[index % satelliteCategories.length]!),
+    );
+    const result = selectSatellitePresentation(catalog, "high", visibility, null);
+
+    expect(result.signalIndices).toHaveLength(11_000);
+    expect(new Set(result.signalIndices).size).toBe(result.signalIndices.length);
+    expect(result.signalIndices.every((index) => catalog[index] !== undefined)).toBe(true);
+  });
+
   it("uses hysteresis between global, orbital and inspection tiers", () => {
     expect(resolveVisualTier(13_000_000, "global")).toBe("global");
     expect(resolveVisualTier(10_000_000, "global")).toBe("orbital");

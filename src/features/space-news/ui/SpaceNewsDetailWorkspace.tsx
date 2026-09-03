@@ -34,7 +34,7 @@ export function SpaceNewsDetailWorkspace({ newsId, onBack, onOpenEvent, onOpenLa
   const [showOriginal, setShowOriginal] = useState(false);
 
   if (detail.isLoading && !detail.data) return <NewsLoadingState />;
-  if (detail.isError || !detail.data) return <NewsErrorState onRetry={() => void detail.refetch()} />;
+  if (detail.isError || !detail.data) return <NewsErrorState />;
 
   const item = detail.data;
   const title = showOriginal ? item.titleOriginal : item.title;

@@ -6,7 +6,10 @@ export type AnalysisTab =
   | "dynamics"
   | "groundStation"
   | "constellation"
-  | "proximity";
+  | "proximity"
+  | "changeWatch"
+  | "coverage"
+  | "missionDesign";
 
 export type WorkspaceSelectionIntent =
   | { type: "destination"; destination: WorkspaceDestination }

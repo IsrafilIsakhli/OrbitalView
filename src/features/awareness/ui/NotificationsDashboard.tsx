@@ -110,10 +110,8 @@ export function NotificationsDashboard({ onOpen }: NotificationsDashboardProps) 
           <header><DesktopPulse24Regular aria-hidden /><div><small>{t("settings.eyebrow")}</small><h2>{t("settings.title")}</h2></div></header>
           <SettingToggle checked={preferences.launchAlerts} label={t("settings.launches")} onChange={(value) => setPreference("launchAlerts", value)} />
           <SettingToggle checked={preferences.missionAlerts} label={t("settings.missions")} onChange={(value) => setPreference("missionAlerts", value)} />
-          <SettingToggle checked={preferences.satelliteAlerts} label={t("settings.satellites")} onChange={(value) => setPreference("satelliteAlerts", value)} />
           <SettingToggle checked={preferences.weatherAlerts} label={t("settings.weather")} onChange={(value) => setPreference("weatherAlerts", value)} />
           <SettingToggle checked={preferences.newsAlerts} label={t("settings.news")} onChange={(value) => setPreference("newsAlerts", value)} />
-          <SettingToggle checked={preferences.providerAlerts} label={t("settings.providers")} onChange={(value) => setPreference("providerAlerts", value)} />
           <SettingToggle checked={preferences.quietHoursEnabled} label={t("settings.quietHours", { end: preferences.quietHoursEnd, start: preferences.quietHoursStart })} onChange={(value) => setPreference("quietHoursEnabled", value)} />
           <label className="alert-lead-time"><span>{t("settings.leadTime")}</span><select onChange={(event) => setPreference("launchLeadHours", Number(event.currentTarget.value))} value={preferences.launchLeadHours}><option value={6}>{t("settings.hours", { count: 6 })}</option><option value={24}>{t("settings.hours", { count: 24 })}</option><option value={72}>{t("settings.hours", { count: 72 })}</option><option value={168}>{t("settings.hours", { count: 168 })}</option></select></label>
           <div className="native-notification-card" data-enabled={preferences.nativeNotifications}>

@@ -1,15 +1,11 @@
 import {
   ArrowRight20Regular,
-  ArrowSync24Regular,
-  CheckmarkCircle24Regular,
   CloudArrowDown24Regular,
-  ErrorCircle24Regular,
   Globe24Regular,
   News24Regular,
   Rocket24Regular,
   Server24Regular,
   ShieldTask24Regular,
-  Warning24Regular,
   WeatherMoon24Regular,
 } from "@fluentui/react-icons";
 import { useEffect, useMemo, useState } from "react";
@@ -42,7 +38,6 @@ interface SpaceIntelligenceDashboardProps {
   onOpenSpaceWeather: () => void;
 }
 
-type ModuleStatus = "cached" | "fresh" | "loading" | "unavailable";
 type EmptyStateKey = "noLaunch" | "noMission" | "noNews" | "unavailable";
 
 export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProps) {
@@ -91,33 +86,11 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
     ? t("dashboard:states.unknown")
     : formatSurfaceSpeed(forecast.windSpeedKmh, units, locale);
 
-  const launchStatus = queryModuleStatus(
-    Boolean(data.launches.data),
-    data.launches.data?.stale,
-    data.launches.isPending,
-  );
-  const satelliteStatus = queryModuleStatus(
-    Boolean(data.satellites.data),
-    data.satellites.data?.stale,
-    data.satellites.isPending,
-  );
-  const weatherStatus = queryModuleStatus(
-    Boolean(noaa) && noaa?.status !== "unavailable",
-    noaa?.stale,
-    data.noaa.isPending,
-  );
-  const newsStatus = queryModuleStatus(
-    Boolean(data.news.data),
-    data.news.data?.stale,
-    data.news.isPending,
-  );
-  const moduleStateMessage = (status: ModuleStatus, emptyKey: EmptyStateKey): string => {
-    if (status === "loading") return t("dashboard:states.loading");
-    if (status === "unavailable") return t("dashboard:states.unavailable");
+  const moduleStateMessage = (emptyKey: EmptyStateKey): string => {
     if (emptyKey === "noLaunch") return t("dashboard:states.noLaunch");
     if (emptyKey === "noMission") return t("dashboard:states.noMission");
     if (emptyKey === "noNews") return t("dashboard:states.noNews");
-    return t("dashboard:states.unavailable");
+    return t("dashboard:states.unknown");
   };
 
   return (
@@ -157,7 +130,6 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
             icon={Rocket24Regular}
             label={t("dashboard:modules.nextLaunch")}
             source={t("dashboard:providers.launchLibrary")}
-            status={launchStatus}
           />
           {nextLaunch ? (
             <>
@@ -205,7 +177,7 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
               </div>
             </>
           ) : (
-            <ModuleEmpty text={moduleStateMessage(launchStatus, "noLaunch")} />
+            <ModuleEmpty text={moduleStateMessage("noLaunch")} />
           )}
         </article>
 
@@ -214,11 +186,10 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
             icon={ShieldTask24Regular}
             label={t("dashboard:modules.mission")}
             source={t("dashboard:providers.launchLibrary")}
-            status={launchStatus}
           />
           <div className="metric-pair">
-            <div><small>{t("dashboard:labels.active")}</small><strong>{formatNumber(data.launchSelection.activeLaunches.length, locale)}</strong></div>
-            <div><small>{t("dashboard:labels.upcomingLoaded")}</small><strong>{formatNumber(data.launchSelection.upcomingLaunches.length, locale)}</strong></div>
+            <div><small>{t("dashboard:labels.active")}</small><strong>{data.launches.data ? formatNumber(data.launchSelection.activeLaunches.length, locale) : "—"}</strong></div>
+            <div><small>{t("dashboard:labels.upcomingLoaded")}</small><strong>{data.launches.data ? formatNumber(data.launchSelection.upcomingLaunches.length, locale) : "—"}</strong></div>
           </div>
           {missionFocus ? (
             <div className="mission-focus">
@@ -228,7 +199,7 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
               {!activeLaunch && <time>{operationalDate(missionFocus.net, locale)}</time>}
             </div>
           ) : (
-            <ModuleEmpty text={moduleStateMessage(launchStatus, "noMission")} />
+            <ModuleEmpty text={moduleStateMessage("noMission")} />
           )}
           <button className="module-link" onClick={props.onOpenMissions} type="button">
             {t("dashboard:actions.missions")}<ArrowRight20Regular aria-hidden />
@@ -240,7 +211,6 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
             icon={WeatherMoon24Regular}
             label={t("dashboard:modules.spaceWeather")}
             source={t("dashboard:providers.noaaSwpc")}
-            status={weatherStatus}
           />
           {noaa && noaa.status !== "unavailable" ? (
             <>
@@ -258,7 +228,7 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
               {kp && <time>{t("dashboard:labels.observed", { time: operationalDate(kp.observedAtUnixMs, locale) })}</time>}
             </>
           ) : (
-            <ModuleEmpty text={moduleStateMessage(weatherStatus, "unavailable")} />
+            <ModuleEmpty text={moduleStateMessage("unavailable")} />
           )}
           <button className="module-link" onClick={props.onOpenSpaceWeather} type="button">
             {t("dashboard:actions.weather")}<ArrowRight20Regular aria-hidden />
@@ -270,7 +240,6 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
             icon={Globe24Regular}
             label={t("dashboard:modules.satellites")}
             source={t("dashboard:providers.celestrak")}
-            status={satelliteStatus}
           />
           {catalogSummary ? (
             <>
@@ -285,7 +254,7 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
               <time>{t("dashboard:labels.updatedAt", { time: operationalDate(data.satellites.data!.fetchedAt, locale) })}</time>
             </>
           ) : (
-            <ModuleEmpty text={moduleStateMessage(satelliteStatus, "unavailable")} />
+            <ModuleEmpty text={moduleStateMessage("unavailable")} />
           )}
           <button className="module-link" onClick={props.onOpenEarth} type="button">
             {t("dashboard:actions.earth")}<ArrowRight20Regular aria-hidden />
@@ -297,7 +266,6 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
             icon={News24Regular}
             label={t("dashboard:modules.news")}
             source={t("dashboard:providers.spaceflightNews")}
-            status={newsStatus}
           />
           {newsItems.length > 0 ? (
             <>
@@ -305,7 +273,7 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
               <NewsRows items={newsItems.slice(0, 3)} locale={locale} onSelect={props.onOpenNewsItem} />
             </>
           ) : (
-            <ModuleEmpty text={moduleStateMessage(newsStatus, "noNews")} />
+            <ModuleEmpty text={moduleStateMessage("noNews")} />
           )}
           <button className="module-link" onClick={props.onOpenNews} type="button">
             {t("dashboard:actions.news")}<ArrowRight20Regular aria-hidden />
@@ -320,28 +288,15 @@ function ModuleHeader({
   icon: Icon,
   label,
   source,
-  status,
 }: {
   icon: typeof Rocket24Regular;
   label: string;
   source: string;
-  status: ModuleStatus;
 }) {
-  const { t } = useTranslation("dashboard");
-  const StatusIcon = status === "fresh"
-    ? CheckmarkCircle24Regular
-    : status === "loading"
-      ? ArrowSync24Regular
-      : status === "unavailable"
-        ? ErrorCircle24Regular
-        : Warning24Regular;
   return (
     <header className="command-module__header">
       <span className="command-module__icon"><Icon aria-hidden /></span>
       <div><h2>{label}</h2><small>{source}</small></div>
-      <span className="freshness-dot" data-status={status}>
-        <StatusIcon aria-hidden />{t(`labels.${status}`)}
-      </span>
     </header>
   );
 }
@@ -381,16 +336,6 @@ function NewsRows({
 
 function ModuleEmpty({ text }: { text: string }) {
   return <div className="command-module__empty"><Server24Regular aria-hidden /><span>{text}</span></div>;
-}
-
-function queryModuleStatus(
-  hasData: boolean,
-  stale: boolean | undefined,
-  pending: boolean,
-): ModuleStatus {
-  if (hasData) return stale ? "cached" : "fresh";
-  if (pending) return "loading";
-  return "unavailable";
 }
 
 function launchStatusKey(statusId: number | null): "go" | "hold" | "other" | "success" | "tbd" {

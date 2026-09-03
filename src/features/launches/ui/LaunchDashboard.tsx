@@ -1,5 +1,4 @@
 import {
-  ArrowClockwise24Regular,
   CalendarClock24Regular,
   Globe24Regular,
   Location24Regular,
@@ -110,7 +109,7 @@ export function LaunchDashboard({ onOpenNews, onShowEarth }: LaunchDashboardProp
     : null;
 
   if (query.isPending) return <LaunchState kind="loading" />;
-  if (query.isError || !query.data) return <LaunchState kind="error" onRetry={() => void query.refetch()} />;
+  if (query.isError || !query.data) return <LaunchState kind="error" />;
 
   if (activeDetailId) {
     const fallbackLaunch = query.data.launches.find((launch) => launch.id === activeDetailId)
@@ -135,8 +134,6 @@ export function LaunchDashboard({ onOpenNews, onShowEarth }: LaunchDashboardProp
     : queueTab === "active"
       ? queues.active.length
       : query.data.launchCount;
-  const sourceTimestamp = formatDateTime(query.data.fetchedAt, locale, timeDisplay);
-
   return (
     <section className="launch-dashboard">
       <div aria-hidden className="launch-dashboard__nebula" />
@@ -145,11 +142,6 @@ export function LaunchDashboard({ onOpenNews, onShowEarth }: LaunchDashboardProp
           <p className="eyebrow"><span />{t("eyebrow")}</p>
           <h1>{t("title")}</h1>
           <p>{t("subtitle")}</p>
-        </div>
-        <div className="launch-source" data-stale={query.data.stale}>
-          <i />
-          <span>{t(query.data.stale ? "source.cached" : "source.live")}</span>
-          <small>{query.data.source} · {sourceTimestamp.primary}</small>
         </div>
       </header>
 
@@ -227,7 +219,6 @@ export function LaunchDashboard({ onOpenNews, onShowEarth }: LaunchDashboardProp
               weatherError={weatherQuery.isError}
               weatherLoading={weatherQuery.isPending && weatherEnabled}
               weatherSource={weatherQuery.data?.source ?? null}
-              weatherStale={weatherQuery.data?.stale ?? false}
             />
           )}
         </div>
@@ -285,11 +276,6 @@ export function LaunchDashboard({ onOpenNews, onShowEarth }: LaunchDashboardProp
             {queueTab === "completed" && completedQuery.isPending && queues.completed.length === 0 && (
               <p className="launch-timeline__state">{t("timeline.loadingCompleted")}</p>
             )}
-            {queueTab === "completed" && completedQuery.isError && queues.completed.length === 0 && (
-              <button className="launch-timeline__retry" onClick={() => void completedQuery.refetch()} type="button">
-                <ArrowClockwise24Regular aria-hidden />{t("error.retry")}
-              </button>
-            )}
             {visibleTimeline.length === 0 && !(queueTab === "completed" && completedQuery.isPending) && (
               <p className="launch-timeline__state">{t(search ? "timeline.noResults" : `timeline.empty.${queueTab}`)}</p>
             )}
@@ -344,7 +330,6 @@ function LaunchIntelligencePanel({
   weatherError,
   weatherLoading,
   weatherSource,
-  weatherStale,
 }: {
   forecast: WeatherPoint | null;
   launch: LaunchRecord;
@@ -356,7 +341,6 @@ function LaunchIntelligencePanel({
   weatherError: boolean;
   weatherLoading: boolean;
   weatherSource: string | null;
-  weatherStale: boolean;
 }) {
   const { t } = useTranslation("launches");
   const units = usePreferencesStore((state) => state.units);
@@ -443,7 +427,7 @@ function LaunchIntelligencePanel({
             <div className="launch-intelligence__heading">
               <span className="launch-card-icon launch-card-icon--weather"><WeatherRain24Regular aria-hidden /></span>
               <div><small>{t("hero.weather")}</small><strong>{launch.padName ?? t("common.unavailable")}</strong></div>
-              {weatherSource && <em>{weatherStale ? t("weather.stale") : weatherSource}</em>}
+              {weatherSource && <em>{weatherSource}</em>}
             </div>
             <dl className="launch-intelligence__facts launch-intelligence__facts--site">
               <Detail label={t("fields.location")} value={launch.locationName} />
@@ -496,7 +480,7 @@ function LaunchTimeSummary({ launch, locale, timeDisplay }: { launch: LaunchReco
   );
 }
 
-function LaunchState({ kind, onRetry }: { kind: "loading" | "error"; onRetry?: () => void }) {
+function LaunchState({ kind }: { kind: "loading" | "error" }) {
   const { t } = useTranslation("launches");
   return (
     <section className="launch-state">
@@ -504,7 +488,6 @@ function LaunchState({ kind, onRetry }: { kind: "loading" | "error"; onRetry?: (
       <p className="eyebrow">{t(kind === "loading" ? "eyebrow" : "error.title")}</p>
       <h1>{t(`${kind}.title`)}</h1>
       <p>{t(`${kind}.description`)}</p>
-      {kind === "error" && <button onClick={onRetry} type="button"><ArrowClockwise24Regular aria-hidden />{t("error.retry")}</button>}
     </section>
   );
 }

@@ -11,6 +11,7 @@ use crate::{
 
 pub fn spawn_background_tasks(app: AppHandle) {
     spawn_translation_worker(app.clone());
+    spawn_weather_worker(app.clone());
     spawn_launch_library_worker(app.clone());
     spawn_fixed_provider(
         app.clone(),
@@ -24,6 +25,22 @@ pub fn spawn_background_tasks(app: AppHandle) {
         Duration::from_secs(15 * 60),
     );
     spawn_fixed_provider(app, ProviderId::Celestrak, Duration::from_secs(2 * 60 * 60));
+}
+
+fn spawn_weather_worker(app: AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        let mut ticker = tokio::time::interval(Duration::from_secs(5 * 60));
+        ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        ticker.tick().await;
+        loop {
+            ticker.tick().await;
+            if !app.state::<OperationsService>().background_sync_enabled() {
+                continue;
+            }
+            crate::commands::launches::refresh_active_weather(app.clone()).await;
+            let _ = app.emit("provider-health-changed", ProviderId::OpenMeteo);
+        }
+    });
 }
 
 fn spawn_translation_worker(app: AppHandle) {
@@ -114,6 +131,12 @@ fn retry_delay(retry_count: u8, provider: ProviderId) -> Duration {
         ProviderId::OpenMeteo => 5,
         ProviderId::SpaceflightNews => 6,
     };
+    // NOAA's five-minute upstream cadence also applies after failures.
+    let seconds = if matches!(provider, ProviderId::NoaaSwpc) {
+        seconds.max(5 * 60)
+    } else {
+        seconds
+    };
     Duration::from_secs(seconds + provider_offset)
 }
 
@@ -142,6 +165,7 @@ mod tests {
         assert!(retry_delay(1, ProviderId::Nasa) >= Duration::from_secs(60));
         assert!(retry_delay(2, ProviderId::Nasa) >= Duration::from_secs(5 * 60));
         assert!(retry_delay(3, ProviderId::Nasa) >= Duration::from_secs(15 * 60));
+        assert!(retry_delay(1, ProviderId::NoaaSwpc) >= Duration::from_secs(5 * 60));
         assert_ne!(
             retry_delay(1, ProviderId::Nasa),
             retry_delay(1, ProviderId::NoaaSwpc),

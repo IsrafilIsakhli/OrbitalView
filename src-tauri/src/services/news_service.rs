@@ -40,6 +40,13 @@ struct NewsServiceRuntime {
 }
 
 impl NewsService {
+    pub(crate) async fn drain_background_writes(&self) {
+        if let Some(runtime) = &self.runtime {
+            let _sync = runtime.request_gate.lock().await;
+            let _translation = runtime.translation_gate.lock().await;
+        }
+    }
+
     pub fn new(database_path: PathBuf, image_root: PathBuf) -> Self {
         match NewsServiceRuntime::initialize(database_path, image_root) {
             Ok(runtime) => Self {
@@ -154,6 +161,9 @@ impl NewsServiceRuntime {
 
     pub async fn sync(&self, app: &AppHandle, force: bool) -> Result<NewsSyncResult, NewsError> {
         let _guard = self.request_gate.lock().await;
+        if crate::commands::system::update_preparing() {
+            return Err(NewsError::new("update_in_progress", "Update handoff"));
+        }
         if !force && self.repository.item_count().await? > 0 {
             let latest = self.repository.watermark(NewsContentType::Article).await?;
             if latest.is_some_and(|value| unix_time_ms().saturating_sub(value) < 10 * 60 * 1_000) {
@@ -308,6 +318,9 @@ impl NewsServiceRuntime {
             return Ok(0);
         }
         let _guard = self.translation_gate.lock().await;
+        if crate::commands::system::update_preparing() {
+            return Ok(0);
+        }
         let jobs = self.translations.next_batch(10).await?;
         if jobs.is_empty() {
             return Ok(0);

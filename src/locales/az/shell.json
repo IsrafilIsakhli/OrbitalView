@@ -1,7 +1,41 @@
 {
-  "titlebar": { "minimize": "Pəncərəni kiçilt", "maximize": "Pəncərəni böyüt və ya bərpa et", "close": "Pəncərəni bağla" },
-  "search": { "button": "Hər yerdə axtar", "placeholder": "Orbital Vision-da axtar", "dialogTitle": "Axtarış", "hint": "Dərhal keçid et", "empty": "Uyğun nəticə yoxdur", "shortcut": "Ctrl K", "escapeKey": "Esc", "closeHint": "Bağlamaq üçün Esc basın", "satelliteMeta": "NORAD {{id}} · Canlı peyk", "missionMeta": "Missiya · {{date}}", "rocketMeta": "Raket · {{agency}}", "siteMeta": "Buraxılış məntəqəsi · {{country}}", "nasaMeta": "NASA kəşfiyyatı" },
-  "scene": { "eyebrow": "SİSTEM HAZIRDIR", "title": "Orbitə açılan pəncərəniz.", "description": "Yeri, peykləri, buraxılışları və missiyaları vahid canlı görünüşdə araşdırın.", "engineLabel": "Orbital görünüş", "engineStatus": "3D mühərrik hazırlanır", "quality": "Adaptiv keyfiyyət", "localization": "Beş dil", "runtime": "Təhlükəsiz masaüstü mühiti" },
-  "module": { "title": "{{name}} növbəti modul üçün hazırlanıb", "description": "Məhsul qabığı hazırdır. Məlumat və render qatı keyfiyyət yoxlamasından keçdikdən sonra bu iş sahəsi aktivləşəcək." },
-  "errors": { "title": "Orbital Vision problemlə qarşılaşdı", "description": "Problem lokal məlumatlara təsir etməzdən əvvəl interfeys təhlükəsiz şəkildə dayandırıldı." }
+  "titlebar": {
+    "minimize": "Pəncərəni kiçilt",
+    "maximize": "Pəncərəni böyüt və ya bərpa et",
+    "close": "Pəncərəni bağla"
+  },
+  "search": {
+    "button": "Hər yerdə axtar",
+    "placeholder": "Orbital Vision-da axtar",
+    "dialogTitle": "Axtarış",
+    "hint": "Dərhal keçid et",
+    "empty": "Uyğun nəticə yoxdur",
+    "shortcut": "Ctrl K",
+    "escapeKey": "Esc",
+    "closeHint": "Bağlamaq üçün Esc basın",
+    "satelliteMeta": "NORAD {{id}} · Canlı peyk",
+    "missionMeta": "Missiya · {{date}}",
+    "rocketMeta": "Raket · {{agency}}",
+    "siteMeta": "Buraxılış məntəqəsi · {{country}}",
+    "nasaMeta": "NASA kəşfiyyatı"
+  },
+  "scene": {
+    "eyebrow": "SİSTEM HAZIRDIR",
+    "title": "Orbitə açılan pəncərəniz.",
+    "description": "Yeri, peykləri, buraxılışları və missiyaları vahid canlı görünüşdə araşdırın.",
+    "engineLabel": "Orbital görünüş",
+    "engineStatus": "3D mühərrik hazırlanır",
+    "quality": "Adaptiv keyfiyyət",
+    "localization": "Beş dil",
+    "runtime": "Təhlükəsiz masaüstü mühiti"
+  },
+  "module": {
+    "title": "{{name}} növbəti modul üçün hazırlanıb",
+    "description": "Məhsul qabığı hazırdır. Məlumat və render qatı keyfiyyət yoxlamasından keçdikdən sonra bu iş sahəsi aktivləşəcək."
+  },
+  "errors": {
+    "title": "Orbital Vision problemlə qarşılaşdı",
+    "description": "Problem lokal məlumatlara təsir etməzdən əvvəl interfeys təhlükəsiz şəkildə dayandırıldı."
+  },
+  "loadingWorkspace": "Ekran yüklənir…"
 }

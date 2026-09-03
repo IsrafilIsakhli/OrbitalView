@@ -6,8 +6,8 @@ mod storage;
 
 use commands::{
     analysis::{
-        analysis_ground_stations, delete_analysis_ground_station, export_orbital_analysis,
-        save_analysis_ground_station,
+        analysis_ground_stations, analysis_orbital_history, delete_analysis_ground_station,
+        export_orbital_analysis, record_analysis_orbital_snapshot, save_analysis_ground_station,
     },
     control_center::{
         OperationsService, clear_provider_cache, control_center_snapshot, refresh_provider,
@@ -30,17 +30,18 @@ use commands::{
     remote_media::cache_remote_media,
     satellite_media::satellite_object_media,
     satellites::{SatelliteCatalogService, active_satellite_catalog},
-    system::runtime_info,
+    system::{app_update_capability, prepare_app_update, resume_after_failed_update, runtime_info},
 };
 use domain::credentials::NasaCredentialSource;
 use providers::nasa::{load_fallback_api_key, normalize_api_key};
 use providers::remote_media::RemoteMediaProvider;
 use providers::satellite_media::SatelliteMediaProvider;
+use services::local_snapshots::provider_cached_snapshot;
 use services::{analysis_service::AnalysisService, news_service::NewsService};
 use services::{credential_store::CredentialStore, provider_scheduler::spawn_background_tasks};
 use tauri::Manager;
 
-const UPDATER_PUBLIC_KEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ5ODA1RUNENzI1RjRCNEEKUldSS1MxOXl6VjZBU1FBMmNBT1IveG5PbVRYTmxTQmVqS2NKNlJGR29YakdKdXdNQ3U2ZS9FSkYK";
+const UPDATER_PUBLIC_KEY: &str = include_str!("../../release/updater-public-key.txt");
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -64,7 +65,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(
             tauri_plugin_updater::Builder::new()
-                .pubkey(UPDATER_PUBLIC_KEY)
+                .pubkey(UPDATER_PUBLIC_KEY.trim())
                 .build(),
         )
         .manage(satellite_catalog_service)
@@ -99,6 +100,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             analysis_ground_stations,
+            analysis_orbital_history,
             active_satellite_catalog,
             clear_provider_cache,
             clear_space_news_translations,
@@ -115,6 +117,7 @@ pub fn run() {
             noaa_space_weather,
             open_external_url,
             refresh_provider,
+            record_analysis_orbital_snapshot,
             rocket_configuration,
             satellite_object_media,
             save_analysis_ground_station,
@@ -128,7 +131,11 @@ pub fn run() {
             space_news_source_catalog,
             space_intelligence,
             verify_nasa_credential,
-            runtime_info
+            runtime_info,
+            app_update_capability,
+            prepare_app_update,
+            resume_after_failed_update,
+            provider_cached_snapshot
         ])
         .run(tauri::generate_context!())
         .expect("Orbital Vision failed to start");

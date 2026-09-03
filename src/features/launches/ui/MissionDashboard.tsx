@@ -161,9 +161,7 @@ export function MissionDashboard({
   }, [detailLaunch]);
 
   if (upcomingQuery.isPending) return <MissionState loading />;
-  if (upcomingQuery.isError || !upcomingQuery.data) {
-    return <MissionState onRetry={() => void upcomingQuery.refetch()} />;
-  }
+  if (upcomingQuery.isError || !upcomingQuery.data) return <MissionState />;
 
   if (detailLaunch) {
     return (
@@ -182,13 +180,6 @@ export function MissionDashboard({
       ? upcomingQuery.data.eventCount
       : currentQueue.length;
   const loaded = tab === "events" ? filteredEvents.length : filteredQueue.length;
-  const sourceDate = formatDateTime(
-    upcomingQuery.data.fetchedAt,
-    locale,
-    "utc-only",
-    { year: undefined },
-  ).primary;
-
   return (
     <section className="mission-operations-page">
       <header className="mission-operations-header">
@@ -196,12 +187,6 @@ export function MissionDashboard({
           <p className="eyebrow">{t("missions:eyebrow")}</p>
           <h1>{t("missions:title")}</h1>
           <p>{t("missions:subtitle")}</p>
-        </div>
-        <div className="mission-provider-state" data-stale={upcomingQuery.data.stale}>
-          <i />
-          <span>{upcomingQuery.data.source}</span>
-          <strong>{upcomingQuery.data.stale ? t("launches:source.cached") : t("launches:source.live")}</strong>
-          <small>{sourceDate}</small>
         </div>
       </header>
 
@@ -565,14 +550,13 @@ function EmptyQueue() {
   return <div className="mission-queue-empty"><CalendarClock24Regular aria-hidden /><p>{t("queue.empty")}</p></div>;
 }
 
-function MissionState({ loading = false, onRetry }: { loading?: boolean; onRetry?: () => void }) {
+function MissionState({ loading = false }: { loading?: boolean }) {
   const { t } = useTranslation(["common", "launches"]);
   return (
     <section className="launch-state">
       <span className="launch-state__orbit"><CalendarClock24Regular aria-hidden /></span>
       <h1>{t(loading ? "launches:loading.title" : "launches:error.title")}</h1>
       <p>{t(loading ? "launches:loading.description" : "launches:error.description")}</p>
-      {onRetry && <button onClick={onRetry} type="button">{t("common:actions.retry")}</button>}
     </section>
   );
 }

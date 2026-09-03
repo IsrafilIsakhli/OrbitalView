@@ -1,11 +1,18 @@
 import type { OMMJsonObject } from "satellite.js";
 
+export interface OrbitWorkerTimeLensState {
+  playing: boolean;
+  rate: number;
+  timestampUnixMs: number;
+}
+
 export type OrbitWorkerRequest =
   | { type: "initialize"; records: OMMJsonObject[] }
   | { type: "select"; index: number | null; sampleCount?: number }
   | { type: "preview"; index: number | null }
   | { type: "showcase"; indices: number[]; sampleCount?: number }
   | { type: "set-active"; active: boolean }
+  | { type: "set-time-lens"; state: OrbitWorkerTimeLensState | null }
   | { type: "dispose" };
 
 export type OrbitWorkerResponse =

@@ -8,11 +8,16 @@ import { propagate } from "@satellite/propagation";
 import { createSingleThreadRuntimeFromModule } from "@satellite/runtime";
 import createWasmModule from "@satellite/wasm-module";
 
-import type { OrbitWorkerRequest, OrbitWorkerResponse } from "./messages";
+import type {
+  OrbitWorkerRequest,
+  OrbitWorkerResponse,
+  OrbitWorkerTimeLensState,
+} from "./messages";
 import {
   createOrbitCoordinateFrames,
   type EciOrbitSample,
 } from "./orbitCoordinateFrames";
+import { resolveForecastTimestamp } from "./forecastClock";
 
 interface WorkerScope {
   onmessage: ((event: MessageEvent<OrbitWorkerRequest>) => void) | null;
@@ -35,6 +40,8 @@ let lastOrbitAt = 0;
 let selectedIndex: number | null = null;
 let selectedOrbitSampleCount = ORBIT_SAMPLE_COUNT;
 let active = true;
+let timeLensAnchorRealMs = 0;
+let timeLensState: OrbitWorkerTimeLensState | null = null;
 
 scope.onmessage = (event) => {
   void handleRequest(event.data);
@@ -50,6 +57,15 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
       return;
     }
     if (request.type === "set-active") {
+      if (!request.active && active && timeLensState?.playing) {
+        timeLensState = {
+          ...timeLensState,
+          timestampUnixMs: currentPropagationTime(),
+        };
+        timeLensAnchorRealMs = Date.now();
+      } else if (request.active && !active && timeLensState?.playing) {
+        timeLensAnchorRealMs = Date.now();
+      }
       active = request.active;
       if (!active && frameTimer !== null) {
         self.clearTimeout(frameTimer);
@@ -57,6 +73,20 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
       } else if (active && runtime && frameTimer === null) {
         runFrame();
       }
+      return;
+    }
+    if (request.type === "set-time-lens") {
+      timeLensState = normalizeTimeLensState(request.state);
+      timeLensAnchorRealMs = Date.now();
+      if (frameTimer !== null) {
+        self.clearTimeout(frameTimer);
+        frameTimer = null;
+      }
+      if (runtime && selectedIndex !== null) {
+        calculateOrbit(runtime, selectedIndex, selectedOrbitSampleCount);
+        lastOrbitAt = Date.now();
+      }
+      if (runtime && active) runFrame();
       return;
     }
     if (request.type === "select") {
@@ -121,7 +151,7 @@ function runFrame(): void {
   if (!runtime || !active) {
     return;
   }
-  const timestampUnixMs = Date.now();
+  const timestampUnixMs = currentPropagationTime();
   runtime.propagator.setDates([new Date(timestampUnixMs)]);
   runtime.propagator.run({ eci: { communityDecayCheckEnabled: true } });
   const raw = runtime.propagator.getRawOutput();
@@ -164,9 +194,9 @@ function runFrame(): void {
     [errors.buffer, positionsMeters.buffer, telemetry.buffer],
   );
 
-  if (selectedIndex !== null && timestampUnixMs - lastOrbitAt >= 30_000) {
+  if (selectedIndex !== null && Date.now() - lastOrbitAt >= 30_000) {
     calculateOrbit(runtime, selectedIndex, selectedOrbitSampleCount);
-    lastOrbitAt = timestampUnixMs;
+    lastOrbitAt = Date.now();
   }
   if (active) frameTimer = self.setTimeout(runFrame, FRAME_INTERVAL_MS);
 }
@@ -239,7 +269,7 @@ function propagateOrbit(
   sampleCount = ORBIT_SAMPLE_COUNT,
   orbitFraction = 1,
 ): ReturnType<typeof createOrbitCoordinateFrames> | null {
-  const center = Date.now();
+  const center = currentPropagationTime();
   const half = Math.floor(sampleCount / 2);
   const samples: EciOrbitSample[] = [];
   const satrec = current.satRecs[index];
@@ -271,6 +301,25 @@ function normalizeSampleCount(sampleCount: number | undefined): number {
   if (!Number.isFinite(sampleCount)) return ORBIT_SAMPLE_COUNT;
   const rounded = Math.round(sampleCount ?? ORBIT_SAMPLE_COUNT);
   return Math.min(ORBIT_SAMPLE_COUNT, Math.max(61, rounded));
+}
+
+function normalizeTimeLensState(
+  state: OrbitWorkerTimeLensState | null,
+): OrbitWorkerTimeLensState | null {
+  if (!state || !Number.isFinite(state.timestampUnixMs)) return null;
+  return {
+    playing: Boolean(state.playing),
+    rate: Number.isFinite(state.rate) ? Math.max(1, state.rate) : 60,
+    timestampUnixMs: state.timestampUnixMs,
+  };
+}
+
+function currentPropagationTime(): number {
+  return resolveForecastTimestamp(
+    timeLensState,
+    timeLensAnchorRealMs,
+    Date.now(),
+  );
 }
 
 function disposeRuntime(): void {

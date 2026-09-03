@@ -8,7 +8,6 @@ import {
 import { openExternalUrl } from "@/shared/security/externalUrl";
 import { useTranslation } from "react-i18next";
 
-import { DataFreshnessBadge } from "@/features/control-center/ui/DataFreshnessBadge";
 import { usePreferencesStore } from "@/features/settings/model/preferences";
 import { useSpaceNewsForRelation } from "@/features/space-news/api/useSpaceNews";
 import { formatDateTime } from "@/shared/i18n/formatters";
@@ -60,7 +59,6 @@ export function LaunchDetailWorkspace({
           <h2>{launch.missionName ?? launch.name}</h2>
           <p>{launch.agencyName ?? t("launches:common.unavailable")}</p>
         </div>
-        <DataFreshnessBadge status={detail.data?.stale ? "stale" : detail.isError ? "degraded" : "healthy"} timestampUnixMs={detail.data ? Date.parse(detail.data.fetchedAt) : launch.lastUpdated ? Date.parse(launch.lastUpdated) : null} />
       </header>
 
       <div className="launch-detail-grid-layout">

@@ -11,7 +11,7 @@ use crate::{
 
 pub struct NasaIntelligenceService {
     provider: NasaProvider,
-    request_gate: Mutex<()>,
+    pub(crate) request_gate: Mutex<()>,
 }
 
 impl NasaIntelligenceService {
@@ -111,6 +111,12 @@ pub(crate) async fn resolve_nasa_intelligence(
     force_refresh: bool,
 ) -> Result<NasaIntelligencePayload, NasaIntelligenceError> {
     let _request_guard = service.request_gate.lock().await;
+    if super::system::update_preparing() {
+        return Err(NasaIntelligenceError {
+            code: "update_in_progress",
+            message: "Update handoff",
+        });
+    }
     let cache_directory = app
         .path()
         .app_cache_dir()
@@ -156,7 +162,7 @@ pub(crate) async fn resolve_nasa_intelligence(
         resolve(&storm_request, &storm_cache),
     );
 
-    Ok(NasaIntelligencePayload {
+    let payload = NasaIntelligencePayload {
         apod,
         api_key_configured: service.provider.is_configured(),
         cmes,
@@ -164,7 +170,9 @@ pub(crate) async fn resolve_nasa_intelligence(
         neo,
         retrieved_at_unix_ms: now,
         storms,
-    })
+    };
+    crate::services::local_snapshots::publish("nasa", &payload);
+    Ok(payload)
 }
 
 fn unix_time_ms() -> u64 {

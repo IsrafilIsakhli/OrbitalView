@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { nativeSnapshot } from "@/shared/data/nativeSnapshot";
 import { z } from "zod";
 
 import type { NoaaSpaceWeather } from "../domain/spaceWeather";
@@ -45,5 +45,5 @@ const payloadSchema = z.object({
 });
 
 export async function fetchNoaaSpaceWeather(): Promise<NoaaSpaceWeather> {
-  return payloadSchema.parse(await invoke("noaa_space_weather"));
+  return payloadSchema.parse(await nativeSnapshot("noaaSwpc", "noaa_space_weather"));
 }

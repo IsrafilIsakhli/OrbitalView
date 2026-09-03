@@ -1,14 +1,97 @@
 {
-  "title": "Settings", "subtitle": "Shape Orbital Vision around your system.", "sections": { "experience": "Experience", "system": "System" },
-  "language": { "label": "Language", "description": "Change every interface label instantly.", "dialogTitle": "Choose your language", "dialogDescription": "Orbital Vision will update immediately. You can change this later in Settings.", "az": { "name": "Azərbaycan dili", "description": "Azerbaijani" }, "tr": { "name": "Türkçe", "description": "Turkish" }, "en": { "name": "English", "description": "English" }, "ru": { "name": "Русский", "description": "Russian" }, "es": { "name": "Español", "description": "Spanish" } },
-  "graphics": { "label": "Graphics quality", "description": "Balance visual fidelity and power usage.", "eco": "Efficient", "balanced": "Balanced", "high": "Ultra" },
-  "motion": { "label": "Reduce motion", "description": "Limit non-essential movement and camera transitions." },
-  "units": { "label": "Units", "description": "Choose how distance, speed and weather are displayed.", "metric": "Metric", "imperial": "Imperial" },
-  "time": { "label": "Time display", "description": "Choose UTC and local-time presentation for mission timestamps.", "utc-local": "UTC + local", "utc-only": "UTC only", "local-only": "Local only" },
-  "camera": { "label": "Default camera", "description": "Choose the opening view for the Earth workspace.", "earth": "Earth", "leo": "Low Earth orbit", "iss": "ISS", "moon": "Moon", "sun": "Sun" },
-  "backgroundSync": { "label": "Background synchronization", "description": "Keep provider data current while the application is running." },
-  "credentials": { "label": "NASA API credential", "description": "Stored securely in Windows Credential Manager. The key is never returned to the interface.", "input": "NASA API key", "placeholder": "Enter a NASA API key", "save": "Save securely", "verify": "Verify", "remove": "Remove credential", "configured": "Configured", "verified": "Verified", "unconfigured": "Not configured", "error": "The credential operation could not be completed.", "source": { "credentialStore": "Windows Credential Manager", "environment": "Process environment", "development": "Local development file", "unconfigured": "No credential source" } },
-  "cache": { "label": "Local cache", "description": "Live data will remain available during network interruptions.", "value": "Ready" },
+  "title": "Settings",
+  "subtitle": "Shape Orbital Vision around your system.",
+  "sections": {
+    "experience": "Experience",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language",
+    "description": "Change every interface label instantly.",
+    "dialogTitle": "Choose your language",
+    "dialogDescription": "Orbital Vision will update immediately. You can change this later in Settings.",
+    "az": {
+      "name": "Azərbaycan dili",
+      "description": "Azerbaijani"
+    },
+    "tr": {
+      "name": "Türkçe",
+      "description": "Turkish"
+    },
+    "en": {
+      "name": "English",
+      "description": "English"
+    },
+    "ru": {
+      "name": "Русский",
+      "description": "Russian"
+    },
+    "es": {
+      "name": "Español",
+      "description": "Spanish"
+    }
+  },
+  "graphics": {
+    "label": "Graphics quality",
+    "description": "Balance visual fidelity and power usage.",
+    "eco": "Efficient",
+    "balanced": "Balanced",
+    "high": "Ultra"
+  },
+  "motion": {
+    "label": "Reduce motion",
+    "description": "Limit non-essential movement and camera transitions."
+  },
+  "units": {
+    "label": "Units",
+    "description": "Choose how distance, speed and weather are displayed.",
+    "metric": "Metric",
+    "imperial": "Imperial"
+  },
+  "time": {
+    "label": "Time display",
+    "description": "Choose UTC and local-time presentation for mission timestamps.",
+    "utc-local": "UTC + local",
+    "utc-only": "UTC only",
+    "local-only": "Local only"
+  },
+  "camera": {
+    "label": "Default camera",
+    "description": "Choose the opening view for the Earth workspace.",
+    "earth": "Earth",
+    "leo": "Low Earth orbit",
+    "iss": "ISS",
+    "moon": "Moon",
+    "sun": "Sun"
+  },
+  "backgroundSync": {
+    "label": "Background synchronization",
+    "description": "Keep provider data current while the application is running."
+  },
+  "credentials": {
+    "label": "NASA API credential",
+    "description": "Stored securely in Windows Credential Manager. The key is never returned to the interface.",
+    "input": "NASA API key",
+    "placeholder": "Enter a NASA API key",
+    "save": "Save securely",
+    "verify": "Verify",
+    "remove": "Remove credential",
+    "configured": "Configured",
+    "verified": "Verified",
+    "unconfigured": "Not configured",
+    "error": "The credential operation could not be completed.",
+    "source": {
+      "credentialStore": "Windows Credential Manager",
+      "environment": "Process environment",
+      "development": "Local development file",
+      "unconfigured": "No credential source"
+    }
+  },
+  "cache": {
+    "label": "Local cache",
+    "description": "Live data will remain available during network interruptions.",
+    "value": "Ready"
+  },
   "updates": {
     "label": "Application updates",
     "description": "Installed version {{version}}. Check for securely signed updates.",
@@ -29,7 +112,23 @@
     "downloading": "Downloading update — {{progress}}%",
     "installing": "Verifying and installing the update…",
     "restarting": "Update ready; restarting the application…",
-    "status": { "idle": "Not checked", "checking": "Checking", "upToDate": "Up to date", "available": "Available", "downloading": "Downloading", "installing": "Installing", "ready": "Ready", "error": "Check failed", "disabled": "Release build required", "critical": "Critical update" },
-    "errors": { "checkFailed": "The update service cannot be reached right now. Check your connection and try again.", "installFailed": "The signed package could not be installed. No files were changed; try again." }
+    "status": {
+      "idle": "Not checked",
+      "checking": "Checking",
+      "upToDate": "Up to date",
+      "available": "Available",
+      "downloading": "Downloading",
+      "installing": "Installing",
+      "ready": "Ready",
+      "error": "Check failed",
+      "disabled": "Release build required",
+      "critical": "Critical update"
+    },
+    "errors": {
+      "checkFailed": "The update service cannot be reached right now. Check your connection and try again.",
+      "installFailed": "The signed package could not be installed. No files were changed; try again."
+    },
+    "manualPackage": "This package is updated manually. Download the matching DEB/RPM and install it using your system package manager.",
+    "downloadPackage": "Download package"
   }
 }

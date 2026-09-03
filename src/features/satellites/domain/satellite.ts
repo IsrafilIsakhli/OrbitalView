@@ -1,5 +1,6 @@
 import type { OMMJsonObject } from "satellite.js";
 import { z } from "zod";
+import { parseUtcEpoch } from "@/shared/data/utcEpoch";
 
 const orbitalNumber = z.union([z.number(), z.string()]).transform(Number);
 
@@ -120,11 +121,17 @@ export function createSatelliteCatalog(
   let rejectedObjectCount = 0;
   for (const candidate of orbitalData) {
     const parsed = ommSchema.safeParse(candidate);
-    if (!parsed.success || !Number.isFinite(parsed.data.MEAN_MOTION)) {
+    if (!parsed.success || !Number.isFinite(parsed.data.MEAN_MOTION) || parsed.data.MEAN_MOTION <= 0
+      || !Number.isFinite(parseUtcEpoch(parsed.data.EPOCH))
+      || ![parsed.data.ECCENTRICITY, parsed.data.INCLINATION, parsed.data.RA_OF_ASC_NODE,
+        parsed.data.ARG_OF_PERICENTER, parsed.data.MEAN_ANOMALY, parsed.data.BSTAR,
+        parsed.data.MEAN_MOTION_DOT, parsed.data.MEAN_MOTION_DDOT].every(Number.isFinite)
+      || parsed.data.ECCENTRICITY < 0 || parsed.data.ECCENTRICITY >= 1) {
       rejectedObjectCount += 1;
       continue;
     }
-    const omm = parsed.data as OMMJsonObject;
+    const epoch = new Date(parseUtcEpoch(parsed.data.EPOCH)).toISOString();
+    const omm = { ...parsed.data, EPOCH: epoch } as OMMJsonObject;
     const noradId = String(parsed.data.NORAD_CAT_ID);
     const catalog = catalogByNoradId.get(noradId);
     const objectType = catalog?.OBJECT_TYPE ?? null;
@@ -133,7 +140,7 @@ export function createSatelliteCatalog(
       argumentOfPerigeeDegrees: parsed.data.ARG_OF_PERICENTER,
       category: categorizeSatellite(parsed.data.OBJECT_NAME, objectType),
       eccentricity: parsed.data.ECCENTRICITY,
-      epoch: parsed.data.EPOCH,
+      epoch,
       id: `norad:${noradId}`,
       inclinationDegrees: parsed.data.INCLINATION,
       internationalDesignator:

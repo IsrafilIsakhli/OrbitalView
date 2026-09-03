@@ -23,7 +23,7 @@ declare module "@satellite/io" {
 }
 
 declare module "@satellite/propagation" {
-  export { gstime, propagate } from "satellite.js";
+  export { gstime, propagate, sgp4 } from "satellite.js";
 }
 
 declare module "@satellite/runtime" {

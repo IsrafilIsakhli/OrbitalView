@@ -77,7 +77,7 @@ describe("AppShell", () => {
     renderShell();
 
     await user.click(screen.getByRole("button", { name: "Settings" }));
-    const ultraButton = screen.getByRole("button", { name: "Ultra" });
+    const ultraButton = await screen.findByRole("button", { name: "Ultra" });
     await user.click(ultraButton);
 
     expect(ultraButton).toHaveAttribute("aria-pressed", "true");

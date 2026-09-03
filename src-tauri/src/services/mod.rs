@@ -1,5 +1,6 @@
 pub mod analysis_service;
 pub mod credential_store;
+pub mod local_snapshots;
 pub mod news_service;
 pub mod provider_health_store;
 pub mod provider_scheduler;

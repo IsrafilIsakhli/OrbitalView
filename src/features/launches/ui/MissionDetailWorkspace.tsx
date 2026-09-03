@@ -8,7 +8,6 @@ import { openExternalUrl } from "@/shared/security/externalUrl";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DataFreshnessBadge } from "@/features/control-center/ui/DataFreshnessBadge";
 import { useActiveSatelliteCatalog } from "@/features/satellites/api/useActiveSatelliteCatalog";
 import { usePreferencesStore } from "@/features/settings/model/preferences";
 import { formatDateTime } from "@/shared/i18n/formatters";
@@ -52,7 +51,6 @@ export function MissionDetailWorkspace({
       <header className="mission-detail-header">
         <button aria-label={t("missions:detail.back")} className="icon-button" onClick={onBack} type="button"><ArrowLeft24Regular aria-hidden /></button>
         <div><p className="eyebrow">{t("missions:detail.overview")}</p><h1>{launch.missionName ?? launch.name}</h1><p>{launch.agencyName ?? t("launches:common.unavailable")}</p></div>
-        <DataFreshnessBadge status={detail.data?.stale || catalog.data?.stale ? "stale" : detail.isError ? "degraded" : "healthy"} timestampUnixMs={detail.data ? Date.parse(detail.data.fetchedAt) : launch.lastUpdated ? Date.parse(launch.lastUpdated) : null} />
       </header>
 
       <div className="mission-detail-layout">

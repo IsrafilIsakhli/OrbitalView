@@ -10,22 +10,15 @@ import { useTranslation } from "react-i18next";
 import { LanguageDialog } from "@/features/onboarding/ui/LanguageDialog";
 import type { AwarenessNotification, FavoriteItem } from "@/features/awareness/domain/awareness";
 import { selectUnreadCount, useAwarenessStore } from "@/features/awareness/model/awarenessStore";
-import { FavoritesDashboard } from "@/features/awareness/ui/FavoritesDashboard";
 import { NotificationEngine } from "@/features/awareness/ui/NotificationEngine";
-import { NotificationsDashboard } from "@/features/awareness/ui/NotificationsDashboard";
 import { EarthViewport } from "@/features/earth-engine/ui/EarthViewport";
+import { useEarthTimeLensSelectionStore } from "@/features/earth-engine/model/timeLensSelection";
 import { SpaceIntelligenceDashboard } from "@/features/dashboard/ui/SpaceIntelligenceDashboard";
 import { useLaunchSelectionStore } from "@/features/launches/model/selection";
 import { useMissionSelectionStore } from "@/features/launches/model/missionSelection";
-import { LaunchDashboard } from "@/features/launches/ui/LaunchDashboard";
-import { MissionDashboard } from "@/features/launches/ui/MissionDashboard";
-import { NasaDashboard } from "@/features/nasa/ui/NasaDashboard";
 import { useAnalysisSelectionStore } from "@/features/orbital-analysis/model/analysisSelection";
 import { usePreferencesStore } from "@/features/settings/model/preferences";
-import { SettingsPanel } from "@/features/settings/ui/SettingsPanel";
 import { useNewsSelectionStore } from "@/features/space-news/model/newsSelection";
-import { SpaceNewsDashboard } from "@/features/space-news/ui/SpaceNewsDashboard";
-import { SpaceWeatherDetailWorkspace } from "@/features/space-weather/ui/SpaceWeatherDetailWorkspace";
 import { useSatelliteSelectionStore } from "@/features/satellites/model/selection";
 import { localeFlags } from "@/shared/i18n/locales";
 
@@ -37,6 +30,15 @@ import { SearchPalette } from "./components/SearchPalette";
 import { TitleBar } from "./components/TitleBar";
 import type { WorkspaceSelectionIntent } from "./model/workspaceSelection";
 import { useWorkspaceCoordinator } from "./model/workspaceCoordinator";
+
+const LaunchDashboard = lazy(() => import("@/features/launches/ui/LaunchDashboard").then((module) => ({ default: module.LaunchDashboard })));
+const MissionDashboard = lazy(() => import("@/features/launches/ui/MissionDashboard").then((module) => ({ default: module.MissionDashboard })));
+const NasaDashboard = lazy(() => import("@/features/nasa/ui/NasaDashboard").then((module) => ({ default: module.NasaDashboard })));
+const SpaceNewsDashboard = lazy(() => import("@/features/space-news/ui/SpaceNewsDashboard").then((module) => ({ default: module.SpaceNewsDashboard })));
+const FavoritesDashboard = lazy(() => import("@/features/awareness/ui/FavoritesDashboard").then((module) => ({ default: module.FavoritesDashboard })));
+const NotificationsDashboard = lazy(() => import("@/features/awareness/ui/NotificationsDashboard").then((module) => ({ default: module.NotificationsDashboard })));
+const SpaceWeatherDetailWorkspace = lazy(() => import("@/features/space-weather/ui/SpaceWeatherDetailWorkspace").then((module) => ({ default: module.SpaceWeatherDetailWorkspace })));
+const SettingsPanel = lazy(() => import("@/features/settings/ui/SettingsPanel").then((module) => ({ default: module.SettingsPanel })));
 
 const OrbitalAnalysisWorkspace = lazy(() =>
   import("@/features/orbital-analysis/ui/OrbitalAnalysisWorkspace").then((module) => ({
@@ -66,6 +68,7 @@ export function AppShell() {
   const requestMissionLaunch = useMissionSelectionStore((state) => state.requestLaunch);
   const requestNews = useNewsSelectionStore((state) => state.requestNews);
   const requestAnalysis = useAnalysisSelectionStore((state) => state.requestAnalysis);
+  const requestEarthTimeLens = useEarthTimeLensSelectionStore((state) => state.requestTimeLens);
   const activeNavigationItem: NavigationId = activeItem === "nasa" || activeItem === "spaceWeather"
     ? "explore"
     : activeItem;
@@ -254,7 +257,10 @@ export function AppShell() {
               <Suspense fallback={null}>
                 <OrbitalAnalysisWorkspace
                   active={activeItem === "orbitalAnalysis"}
-                  onShowEarth={(satelliteId) => {
+                  onShowEarth={(satelliteId, timestampUnixMs, origin = "analysis") => {
+                    if (timestampUnixMs !== undefined) {
+                      requestEarthTimeLens(timestampUnixMs, origin);
+                    }
                     requestSatellite(satelliteId);
                     navigate("satellites", "relation");
                   }}
@@ -263,6 +269,7 @@ export function AppShell() {
             </section>
           )}
 
+          <Suspense fallback={<div className="module-canvas" role="status">{t("shell:loadingWorkspace")}</div>}>
           <AnimatePresence mode="wait">
             {activeItem === "explore" ? (
               <motion.section
@@ -364,6 +371,7 @@ export function AppShell() {
               </motion.section>
             ) : null}
           </AnimatePresence>
+          </Suspense>
         </main>
       </div>
 
@@ -372,11 +380,13 @@ export function AppShell() {
         onSelect={navigateToIntent}
         open={searchOpen}
       />
-      <SettingsPanel
+      <Suspense fallback={null}>
+      {settingsOpen && <SettingsPanel
         onClose={() => setSettingsOpen(false)}
         onOpenLanguage={openLanguageFromSettings}
         open={settingsOpen}
-      />
+      />}
+      </Suspense>
       <LanguageDialog onClose={() => setLanguageOpen(false)} open={languageOpen} />
       <NotificationEngine />
     </div>

@@ -25,7 +25,7 @@ const MAX_RESPONSE_BYTES: usize = 64 * 1024 * 1024;
 
 pub struct SatelliteCatalogService {
     client: Client,
-    request_gate: Mutex<()>,
+    pub(crate) request_gate: Mutex<()>,
 }
 
 impl SatelliteCatalogService {
@@ -120,6 +120,12 @@ pub(crate) async fn resolve_active_satellite_catalog(
     force_refresh: bool,
 ) -> Result<SatelliteCatalogPayload, SatelliteCatalogError> {
     let _request_guard = service.request_gate.lock().await;
+    if super::system::update_preparing() {
+        return Err(SatelliteCatalogError::new(
+            "update_in_progress",
+            "Update handoff",
+        ));
+    }
     let cache_directory = app
         .path()
         .app_cache_dir()
@@ -190,7 +196,7 @@ pub(crate) async fn resolve_active_satellite_catalog(
     let orbital_object_count = array_length(&orbital_data)?;
     let catalog_object_count = array_length(&catalog_data)?;
     let stale = orbital_stale || catalog_stale || recent_stale;
-    Ok(SatelliteCatalogPayload {
+    let payload = SatelliteCatalogPayload {
         catalog_data,
         catalog_object_count,
         expires_at_unix_ms: orbital.expires_at_unix_ms.min(catalog.expires_at_unix_ms),
@@ -207,7 +213,9 @@ pub(crate) async fn resolve_active_satellite_catalog(
             "CelesTrak live active objects".to_owned()
         },
         stale,
-    })
+    };
+    crate::services::local_snapshots::publish("celestrak", &payload);
+    Ok(payload)
 }
 
 fn merge_catalog_arrays(

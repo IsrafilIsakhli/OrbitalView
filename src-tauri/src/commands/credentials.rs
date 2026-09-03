@@ -23,6 +23,7 @@ pub async fn set_nasa_credential(
         normalize_api_key(&api_key).ok_or_else(|| CredentialError::new("invalid_api_key"))?;
     credentials.set_nasa_key(api_key.clone()).await?;
     service.set_credential(Some(api_key), NasaCredentialSource::CredentialStore);
+    crate::services::local_snapshots::clear("nasa");
     Ok(service.credential_status())
 }
 
@@ -37,6 +38,7 @@ pub async fn delete_nasa_credential(
     } else {
         service.set_credential(None, NasaCredentialSource::Unconfigured);
     }
+    crate::services::local_snapshots::clear("nasa");
     Ok(service.credential_status())
 }
 

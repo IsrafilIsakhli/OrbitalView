@@ -45,7 +45,6 @@ interface SatelliteInfoPanelProps {
   orbitVisible: boolean;
   satellite: SatelliteRecord;
   source: string | null;
-  stale: boolean;
   telemetry: SatelliteTelemetry | null;
 }
 
@@ -63,7 +62,6 @@ export function SatelliteInfoPanel({
   orbitVisible,
   satellite,
   source,
-  stale,
   telemetry,
 }: SatelliteInfoPanelProps) {
   const { i18n, t } = useTranslation(["satellites", "orbitalAnalysis"]);
@@ -211,9 +209,7 @@ export function SatelliteInfoPanel({
 
       <footer>
         <strong>{source ?? t("details.source")}</strong>
-        <span>{t(stale ? "details.cached" : "details.fresh", {
-          time: fetchedAt ? formatTimestamp(fetchedAt, locale, timeDisplay) : t("common.unavailable"),
-        })}</span>
+        {fetchedAt && <span>{formatTimestamp(fetchedAt, locale, timeDisplay)}</span>}
       </footer>
     </ObjectInspector>
   );

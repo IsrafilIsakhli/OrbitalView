@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSpaceIntelligence } from "@/features/launches/api/useSpaceIntelligence";
-import { useControlCenterSnapshot } from "@/features/control-center/api/useControlCenter";
-import { useActiveSatelliteCatalog } from "@/features/satellites/api/useActiveSatelliteCatalog";
 import { useSpaceNews } from "@/features/space-news/api/useSpaceNews";
 import { useNoaaSpaceWeather } from "@/features/space-weather/api/useNoaaSpaceWeather";
 
@@ -17,9 +15,7 @@ export function NotificationEngine() {
   const { t } = useTranslation("awareness");
   const query = useSpaceIntelligence();
   const noaa = useNoaaSpaceWeather();
-  const operations = useControlCenterSnapshot();
   const news = useSpaceNews({ featured: true, limit: 10 });
-  const satellites = useActiveSatelliteCatalog();
   const alertPreferences = useAwarenessStore((state) => state.alertPreferences);
   const favorites = useAwarenessStore((state) => state.favorites);
   const pushNotification = useAwarenessStore((state) => state.pushNotification);
@@ -34,30 +30,6 @@ export function NotificationEngine() {
   useEffect(() => {
     const intelligence = query.data;
     if (!intelligence) return;
-
-    const syncDay = intelligence.fetchedAt.slice(0, 10);
-    pushNotification({
-      body: t("generated.syncBody", {
-        events: intelligence.eventCount,
-        launches: intelligence.launchCount,
-      }),
-      dedupeKey: `sync:${syncDay}`,
-      kind: "system",
-      targetId: null,
-      targetType: null,
-      title: t("generated.syncTitle"),
-    });
-
-    if (intelligence.stale) {
-      pushNotification({
-        body: t("generated.staleBody"),
-        dedupeKey: `stale:${syncDay}`,
-        kind: "system",
-        targetId: null,
-        targetType: null,
-        title: t("generated.staleTitle"),
-      });
-    }
 
     if (alertPreferences.launchAlerts) {
       const favoriteLaunchIds = new Set(
@@ -121,22 +93,6 @@ export function NotificationEngine() {
   }, [alertPreferences, claimNativeDelivery, noaa.data, pushNotification]);
 
   useEffect(() => {
-    if (!alertPreferences.providerAlerts || !operations.data) return;
-    for (const provider of operations.data.providers) {
-      if (provider.status !== "unavailable" && provider.status !== "degraded") continue;
-      const notification = pushNotification({
-        body: t("generated.providerBody", { provider: provider.provider }),
-        dedupeKey: `provider:${provider.provider}:${provider.status}:${Math.floor((provider.lastAttemptAtUnixMs ?? operations.data.generatedAtUnixMs) / (6 * 60 * 60_000))}`,
-        kind: "system",
-        targetId: null,
-        targetType: null,
-        title: t("generated.providerTitle"),
-      });
-      void maybeDeliverNative(notification, alertPreferences.nativeNotifications, claimNativeDelivery, isQuietHours(alertPreferences));
-    }
-  }, [alertPreferences, claimNativeDelivery, operations.data, pushNotification, t]);
-
-  useEffect(() => {
     if (!alertPreferences.newsAlerts || !news.data) return;
     for (const item of news.data.items.filter((candidate) => candidate.featured).slice(0, 6)) {
       const notification = pushNotification({
@@ -150,18 +106,6 @@ export function NotificationEngine() {
       void maybeDeliverNative(notification, alertPreferences.nativeNotifications, claimNativeDelivery, isQuietHours(alertPreferences));
     }
   }, [alertPreferences, claimNativeDelivery, news.data, pushNotification, t]);
-
-  useEffect(() => {
-    if (!alertPreferences.satelliteAlerts || !satellites.data?.stale) return;
-    pushNotification({
-      body: t("generated.satelliteStaleBody"),
-      dedupeKey: `satellite-catalog:stale:${satellites.data.fetchedAt}`,
-      kind: "satellite",
-      targetId: null,
-      targetType: null,
-      title: t("generated.satelliteStaleTitle"),
-    });
-  }, [alertPreferences.satelliteAlerts, pushNotification, satellites.data, t]);
 
   return null;
 }

@@ -1,3 +1,4 @@
+import { trackLocalWrite } from "@/features/updater/domain/updateBarrier";
 import { invoke } from "@tauri-apps/api/core";
 import { z } from "zod";
 
@@ -14,11 +15,11 @@ export async function fetchNasaCredentialStatus(): Promise<NasaCredentialStatus>
 }
 
 export async function saveNasaCredential(apiKey: string): Promise<NasaCredentialStatus> {
-  return nasaCredentialStatusSchema.parse(await invoke("set_nasa_credential", { apiKey }));
+  return nasaCredentialStatusSchema.parse(await trackLocalWrite(() => invoke("set_nasa_credential", { apiKey })));
 }
 
 export async function removeNasaCredential(): Promise<NasaCredentialStatus> {
-  return nasaCredentialStatusSchema.parse(await invoke("delete_nasa_credential"));
+  return nasaCredentialStatusSchema.parse(await trackLocalWrite(() => invoke("delete_nasa_credential")));
 }
 
 export async function verifyNasaCredential(): Promise<NasaCredentialStatus> {

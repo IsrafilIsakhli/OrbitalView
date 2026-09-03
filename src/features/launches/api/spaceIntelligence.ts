@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { nativeSnapshot } from "@/shared/data/nativeSnapshot";
 import { z } from "zod";
 
 import {
@@ -19,7 +19,7 @@ const responseSchema = z.object({
 });
 
 export async function fetchSpaceIntelligence(): Promise<SpaceIntelligence> {
-  const response = responseSchema.parse(await invoke("space_intelligence"));
+  const response = responseSchema.parse(await nativeSnapshot("launchLibrary", "space_intelligence"));
   return createSpaceIntelligence(response.launchesData, response.eventsData, {
     eventCount: response.eventCount,
     expiresAt: new Date(response.expiresAtUnixMs).toISOString(),

@@ -10,6 +10,7 @@ import { setNativeBackgroundSync } from "@/features/control-center/api/controlCe
 import { controlCenterQueryKey } from "@/features/control-center/api/useControlCenter";
 import { spaceNewsQueryKey } from "@/features/space-news/api/useSpaceNews";
 import { queryKeys } from "@/shared/data/queryKeys";
+import { AUTOMATIC_REFRESH_INTERVAL_MS } from "@/shared/data/refreshPolicy";
 import { UpdateCoordinator } from "@/features/updater/ui/UpdateCoordinator";
 
 import { AppErrorBoundary } from "./AppErrorBoundary";
@@ -27,10 +28,26 @@ function LocaleSynchronizer() {
 
 function NativeDataSynchronizer({ queryClient }: { queryClient: QueryClient }) {
   const backgroundSync = usePreferencesStore((state) => state.backgroundSync);
-
   useEffect(() => {
     void setNativeBackgroundSync(backgroundSync).catch(() => undefined);
   }, [backgroundSync]);
+
+  useEffect(() => {
+    const refresh = () => {
+      for (const queryKey of [
+        queryKeys.launches,
+        queryKeys.nasa,
+        queryKeys.news,
+        queryKeys.noaa,
+        queryKeys.satellites,
+        queryKeys.weather,
+      ]) {
+        void queryClient.invalidateQueries({ queryKey, refetchType: "active" });
+      }
+    };
+    const timer = window.setInterval(refresh, AUTOMATIC_REFRESH_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [queryClient]);
 
   useEffect(() => {
     let disposed = false;
@@ -45,6 +62,8 @@ function NativeDataSynchronizer({ queryClient }: { queryClient: QueryClient }) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.nasa });
       } else if (provider === "noaaSwpc") {
         void queryClient.invalidateQueries({ queryKey: queryKeys.noaa });
+      } else if (provider === "openMeteo") {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.weather });
       } else if (provider === "spaceflightNews") {
         void queryClient.invalidateQueries({ queryKey: spaceNewsQueryKey });
       }

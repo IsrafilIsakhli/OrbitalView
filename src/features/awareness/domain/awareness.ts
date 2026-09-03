@@ -54,10 +54,10 @@ export const defaultAlertPreferences: AlertPreferences = {
   missionAlerts: true,
   nativeNotifications: false,
   newsAlerts: true,
-  providerAlerts: true,
+  providerAlerts: false,
   quietHoursEnabled: false,
   quietHoursEnd: 7,
   quietHoursStart: 22,
-  satelliteAlerts: true,
+  satelliteAlerts: false,
   weatherAlerts: true,
 };

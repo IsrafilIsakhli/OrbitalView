@@ -11,7 +11,7 @@ use super::control_center::{OperationsService, ProviderId};
 
 pub struct NoaaSpaceWeatherService {
     provider: NoaaSwpcProvider,
-    request_gate: Mutex<()>,
+    pub(crate) request_gate: Mutex<()>,
 }
 
 impl NoaaSpaceWeatherService {
@@ -47,6 +47,9 @@ pub(crate) async fn resolve_noaa_space_weather(
     force_refresh: bool,
 ) -> NoaaSpaceWeatherPayload {
     let _guard = service.request_gate.lock().await;
+    if super::system::update_preparing() {
+        return NoaaSpaceWeatherPayload::unavailable("update_in_progress");
+    }
     let cache_directory = match app.path().app_cache_dir() {
         Ok(path) => path.join("noaa-swpc-v1"),
         Err(_) => return NoaaSpaceWeatherPayload::unavailable("cache_path"),
@@ -54,14 +57,18 @@ pub(crate) async fn resolve_noaa_space_weather(
     if tokio::fs::create_dir_all(&cache_directory).await.is_err() {
         return NoaaSpaceWeatherPayload::unavailable("cache_write");
     }
-    service
+    let payload = service
         .provider
         .resolve(
             &cache_directory.join("space-weather.json"),
             unix_time_ms(),
             force_refresh,
         )
-        .await
+        .await;
+    if payload.status != SpaceWeatherStatus::Unavailable {
+        crate::services::local_snapshots::publish("noaaSwpc", &payload);
+    }
+    payload
 }
 
 pub(crate) fn noaa_item_count(payload: &NoaaSpaceWeatherPayload) -> usize {

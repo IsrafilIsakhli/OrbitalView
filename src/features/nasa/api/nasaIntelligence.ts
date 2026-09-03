@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { nativeSnapshot } from "@/shared/data/nativeSnapshot";
 import { z } from "zod";
 
 import {
@@ -39,5 +39,5 @@ const responseSchema = z.object({
 });
 
 export async function fetchNasaIntelligence(): Promise<NasaIntelligence> {
-  return createNasaIntelligence(responseSchema.parse(await invoke("nasa_intelligence")));
+  return createNasaIntelligence(responseSchema.parse(await nativeSnapshot("nasa", "nasa_intelligence")));
 }

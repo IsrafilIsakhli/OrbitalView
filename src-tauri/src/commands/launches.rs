@@ -26,8 +26,9 @@ const MAX_WEATHER_RESPONSE_BYTES: usize = 4 * 1024 * 1024;
 
 pub struct LaunchIntelligenceService {
     client: Client,
-    request_gate: Mutex<()>,
-    weather_gate: Mutex<()>,
+    pub(crate) request_gate: Mutex<()>,
+    pub(crate) weather_gate: Mutex<()>,
+    weather_sites: std::sync::Mutex<Vec<(f64, f64, u64)>>,
 }
 
 impl LaunchIntelligenceService {
@@ -42,6 +43,7 @@ impl LaunchIntelligenceService {
             client,
             request_gate: Mutex::new(()),
             weather_gate: Mutex::new(()),
+            weather_sites: std::sync::Mutex::new(Vec::new()),
         })
     }
 }
@@ -168,6 +170,12 @@ pub(crate) async fn resolve_space_intelligence(
     force_refresh: bool,
 ) -> Result<SpaceIntelligencePayload, LaunchIntelligenceError> {
     let _request_guard = service.request_gate.lock().await;
+    if super::system::update_preparing() {
+        return Err(LaunchIntelligenceError::new(
+            "update_in_progress",
+            "Update handoff",
+        ));
+    }
     let cache_directory = app
         .path()
         .app_cache_dir()
@@ -216,7 +224,7 @@ pub(crate) async fn resolve_space_intelligence(
     .await?;
 
     let stale = launches_stale || events_stale;
-    Ok(SpaceIntelligencePayload {
+    let payload = SpaceIntelligencePayload {
         event_count: events.object_count,
         events_data: events.data,
         expires_at_unix_ms: launches.expires_at_unix_ms.min(events.expires_at_unix_ms),
@@ -230,7 +238,9 @@ pub(crate) async fn resolve_space_intelligence(
             "Launch Library 2.3 live".to_owned()
         },
         stale,
-    })
+    };
+    crate::services::local_snapshots::publish("launchLibrary", &payload);
+    Ok(payload)
 }
 
 #[tauri::command]
@@ -243,6 +253,12 @@ pub async fn completed_launches(
     let limit = limit.unwrap_or(50).clamp(1, 100);
     let offset = offset.unwrap_or(0).min(100_000);
     let _request_guard = service.request_gate.lock().await;
+    if super::system::update_preparing() {
+        return Err(LaunchIntelligenceError::new(
+            "update_in_progress",
+            "Update handoff",
+        ));
+    }
     let cache_directory = app
         .path()
         .app_cache_dir()
@@ -293,6 +309,12 @@ pub async fn launch_detail(
 ) -> Result<LaunchDetailPayload, LaunchIntelligenceError> {
     validate_launch_id(&launch_id)?;
     let _request_guard = service.request_gate.lock().await;
+    if super::system::update_preparing() {
+        return Err(LaunchIntelligenceError::new(
+            "update_in_progress",
+            "Update handoff",
+        ));
+    }
     let cache_directory = app
         .path()
         .app_cache_dir()
@@ -341,9 +363,76 @@ pub async fn launch_weather(
     service: State<'_, LaunchIntelligenceService>,
     operations: State<'_, OperationsService>,
 ) -> Result<LaunchWeatherPayload, LaunchIntelligenceError> {
+    validate_coordinates(latitude, longitude)?;
+    {
+        let mut sites = service
+            .weather_sites
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        sites.retain(|(lat, lon, _)| {
+            weather_cache_key(*lat, *lon) != weather_cache_key(latitude, longitude)
+        });
+        if sites.len() >= 16 {
+            let (lat, lon, _) = sites.remove(0);
+            crate::services::local_snapshots::clear(&format!(
+                "weather:{}",
+                weather_cache_key(lat, lon)
+            ));
+        }
+        sites.push((latitude, longitude, unix_time_ms()));
+    }
+    let key = format!("weather:{}", weather_cache_key(latitude, longitude));
+    if let Some(value) = crate::services::local_snapshots::provider_cached_snapshot(key.clone())
+        && let Ok(payload) = serde_json::from_value(value)
+    {
+        return Ok(payload);
+    }
+    let payload = resolve_launch_weather(app, latitude, longitude, &service, &operations).await?;
+    crate::services::local_snapshots::publish(&key, &payload);
+    Ok(payload)
+}
+
+pub(crate) async fn refresh_active_weather(app: AppHandle) {
+    let service = app.state::<LaunchIntelligenceService>();
+    let operations = app.state::<OperationsService>();
+    let sites = service
+        .weather_sites
+        .lock()
+        .unwrap_or_else(|error| error.into_inner())
+        .clone();
+    for (latitude, longitude, seen) in sites {
+        if !operations.background_sync_enabled()
+            || unix_time_ms().saturating_sub(seen) > 10 * 60_000
+        {
+            continue;
+        }
+        if let Ok(payload) =
+            resolve_launch_weather(app.clone(), latitude, longitude, &service, &operations).await
+        {
+            crate::services::local_snapshots::publish(
+                &format!("weather:{}", weather_cache_key(latitude, longitude)),
+                &payload,
+            );
+        }
+    }
+}
+
+async fn resolve_launch_weather(
+    app: AppHandle,
+    latitude: f64,
+    longitude: f64,
+    service: &LaunchIntelligenceService,
+    operations: &OperationsService,
+) -> Result<LaunchWeatherPayload, LaunchIntelligenceError> {
     let started = std::time::Instant::now();
     validate_coordinates(latitude, longitude)?;
     let _weather_guard = service.weather_gate.lock().await;
+    if super::system::update_preparing() {
+        return Err(LaunchIntelligenceError::new(
+            "update_in_progress",
+            "Update handoff",
+        ));
+    }
     let cache_directory = app
         .path()
         .app_cache_dir()
@@ -436,6 +525,12 @@ pub async fn rocket_configuration(
         ));
     }
     let _request_guard = service.request_gate.lock().await;
+    if super::system::update_preparing() {
+        return Err(LaunchIntelligenceError::new(
+            "update_in_progress",
+            "Update handoff",
+        ));
+    }
     let cache_directory = app
         .path()
         .app_cache_dir()

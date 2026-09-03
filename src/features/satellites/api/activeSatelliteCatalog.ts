@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { nativeSnapshot } from "@/shared/data/nativeSnapshot";
 import { z } from "zod";
 
 import {
@@ -19,7 +19,7 @@ const responseSchema = z.object({
 
 export async function fetchActiveSatelliteCatalog(): Promise<SatelliteCatalog> {
   const response = responseSchema.parse(
-    await invoke("active_satellite_catalog"),
+    await nativeSnapshot("celestrak", "active_satellite_catalog"),
   );
   return createSatelliteCatalog(response.orbitalData, response.catalogData, {
     catalogObjectCount: response.catalogObjectCount,
@@ -29,4 +29,3 @@ export async function fetchActiveSatelliteCatalog(): Promise<SatelliteCatalog> {
     stale: response.stale,
   });
 }
-

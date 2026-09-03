@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useRefreshProvider } from "@/features/control-center/api/useControlCenter";
-
 import { useSpaceNews } from "../api/useSpaceNews";
 import { balanceNewsSources, summarizeNewsFeed } from "../domain/news";
 import { useNewsSelectionStore } from "../model/newsSelection";
@@ -32,7 +30,6 @@ export function SpaceNewsDashboard({ onOpenEvent, onOpenLaunch }: SpaceNewsDashb
   const setViewState = useNewsSelectionStore((state) => state.setViewState);
   const [debouncedSearch, setDebouncedSearch] = useState(search.trim());
   const pageRef = useRef<HTMLElement>(null);
-  const refresh = useRefreshProvider();
 
   useEffect(() => {
     const handle = window.setTimeout(() => setDebouncedSearch(search.trim()), 150);
@@ -76,13 +73,9 @@ export function SpaceNewsDashboard({ onOpenEvent, onOpenLaunch }: SpaceNewsDashb
   return (
     <section className="space-news-page" ref={pageRef}>
       <SpaceNewsHeader
-        fetchedAt={data?.fetchedAtUnixMs ?? null}
         itemCount={data?.totalCount ?? 0}
         loadedCount={data?.items.length ?? 0}
-        onRefresh={() => refresh.mutate("spaceflightNews")}
-        refreshing={refresh.isPending || feed.isFetching}
         source={data?.source ?? "Spaceflight News API v4"}
-        stale={data?.stale ?? false}
       />
       <SpaceNewsFilters
         activeSource={activeSource}
@@ -95,7 +88,7 @@ export function SpaceNewsDashboard({ onOpenEvent, onOpenLaunch }: SpaceNewsDashb
       />
       {data && data.items.length > 0 && <SpaceNewsOverview summary={summary} />}
       {feed.isLoading && !data ? <NewsLoadingState /> : feed.isError && !data ? (
-        <NewsErrorState onRetry={() => void feed.refetch()} />
+        <NewsErrorState />
       ) : !data || data.items.length === 0 ? <NewsErrorState empty /> : (
         <>
           {hero && <SpaceNewsCard item={hero} onOpen={requestNews} prominent />}

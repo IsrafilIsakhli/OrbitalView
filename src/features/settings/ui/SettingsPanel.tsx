@@ -1,7 +1,5 @@
 import {
-  ArrowSync24Regular,
   ChevronRight20Regular,
-  Cloud24Regular,
   Dismiss20Regular,
   Gauge24Regular,
   LocalLanguage24Regular,
@@ -45,14 +43,12 @@ export function SettingsPanel({ open, onClose, onOpenLanguage }: SettingsPanelPr
   const dialogRef = useRef<HTMLDialogElement>(null);
   const operations = useControlCenterSnapshot();
   const graphicsQuality = usePreferencesStore((state) => state.graphicsQuality);
-  const backgroundSync = usePreferencesStore((state) => state.backgroundSync);
   const defaultCameraPreset = usePreferencesStore((state) => state.defaultCameraPreset);
   const locale = usePreferencesStore((state) => state.locale);
   const reduceMotion = usePreferencesStore((state) => state.reduceMotion);
   const timeDisplay = usePreferencesStore((state) => state.timeDisplay);
   const units = usePreferencesStore((state) => state.units);
   const setGraphicsQuality = usePreferencesStore((state) => state.setGraphicsQuality);
-  const setBackgroundSync = usePreferencesStore((state) => state.setBackgroundSync);
   const setDefaultCameraPreset = usePreferencesStore((state) => state.setDefaultCameraPreset);
   const setReduceMotion = usePreferencesStore((state) => state.setReduceMotion);
   const setTimeDisplay = usePreferencesStore((state) => state.setTimeDisplay);
@@ -206,29 +202,6 @@ export function SettingsPanel({ open, onClose, onOpenLanguage }: SettingsPanelPr
         <section className="settings-section">
           <h3>{t("settings:sections.system")}</h3>
           <NasaCredentialSettings />
-          <label className="setting-row" htmlFor="background-sync">
-            <span className="setting-row__icon"><ArrowSync24Regular aria-hidden /></span>
-            <span className="setting-row__copy">
-              <strong>{t("settings:backgroundSync.label")}</strong>
-              <span>{t("settings:backgroundSync.description")}</span>
-            </span>
-            <input
-              checked={backgroundSync}
-              className="toggle-input"
-              id="background-sync"
-              onChange={(event) => setBackgroundSync(event.currentTarget.checked)}
-              role="switch"
-              type="checkbox"
-            />
-          </label>
-          <div className="setting-row">
-            <span className="setting-row__icon"><Cloud24Regular aria-hidden /></span>
-            <span className="setting-row__copy">
-              <strong>{t("settings:cache.label")}</strong>
-              <span>{t("settings:cache.description")}</span>
-            </span>
-            <span className="status-chip status-chip--quiet">{t("settings:cache.value")}</span>
-          </div>
           <UpdateSettingsRow installedVersion={operations.data?.runtime.appVersion ?? "—"} />
         </section>
       </div>

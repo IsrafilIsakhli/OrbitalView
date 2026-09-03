@@ -36,7 +36,11 @@ import {
   type SatelliteCategoryCounts,
   type SatelliteRecord,
 } from "../domain/satellite";
-import type { OrbitWorkerRequest, OrbitWorkerResponse } from "../worker/messages";
+import type {
+  OrbitWorkerRequest,
+  OrbitWorkerResponse,
+  OrbitWorkerTimeLensState,
+} from "../worker/messages";
 import {
   resolveVisualTier,
   selectSatellitePresentation,
@@ -145,6 +149,9 @@ interface SatellitePickId {
   satelliteId: string;
 }
 
+const HOVER_PICK_INTERVAL_MS = 90;
+const HOVER_AFTER_CAMERA_SETTLE_MS = 150;
+
 export class CesiumSatelliteLayer implements EarthEngineLayer {
   readonly id = "live-satellites";
   readonly slot = "satellite" as const;
@@ -187,7 +194,10 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   private visible = true;
   private visualTier: SatelliteVisualTier = "global";
   private worker: Worker | null = null;
+  private workerActive = true;
+  private timeLensState: OrbitWorkerTimeLensState | null = null;
   private lastHoverAt = 0;
+  private lastCameraChangeAt = Number.NEGATIVE_INFINITY;
   private hoverOrbitTimer: ReturnType<typeof setTimeout> | null = null;
   private followPosition: Cartesian3 | null = null;
   private followTarget: Cartesian3 | null = null;
@@ -441,8 +451,16 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   }
 
   setActive(active: boolean): void {
+    this.workerActive = active;
     this.worker?.postMessage({ active, type: "set-active" } satisfies OrbitWorkerRequest);
     if (active) this.context?.requestRender();
+  }
+
+  setTimeLensState(state: OrbitWorkerTimeLensState | null): void {
+    this.timeLensState = state;
+    this.clearHover();
+    this.worker?.postMessage({ state, type: "set-time-lens" } satisfies OrbitWorkerRequest);
+    this.requestShowcaseOrbits();
   }
 
   tick(deltaSeconds: number): void {
@@ -549,9 +567,9 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
         outlineWidth: 0,
         pixelSize: signalSize(category),
         position: Cartesian3.ZERO,
-        scaleByDistance: new NearFarScalar(450_000, 1.8, 95_000_000, 0.78),
+        scaleByDistance: new NearFarScalar(400_000, 1.4, 40_000_000, 0.58),
         show: false,
-        translucencyByDistance: new NearFarScalar(450_000, 0.92, 95_000_000, 0.3),
+        translucencyByDistance: new NearFarScalar(400_000, 0.95, 40_000_000, 0.22),
       });
     });
     this.points.show = this.visible;
@@ -595,9 +613,9 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
         outlineWidth: category === "station" ? 1.8 : 0.5,
         pixelSize: semanticSize(category),
         position: Cartesian3.ZERO,
-        scaleByDistance: new NearFarScalar(400_000, 1.35, 95_000_000, 0.72),
+        scaleByDistance: new NearFarScalar(350_000, 1.3, 50_000_000, 0.65),
         show: false,
-        translucencyByDistance: new NearFarScalar(400_000, 1, 95_000_000, 0.48),
+        translucencyByDistance: new NearFarScalar(350_000, 1, 50_000_000, 0.38),
       });
     });
     this.rebuildSymbols();
@@ -654,6 +672,16 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       records: this.catalog.map((satellite) => satellite.omm),
       type: "initialize",
     } satisfies OrbitWorkerRequest);
+    worker.postMessage({
+      active: this.workerActive,
+      type: "set-active",
+    } satisfies OrbitWorkerRequest);
+    if (this.timeLensState) {
+      worker.postMessage({
+        state: this.timeLensState,
+        type: "set-time-lens",
+      } satisfies OrbitWorkerRequest);
+    }
   }
 
   private stopWorker(): void {
@@ -867,6 +895,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
 
   private handleCameraChange = (): void => {
     if (!this.context) return;
+    this.lastCameraChangeAt = performance.now();
     const nextTier = resolveVisualTier(
       Cartesian3.magnitude(this.context.scene.camera.positionWC),
       this.visualTier,
@@ -1082,7 +1111,11 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
 
   private handleHover(position: Cartesian2): void {
     const now = performance.now();
-    if (now - this.lastHoverAt < 48) return;
+    if (now - this.lastCameraChangeAt < HOVER_AFTER_CAMERA_SETTLE_MS) {
+      if (this.snapshot.hoveredId !== null) this.clearHover();
+      return;
+    }
+    if (now - this.lastHoverAt < HOVER_PICK_INTERVAL_MS) return;
     this.lastHoverAt = now;
     const picked = this.context?.scene.pick(position) as { id?: unknown } | undefined;
     const pickedId = picked?.id;
@@ -1175,6 +1208,13 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   }
 
   private update(patch: Partial<SatelliteLayerSnapshot>): void {
+    const keys = Object.keys(patch) as Array<keyof SatelliteLayerSnapshot>;
+    if (
+      keys.length === 0 ||
+      keys.every((key) => Object.is(this.snapshot[key], patch[key]))
+    ) {
+      return;
+    }
     this.snapshot = { ...this.snapshot, ...patch };
     for (const listener of this.listeners) listener();
   }
@@ -1219,12 +1259,12 @@ function isSatellitePickId(value: unknown): value is SatellitePickId {
 }
 
 function signalSize(category: SatelliteCategory): number {
-  if (category === "station") return 2.1;
-  if (category === "navigation" || category === "weather" || category === "science") return 1.7;
-  if (category === "rocket-body") return 1.45;
-  if (category === "debris") return 1;
-  if (category === "starlink" || category === "other") return 1.18;
-  return 1.35;
+  if (category === "station") return 1.9;
+  if (category === "navigation" || category === "weather" || category === "science") return 1.45;
+  if (category === "rocket-body") return 1.25;
+  if (category === "debris") return 0.82;
+  if (category === "starlink" || category === "other") return 0.96;
+  return 1.12;
 }
 
 function semanticSize(category: SatelliteCategory): number {
@@ -1239,11 +1279,11 @@ function signalAlpha(
   category: SatelliteCategory,
   focusedCategory: SatelliteCategory | null,
 ): number {
-  if (focusedCategory) return category === focusedCategory ? 0.78 : 0.12;
-  if (category === "station") return 0.84;
-  if (category === "debris") return 0.38;
-  if (category === "starlink" || category === "other") return 0.42;
-  return 0.58;
+  if (focusedCategory) return category === focusedCategory ? 0.82 : 0.08;
+  if (category === "station") return 0.82;
+  if (category === "debris") return 0.3;
+  if (category === "starlink" || category === "other") return 0.34;
+  return 0.52;
 }
 
 function maximumDisplayDistance(category: SatelliteCategory): number {

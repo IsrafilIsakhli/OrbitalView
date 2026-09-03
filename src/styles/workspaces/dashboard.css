@@ -196,7 +196,7 @@
   display: grid;
   z-index: 1;
   margin-bottom: 18px;
-  grid-template-columns: 40px minmax(0, 1fr) auto;
+  grid-template-columns: 40px minmax(0, 1fr);
   align-items: center;
   gap: 11px;
 }
@@ -228,31 +228,6 @@
   font-size: 11px;
 }
 
-.freshness-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--accent-green);
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-.freshness-dot svg {
-  width: 15px;
-  height: 15px;
-}
-
-.freshness-dot[data-status="cached"] {
-  color: var(--accent-amber);
-}
-
-.freshness-dot[data-status="loading"] {
-  color: var(--accent-cyan);
-}
-
-.freshness-dot[data-status="unavailable"] {
-  color: var(--accent-red);
-}
 
 .command-module__hero-copy {
   z-index: 1;
@@ -672,7 +647,6 @@
   .command-dashboard__actions { display: grid; grid-template-columns: 1fr; }
   .command-module__header { grid-template-columns: 36px minmax(0, 1fr); }
   .command-module__icon { width: 36px; height: 36px; }
-  .freshness-dot { grid-column: 2; justify-self: start; }
   .command-countdown__cells { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
   .command-module__footer { align-items: stretch; flex-direction: column; }
   .catalog-metrics,
