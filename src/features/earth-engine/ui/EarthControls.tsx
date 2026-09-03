@@ -1,5 +1,6 @@
 import {
   ArrowRotateClockwise24Regular,
+  Clock24Regular,
   Pause24Regular,
   Play24Regular,
 } from "@fluentui/react-icons";
@@ -14,12 +15,14 @@ import { cameraPresetIds } from "../contracts/earth-engine";
 interface EarthControlsProps {
   onFlyTo: (preset: CameraPresetId) => void;
   onToggleRotation: () => void;
+  onToggleTimeLens: () => void;
   snapshot: EarthEngineSnapshot;
 }
 
 export function EarthControls({
   onFlyTo,
   onToggleRotation,
+  onToggleTimeLens,
   snapshot,
 }: EarthControlsProps) {
   const { t } = useTranslation("earth");
@@ -56,6 +59,19 @@ export function EarthControls({
         ) : (
           <Play24Regular aria-hidden />
         )}
+      </button>
+      <button
+        aria-label={snapshot.timeLensActive
+          ? t("timeLens.returnLive")
+          : t("timeLens.open")}
+        aria-pressed={snapshot.timeLensActive}
+        className="earth-time-lens-button"
+        data-active={snapshot.timeLensActive}
+        onClick={onToggleTimeLens}
+        type="button"
+      >
+        <Clock24Regular aria-hidden />
+        <span>{snapshot.timeLensActive ? t("timeLens.forecast") : t("timeLens.now")}</span>
       </button>
     </div>
   );

@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import type { GpuCapabilities } from "../contracts/earth-engine";
 import { AdaptiveQualityController } from "./AdaptiveQualityController";
-import { qualityAtMost, recommendGpuQuality } from "./qualityProfiles";
+import {
+  qualityAtMost,
+  qualityProfiles,
+  recommendGpuQuality,
+} from "./qualityProfiles";
 
 const capableGpu: GpuCapabilities = {
   antialias: true,
@@ -38,5 +42,11 @@ describe("Earth engine quality selection", () => {
     expect(controller.sample(52, false)).toBeNull();
     expect(controller.sample(51, false)).toBeNull();
     expect(controller.sample(50, false)).toBe("balanced");
+  });
+
+  it("keeps the settled frame crisp and lowers resolution only during interaction", () => {
+    expect(qualityProfiles.high.resolutionScale).toBe(1);
+    expect(qualityProfiles.high.interactionResolutionFactor).toBeLessThan(1);
+    expect(qualityProfiles.balanced.resolutionScale).toBeGreaterThan(0.9);
   });
 });

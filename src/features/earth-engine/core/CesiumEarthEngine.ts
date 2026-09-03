@@ -4,6 +4,7 @@ import {
   ClockStep,
   EllipsoidTerrainProvider,
   ImageryLayer,
+  JulianDate,
   SingleTileImageryProvider,
   TileMapServiceImageryProvider,
   buildModuleUrl,
@@ -18,6 +19,7 @@ import type {
   EarthEngine,
   EarthEngineOptions,
   EarthEngineSnapshot,
+  EarthTimeLensState,
   SurfaceProviderStatus,
 } from "../contracts/earth-engine";
 import { initialEarthEngineSnapshot } from "../contracts/earth-engine";
@@ -41,6 +43,8 @@ import { PerformanceMonitor } from "../telemetry/PerformanceMonitor";
 import { EarthLayerRegistry } from "./EarthLayerRegistry";
 
 const ADAPTATION_WARMUP_MS = 8_000;
+const INTERACTION_RESOLUTION_RESTORE_MS = 160;
+const SURFACE_BUSY_TILE_THRESHOLD = 12;
 const OCEAN_BASE_DATA_URI =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXY+BKmPEfAAN8AgIO8u8MAAAAAElFTkSuQmCC";
 const NASA_BLUE_MARBLE_URL =
@@ -52,9 +56,9 @@ async function createLocalBaseLayer(): Promise<ImageryLayer> {
       NASA_BLUE_MARBLE_URL,
     );
     return new ImageryLayer(provider, {
-      brightness: 0.9,
-      contrast: 1.08,
-      saturation: 0.84,
+      brightness: 0.92,
+      contrast: 1.09,
+      saturation: 0.9,
     });
   } catch {
     // Continue with Cesium's packaged offline surface if the installed NASA
@@ -66,9 +70,9 @@ async function createLocalBaseLayer(): Promise<ImageryLayer> {
       buildModuleUrl("Assets/Textures/NaturalEarthII"),
     );
     return new ImageryLayer(provider, {
-      brightness: 0.9,
-      contrast: 1.05,
-      saturation: 0.84,
+      brightness: 0.92,
+      contrast: 1.06,
+      saturation: 0.88,
     });
   } catch {
     const provider = await SingleTileImageryProvider.fromUrl(
@@ -81,10 +85,13 @@ async function createLocalBaseLayer(): Promise<ImageryLayer> {
 export class CesiumEarthEngine implements EarthEngine {
   private active = true;
   private adaptiveQuality: AdaptiveQualityController | null = null;
+  private appliedQuality: GraphicsQuality;
   private cameraController: CesiumCameraController | null = null;
   private cloudLayer: ScientificCloudLayer | null = null;
   private disposed = false;
   private initialized = false;
+  private interactionResolutionActive = false;
+  private interactionRestoreTimer: ReturnType<typeof setTimeout> | null = null;
   private layerRegistry: EarthLayerRegistry | null = null;
   private readonly listeners = new Set<() => void>();
   private performanceMonitor: PerformanceMonitor | null = null;
@@ -99,6 +106,7 @@ export class CesiumEarthEngine implements EarthEngine {
   private starLayer: ProceduralStarLayer | null = null;
   private surfaceBusy = true;
   private surfaceCoordinator: SurfaceProviderCoordinator | null = null;
+  private timeLensState: EarthTimeLensState | null = null;
   private widget: CesiumWidget | null = null;
 
   constructor(
@@ -106,6 +114,7 @@ export class CesiumEarthEngine implements EarthEngine {
     private readonly options: EarthEngineOptions,
   ) {
     this.qualityCap = options.qualityCap;
+    this.appliedQuality = options.qualityCap;
     this.reducedMotion = options.reduceMotion;
     this.snapshot = {
       ...initialEarthEngineSnapshot,
@@ -144,7 +153,10 @@ export class CesiumEarthEngine implements EarthEngine {
           webgl: webGlContextAttributes,
         },
         msaaSamples: qualityProfiles[this.qualityCap].msaaSamples,
-        orderIndependentTranslucency: true,
+        // The scene uses thin points/lines rather than interpenetrating translucent
+        // volumes. Standard depth-tested alpha avoids Cesium's additional OIT
+        // framebuffer passes while preserving the intended SSA hierarchy.
+        orderIndependentTranslucency: false,
         requestRenderMode: false,
         scene3DOnly: true,
         shouldAnimate: true,
@@ -210,6 +222,7 @@ export class CesiumEarthEngine implements EarthEngine {
       this.surfaceCoordinator = new SurfaceProviderCoordinator(
         this.widget,
         this.handleSurfaceUpdate,
+        baseLayer,
       );
       this.surfaceCoordinator.start();
 
@@ -268,7 +281,9 @@ export class CesiumEarthEngine implements EarthEngine {
     this.active = active;
     this.layerRegistry?.setActive(active);
     if (!this.widget) return;
-    this.widget.clock.shouldAnimate = active;
+    this.widget.clock.shouldAnimate = active && (
+      this.timeLensState === null || this.timeLensState.playing
+    );
     this.widget.scene.requestRenderMode = !active || !this.snapshot.autoRotation;
     this.widget.scene.maximumRenderTimeChange = active && this.snapshot.autoRotation ? 0 : Number.POSITIVE_INFINITY;
     if (active) {
@@ -319,6 +334,46 @@ export class CesiumEarthEngine implements EarthEngine {
     }
   }
 
+  setTimeLensState(state: EarthTimeLensState | null): void {
+    if (!this.widget || this.disposed) return;
+    const { clock, scene } = this.widget;
+    if (state === null) {
+      this.timeLensState = null;
+      clock.clockStep = ClockStep.SYSTEM_CLOCK;
+      clock.multiplier = 1;
+      clock.currentTime = JulianDate.fromDate(new Date());
+      clock.shouldAnimate = this.active;
+      this.update({
+        timeLensActive: false,
+        timeLensPlaying: false,
+        timeLensRate: 60,
+        utcIso: new Date().toISOString(),
+      });
+      scene.requestRender();
+      return;
+    }
+
+    const normalized: EarthTimeLensState = {
+      playing: Boolean(state.playing),
+      rate: Number.isFinite(state.rate) ? Math.max(1, state.rate) : 60,
+      timestampUnixMs: Number.isFinite(state.timestampUnixMs)
+        ? state.timestampUnixMs
+        : Date.now(),
+    };
+    this.timeLensState = normalized;
+    clock.clockStep = ClockStep.SYSTEM_CLOCK_MULTIPLIER;
+    clock.multiplier = normalized.playing ? normalized.rate : 0;
+    clock.currentTime = JulianDate.fromDate(new Date(normalized.timestampUnixMs));
+    clock.shouldAnimate = this.active && normalized.playing;
+    this.update({
+      timeLensActive: true,
+      timeLensPlaying: normalized.playing,
+      timeLensRate: normalized.rate,
+      utcIso: new Date(normalized.timestampUnixMs).toISOString(),
+    });
+    scene.requestRender();
+  }
+
   dispose(): void {
     if (this.disposed) {
       return;
@@ -342,6 +397,21 @@ export class CesiumEarthEngine implements EarthEngine {
       "webglcontextlost",
       this.handleContextLost,
     );
+    this.widget?.canvas.removeEventListener(
+      "pointerdown",
+      this.handleInteractionStart,
+    );
+    this.widget?.canvas.removeEventListener(
+      "wheel",
+      this.handleTransientInteraction,
+    );
+    window.removeEventListener("pointerup", this.handleInteractionEnd);
+    window.removeEventListener("pointercancel", this.handleInteractionEnd);
+    if (this.interactionRestoreTimer !== null) {
+      clearTimeout(this.interactionRestoreTimer);
+      this.interactionRestoreTimer = null;
+    }
+    this.interactionResolutionActive = false;
     this.removePreRender = null;
     this.removeRenderError = null;
     this.removeTileProgress = null;
@@ -367,7 +437,8 @@ export class CesiumEarthEngine implements EarthEngine {
     const profile = qualityProfiles[quality];
     const { scene } = this.widget;
 
-    this.widget.resolutionScale = profile.resolutionScale;
+    this.appliedQuality = quality;
+    this.applyResolutionScale();
     this.widget.useBrowserRecommendedResolution =
       profile.useBrowserRecommendedResolution;
     this.widget.targetFrameRate = profile.targetFrameRate;
@@ -398,6 +469,22 @@ export class CesiumEarthEngine implements EarthEngine {
       "webglcontextlost",
       this.handleContextLost,
     );
+    this.widget.canvas.addEventListener(
+      "pointerdown",
+      this.handleInteractionStart,
+      { passive: true },
+    );
+    this.widget.canvas.addEventListener(
+      "wheel",
+      this.handleTransientInteraction,
+      { passive: true },
+    );
+    window.addEventListener("pointerup", this.handleInteractionEnd, {
+      passive: true,
+    });
+    window.addEventListener("pointercancel", this.handleInteractionEnd, {
+      passive: true,
+    });
 
     this.removePreRender = this.widget.scene.preRender.addEventListener(() => {
       if (!this.active) return;
@@ -406,6 +493,15 @@ export class CesiumEarthEngine implements EarthEngine {
       previousFrameAt = now;
       this.cameraController?.tick(deltaSeconds);
       this.layerRegistry?.tick(deltaSeconds);
+      if (this.timeLensState?.playing && this.widget) {
+        const timestampUnixMs = JulianDate.toDate(
+          this.widget.clock.currentTime,
+        ).getTime();
+        this.timeLensState = {
+          ...this.timeLensState,
+          timestampUnixMs,
+        };
+      }
     });
     this.removeRenderError = this.widget.scene.renderError.addEventListener(
       (_scene, error: unknown) => {
@@ -418,7 +514,9 @@ export class CesiumEarthEngine implements EarthEngine {
     this.removeTileProgress =
       this.widget.scene.globe.tileLoadProgressEvent.addEventListener(
         (pendingTiles: number) => {
-          this.surfaceBusy = pendingTiles > 0;
+          // A few background tiles are normal while the cinematic camera is
+          // moving. Only suppress quality decisions during a material burst.
+          this.surfaceBusy = pendingTiles > SURFACE_BUSY_TILE_THRESHOLD;
         },
       );
   }
@@ -427,6 +525,43 @@ export class CesiumEarthEngine implements EarthEngine {
     event.preventDefault();
     this.update({ phase: "error" });
   };
+
+  private readonly handleInteractionStart = (): void => {
+    if (this.interactionRestoreTimer !== null) {
+      clearTimeout(this.interactionRestoreTimer);
+      this.interactionRestoreTimer = null;
+    }
+    if (this.interactionResolutionActive) return;
+    this.interactionResolutionActive = true;
+    this.applyResolutionScale();
+  };
+
+  private readonly handleInteractionEnd = (): void => {
+    if (!this.interactionResolutionActive) return;
+    if (this.interactionRestoreTimer !== null) {
+      clearTimeout(this.interactionRestoreTimer);
+    }
+    this.interactionRestoreTimer = setTimeout(() => {
+      this.interactionRestoreTimer = null;
+      this.interactionResolutionActive = false;
+      this.applyResolutionScale();
+      this.widget?.scene.requestRender();
+    }, INTERACTION_RESOLUTION_RESTORE_MS);
+  };
+
+  private readonly handleTransientInteraction = (): void => {
+    this.handleInteractionStart();
+    this.handleInteractionEnd();
+  };
+
+  private applyResolutionScale(): void {
+    if (!this.widget) return;
+    const profile = qualityProfiles[this.appliedQuality];
+    const interactionFactor = this.interactionResolutionActive
+      ? profile.interactionResolutionFactor
+      : 1;
+    this.widget.resolutionScale = profile.resolutionScale * interactionFactor;
+  }
 
   private readonly handlePerformanceSample = (sample: {
     fps: number;
@@ -437,11 +572,14 @@ export class CesiumEarthEngine implements EarthEngine {
       return;
     }
 
+    const clockTime = this.widget
+      ? JulianDate.toDate(this.widget.clock.currentTime).toISOString()
+      : new Date().toISOString();
     this.update({
       fps: sample.fps,
       frameTimeMs: sample.frameTimeMs,
       memory: sample.memory,
-      utcIso: new Date().toISOString(),
+      utcIso: clockTime,
     });
 
     if (performance.now() - this.readyAt < ADAPTATION_WARMUP_MS) {
@@ -472,6 +610,13 @@ export class CesiumEarthEngine implements EarthEngine {
 
   private update(patch: Partial<EarthEngineSnapshot>): void {
     if (this.disposed) {
+      return;
+    }
+    const keys = Object.keys(patch) as Array<keyof EarthEngineSnapshot>;
+    if (
+      keys.length === 0 ||
+      keys.every((key) => Object.is(this.snapshot[key], patch[key]))
+    ) {
       return;
     }
     this.snapshot = { ...this.snapshot, ...patch };

@@ -26,8 +26,11 @@ interface SurfaceProviderUpdate {
 }
 
 export class SurfaceProviderCoordinator {
+  private currentImageryStatus: SurfaceProviderStatus | null = null;
+  private currentTerrainStatus: SurfaceProviderStatus | null = null;
   private disposed = false;
   private readonly fallbackTerrain = new EllipsoidTerrainProvider();
+  private highResolutionImageryLayer: ImageryLayer | null = null;
   private highResolutionTerrain: TerrainProvider | null = null;
   private removeCameraListener: (() => void) | null = null;
   private removeImageryErrorListener: (() => void) | null = null;
@@ -38,6 +41,7 @@ export class SurfaceProviderCoordinator {
   constructor(
     private readonly widget: CesiumWidget,
     private readonly onUpdate: (update: SurfaceProviderUpdate) => void,
+    private readonly fallbackImageryLayer: ImageryLayer,
   ) {}
 
   start(): void {
@@ -62,6 +66,14 @@ export class SurfaceProviderCoordinator {
     this.removeTerrainErrorListener = null;
     this.removeCameraListener = null;
     this.highResolutionTerrain = null;
+    this.fallbackImageryLayer.show = true;
+    if (
+      this.highResolutionImageryLayer &&
+      this.widget.imageryLayers.contains(this.highResolutionImageryLayer)
+    ) {
+      this.widget.imageryLayers.remove(this.highResolutionImageryLayer, true);
+    }
+    this.highResolutionImageryLayer = null;
     if (
       this.nightLightsLayer &&
       this.widget.imageryLayers.contains(this.nightLightsLayer)
@@ -87,21 +99,30 @@ export class SurfaceProviderCoordinator {
       }
 
       const layer = new ImageryLayer(provider, {
-        brightness: 0.95,
-        contrast: 1.06,
-        gamma: 1,
+        brightness: 0.97,
+        contrast: 1.08,
+        gamma: 0.99,
         rectangle: Rectangle.fromDegrees(-180, -84.5, 180, 84.5),
-        saturation: 0.9,
+        saturation: 0.92,
       });
+      this.highResolutionImageryLayer = layer;
       this.widget.imageryLayers.add(layer);
       this.removeImageryErrorListener = provider.errorEvent.addEventListener(
-        () => this.onUpdate({ imagery: "fallback" }),
+        () => {
+          if (this.disposed) return;
+          layer.show = false;
+          this.fallbackImageryLayer.show = true;
+          this.publishImageryStatus("fallback");
+          this.widget.scene.requestRender();
+        },
       );
-      this.onUpdate({ imagery: "high-resolution" });
+      this.fallbackImageryLayer.show = false;
+      this.publishImageryStatus("high-resolution");
       this.widget.scene.requestRender();
     } catch {
       if (!this.disposed) {
-        this.onUpdate({ imagery: "fallback" });
+        this.fallbackImageryLayer.show = true;
+        this.publishImageryStatus("fallback");
       }
     }
   }
@@ -117,12 +138,12 @@ export class SurfaceProviderCoordinator {
       }
 
       this.nightLightsLayer = new ImageryLayer(provider, {
-        brightness: 1.08,
-        contrast: 1.16,
+        brightness: 1.02,
+        contrast: 1.2,
         dayAlpha: 0,
         gamma: 1,
-        nightAlpha: 0.6,
-        saturation: 0.68,
+        nightAlpha: 0.5,
+        saturation: 0.62,
       });
       this.nightLightsLayer.show = this.nightLightsVisible;
       this.widget.imageryLayers.add(this.nightLightsLayer);
@@ -144,8 +165,11 @@ export class SurfaceProviderCoordinator {
       this.highResolutionTerrain = provider;
       this.removeTerrainErrorListener = provider.errorEvent.addEventListener(
         () => {
+          this.highResolutionTerrain = null;
+          this.removeCameraListener?.();
+          this.removeCameraListener = null;
           this.widget.terrainProvider = this.fallbackTerrain;
-          this.onUpdate({ terrain: "fallback" });
+          this.publishTerrainStatus("fallback");
         },
       );
       this.removeCameraListener = this.widget.camera.changed.addEventListener(
@@ -155,7 +179,7 @@ export class SurfaceProviderCoordinator {
       this.widget.scene.requestRender();
     } catch {
       if (!this.disposed) {
-        this.onUpdate({ terrain: "fallback" });
+        this.publishTerrainStatus("fallback");
       }
     }
   }
@@ -172,8 +196,20 @@ export class SurfaceProviderCoordinator {
       this.widget.terrainProvider = nextTerrain;
     }
     this.widget.scene.globe.showWaterEffect = nextTerrain.hasWaterMask;
-    this.onUpdate({
-      terrain: useHighResolution ? "high-resolution" : "adaptive",
-    });
+    this.publishTerrainStatus(
+      useHighResolution ? "high-resolution" : "adaptive",
+    );
   };
+
+  private publishImageryStatus(status: SurfaceProviderStatus): void {
+    if (status === this.currentImageryStatus) return;
+    this.currentImageryStatus = status;
+    this.onUpdate({ imagery: status });
+  }
+
+  private publishTerrainStatus(status: SurfaceProviderStatus): void {
+    if (status === this.currentTerrainStatus) return;
+    this.currentTerrainStatus = status;
+    this.onUpdate({ terrain: status });
+  }
 }

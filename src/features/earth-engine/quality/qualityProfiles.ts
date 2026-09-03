@@ -7,6 +7,7 @@ export interface QualityProfile {
   cloudShell: boolean;
   contextOrbitLimit: number;
   fog: boolean;
+  interactionResolutionFactor: number;
   labelLimit: number;
   maximumScreenSpaceError: number;
   msaaSamples: number;
@@ -21,44 +22,47 @@ export interface QualityProfile {
 
 export const qualityProfiles: Record<GraphicsQuality, QualityProfile> = {
   eco: {
-    catalogSignalLimit: 6_000,
+    catalogSignalLimit: 4_500,
     cloudShell: false,
     contextOrbitLimit: 1,
     fog: false,
+    interactionResolutionFactor: 0.92,
     labelLimit: 12,
-    maximumScreenSpaceError: 4,
+    maximumScreenSpaceError: 4.5,
     msaaSamples: 1,
     orbitSampleCount: 121,
-    resolutionScale: 0.72,
+    resolutionScale: 0.76,
     semanticMarkerLimit: 90,
     targetFrameRate: 45,
     terrainTileCacheSize: 80,
     useBrowserRecommendedResolution: true,
-    starCount: 180,
+    starCount: 0,
   },
   balanced: {
-    catalogSignalLimit: 12_000,
-    cloudShell: true,
+    catalogSignalLimit: 8_500,
+    cloudShell: false,
     contextOrbitLimit: 2,
     fog: true,
+    interactionResolutionFactor: 0.86,
     labelLimit: 24,
-    maximumScreenSpaceError: 2.25,
+    maximumScreenSpaceError: 2.4,
     msaaSamples: 2,
     orbitSampleCount: 161,
-    resolutionScale: 0.9,
+    resolutionScale: 0.92,
     semanticMarkerLimit: 160,
     targetFrameRate: 60,
     terrainTileCacheSize: 140,
     useBrowserRecommendedResolution: true,
-    starCount: 320,
+    starCount: 72,
   },
   high: {
-    catalogSignalLimit: 14_000,
+    catalogSignalLimit: 11_000,
     cloudShell: true,
     contextOrbitLimit: 3,
     fog: true,
+    interactionResolutionFactor: 0.84,
     labelLimit: 28,
-    maximumScreenSpaceError: 1.35,
+    maximumScreenSpaceError: 1.45,
     msaaSamples: 2,
     orbitSampleCount: 181,
     resolutionScale: 1,
@@ -66,7 +70,7 @@ export const qualityProfiles: Record<GraphicsQuality, QualityProfile> = {
     targetFrameRate: 60,
     terrainTileCacheSize: 180,
     useBrowserRecommendedResolution: true,
-    starCount: 420,
+    starCount: 128,
   },
 };
 

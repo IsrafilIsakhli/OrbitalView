@@ -1,6 +1,5 @@
-import "cesium/Build/Cesium/Widgets/widgets.css";
+import { registerUpdatePause } from "@/features/updater/domain/updateBarrier";
 
-import { ArrowClockwise24Regular } from "@fluentui/react-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -25,18 +24,23 @@ import { usePreferencesStore } from "@/features/settings/model/preferences";
 import { BrandMark } from "@/shared/ui/BrandMark";
 import { formatTime } from "@/shared/i18n/formatters";
 import { formatDistanceFromKm, formatOrbitalSpeed } from "@/shared/formatting/units";
+import { AUTOMATIC_REFRESH_INTERVAL_MS } from "@/shared/data/refreshPolicy";
 
 import type {
   CameraPresetId,
   EarthEngine,
   EarthEngineSnapshot,
+  EarthTimeLensState,
 } from "../contracts/earth-engine";
 import { initialEarthEngineSnapshot } from "../contracts/earth-engine";
 import { closeEarthFocusSession } from "../camera/earthFocusLifecycle";
+import { useEarthTimeLensSelectionStore } from "../model/timeLensSelection";
+import { clampTimeLensTimestamp } from "../time/orbitalTimeLens";
 import { EarthControls } from "./EarthControls";
 import { EarthContextCards } from "./EarthContextCards";
 import { EarthLayerPanel } from "./EarthLayerPanel";
 import { EarthObjectTooltip } from "./EarthObjectTooltip";
+import { OrbitalTimeLens } from "./OrbitalTimeLens";
 
 function surfaceLabelKey(
   snapshot: Pick<EarthEngineSnapshot, "imagery" | "terrain">,
@@ -70,6 +74,8 @@ export function EarthViewport({
   );
   const requestedLaunchId = useLaunchSelectionStore((state) => state.requestedLaunchId);
   const clearRequestedLaunch = useLaunchSelectionStore((state) => state.clearRequestedLaunch);
+  const requestedTimeLens = useEarthTimeLensSelectionStore((state) => state.request);
+  const clearRequestedTimeLens = useEarthTimeLensSelectionStore((state) => state.clearRequest);
   const canvasLabel = t("canvasLabel");
   const catalogRef = useRef(satelliteCatalogQuery.data ?? null);
   const launchesRef = useRef(spaceIntelligenceQuery.data?.launches ?? null);
@@ -85,6 +91,7 @@ export function EarthViewport({
     reduceMotion,
   });
   const [attempt, setAttempt] = useState(0);
+  const [timeLensWindowStartUnixMs, setTimeLensWindowStartUnixMs] = useState(0);
   const [snapshot, setSnapshot] = useState<EarthEngineSnapshot>({
     ...initialEarthEngineSnapshot,
     quality: graphicsQuality,
@@ -261,6 +268,10 @@ export function EarthViewport({
 
   useEffect(() => {
     engineRef.current?.setActive(active);
+    return registerUpdatePause(() => {
+      engineRef.current?.setActive(false);
+      return () => engineRef.current?.setActive(active);
+    });
   }, [active]);
 
   useEffect(() => {
@@ -299,7 +310,13 @@ export function EarthViewport({
         satelliteLayerRef.current?.getSnapshot().selectedId
         || launchLayerRef.current?.getSnapshot().selectedId,
       );
-      if (!hasSelection) return;
+      if (!hasSelection) {
+        if (engineRef.current?.getSnapshot().timeLensActive) {
+          engineRef.current.setTimeLensState(null);
+          satelliteLayerRef.current?.setTimeLensState(null);
+        }
+        return;
+      }
       closeEarthFocusSession({
         launchLayer: launchLayerRef.current,
         returnToDefaultEarth: () => engineRef.current?.returnToDefaultEarth() ?? false,
@@ -345,6 +362,92 @@ export function EarthViewport({
   const toggleRotation = useCallback(() => {
     engineRef.current?.setAutoRotation(!snapshot.autoRotation);
   }, [snapshot.autoRotation]);
+
+  const applyTimeLensState = useCallback((state: EarthTimeLensState | null) => {
+    engineRef.current?.setTimeLensState(state);
+    satelliteLayerRef.current?.setTimeLensState(state);
+  }, []);
+
+  useEffect(() => {
+    if (!active || !requestedTimeLens || snapshot.phase !== "ready") return;
+    const timer = window.setTimeout(() => {
+      const now = Date.now();
+      const requestedTimestamp = requestedTimeLens.timestampUnixMs;
+      const windowStartUnixMs = Math.max(now, requestedTimestamp - 6 * 60 * 60_000);
+      setTimeLensWindowStartUnixMs(windowStartUnixMs);
+      applyTimeLensState({
+        playing: false,
+        rate: snapshot.timeLensRate,
+        timestampUnixMs: requestedTimestamp,
+      });
+      clearRequestedTimeLens(requestedTimeLens.id);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [
+    active,
+    applyTimeLensState,
+    clearRequestedTimeLens,
+    requestedTimeLens,
+    snapshot.phase,
+    snapshot.timeLensRate,
+  ]);
+
+  const toggleTimeLens = useCallback(() => {
+    if (snapshot.timeLensActive) {
+      applyTimeLensState(null);
+      return;
+    }
+    const timestampUnixMs = Date.now();
+    setTimeLensWindowStartUnixMs(timestampUnixMs);
+    applyTimeLensState({
+      playing: false,
+      rate: snapshot.timeLensRate,
+      timestampUnixMs,
+    });
+  }, [applyTimeLensState, snapshot.timeLensActive, snapshot.timeLensRate]);
+
+  const scrubTimeLens = useCallback((timestampUnixMs: number) => {
+    applyTimeLensState({
+      playing: false,
+      rate: snapshot.timeLensRate,
+      timestampUnixMs: clampTimeLensTimestamp(
+        timestampUnixMs,
+        timeLensWindowStartUnixMs,
+      ),
+    });
+  }, [applyTimeLensState, snapshot.timeLensRate, timeLensWindowStartUnixMs]);
+
+  const setTimeLensPlaying = useCallback((playing: boolean) => {
+    applyTimeLensState({
+      playing,
+      rate: snapshot.timeLensRate,
+      timestampUnixMs: clampTimeLensTimestamp(
+        Date.parse(snapshot.utcIso),
+        timeLensWindowStartUnixMs,
+      ),
+    });
+  }, [applyTimeLensState, snapshot.timeLensRate, snapshot.utcIso, timeLensWindowStartUnixMs]);
+
+  const setTimeLensRate = useCallback((rate: number) => {
+    applyTimeLensState({
+      playing: snapshot.timeLensPlaying,
+      rate,
+      timestampUnixMs: clampTimeLensTimestamp(
+        Date.parse(snapshot.utcIso),
+        timeLensWindowStartUnixMs,
+      ),
+    });
+  }, [applyTimeLensState, snapshot.timeLensPlaying, snapshot.utcIso, timeLensWindowStartUnixMs]);
+
+  const resetTimeLensToNow = useCallback(() => {
+    const timestampUnixMs = Date.now();
+    setTimeLensWindowStartUnixMs(timestampUnixMs);
+    applyTimeLensState({
+      playing: false,
+      rate: snapshot.timeLensRate,
+      timestampUnixMs,
+    });
+  }, [applyTimeLensState, snapshot.timeLensRate]);
 
   const closeSatellite = useCallback(() => {
     closeEarthFocusSession({
@@ -470,6 +573,15 @@ export function EarthViewport({
     snapshot.phase === "idle" || snapshot.phase === "initializing";
   const isError = snapshot.phase === "error";
 
+  useEffect(() => {
+    if (!isError) return;
+    const timer = window.setTimeout(
+      () => setAttempt((value) => value + 1),
+      AUTOMATIC_REFRESH_INTERVAL_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [isError]);
+
   return (
     <section
       aria-label={t("regionLabel")}
@@ -490,6 +602,7 @@ export function EarthViewport({
       data-rocket-body-count={satelliteSnapshot.rocketBodyCount}
       data-launch-count={launchSnapshot.totalLaunchCount}
       data-launch-site-count={launchSnapshot.renderedSiteCount}
+      data-time-lens={snapshot.timeLensActive ? "forecast" : "live"}
     >
       <div className="earth-render-surface" ref={containerRef} />
 
@@ -600,9 +713,25 @@ export function EarthViewport({
               <EarthControls
                 onFlyTo={flyTo}
                 onToggleRotation={toggleRotation}
+                onToggleTimeLens={toggleTimeLens}
                 snapshot={snapshot}
               />
             </div>
+          )}
+
+          {snapshot.timeLensActive && !isLoading && (
+            <OrbitalTimeLens
+              currentUnixMs={Date.parse(snapshot.utcIso)}
+              launches={spaceIntelligenceQuery.data?.launches ?? []}
+              onClose={() => applyTimeLensState(null)}
+              onPlayChange={setTimeLensPlaying}
+              onRateChange={setTimeLensRate}
+              onResetToNow={resetTimeLensToNow}
+              onScrub={scrubTimeLens}
+              playing={snapshot.timeLensPlaying}
+              rate={snapshot.timeLensRate}
+              windowStartUnixMs={timeLensWindowStartUnixMs}
+            />
           )}
 
           {snapshot.activePreset === "iss" && !isLoading && (
@@ -627,21 +756,17 @@ export function EarthViewport({
               orbitVisible={satelliteSnapshot.orbitVisible}
               satellite={selectedSatellite}
               source={satelliteCatalogQuery.data?.source ?? null}
-              stale={satelliteCatalogQuery.data?.stale ?? false}
               telemetry={satelliteSnapshot.selectedTelemetry}
             />
           )}
           {selectedLaunch && selectedLaunchSite && !selectedSatellite && (
             <LaunchGlobePanel
-              fetchedAt={spaceIntelligenceQuery.data?.fetchedAt ?? null}
               launch={selectedLaunch}
               nowIso={snapshot.utcIso}
               onClose={closeLaunch}
               onFocus={() => launchLayerRef.current?.focusSelected()}
               onSelectLaunch={(id) => launchLayerRef.current?.selectLaunch(id)}
               site={selectedLaunchSite}
-              source={spaceIntelligenceQuery.data?.source ?? null}
-              stale={spaceIntelligenceQuery.data?.stale ?? false}
             />
           )}
 
@@ -697,10 +822,6 @@ export function EarthViewport({
           {snapshot.errorDetail && (
             <code className="earth-error__detail">{snapshot.errorDetail}</code>
           )}
-          <button onClick={() => setAttempt((value) => value + 1)} type="button">
-            <ArrowClockwise24Regular aria-hidden />
-            {t("error.retry")}
-          </button>
         </div>
       )}
     </section>

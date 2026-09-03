@@ -22,9 +22,9 @@ const NASA_GEOS5_CLOUDS_URL = "/assets/earth/nasa-geos5-clouds-0350.png";
 const CLOUD_SHELL_SEPARATION_METERS = 7_500;
 
 const CLOUD_ALPHA: Record<GraphicsQuality, { day: number; night: number }> = {
-  eco: { day: 0.34, night: 0.12 },
-  balanced: { day: 0.48, night: 0.16 },
-  high: { day: 0.58, night: 0.2 },
+  eco: { day: 0.3, night: 0.08 },
+  balanced: { day: 0.4, night: 0.12 },
+  high: { day: 0.48, night: 0.15 },
 };
 
 export class ScientificCloudLayer implements EarthEngineLayer {
@@ -33,7 +33,9 @@ export class ScientificCloudLayer implements EarthEngineLayer {
 
   private context: EarthLayerContext | null = null;
   private layer: ImageryLayer | null = null;
+  private orderCheckElapsed = 1;
   private shell: Primitive | null = null;
+  private shellMaterial: Material | null = null;
   private shellSupported = false;
   private quality: GraphicsQuality;
   private visible = true;
@@ -72,22 +74,23 @@ export class ScientificCloudLayer implements EarthEngineLayer {
           ),
           new Cartesian3(),
         );
+        this.shellMaterial = new Material({
+          fabric: {
+            type: "Image",
+            uniforms: {
+              color: Color.WHITE.withAlpha(0.42),
+              image: NASA_GEOS5_CLOUDS_URL,
+              repeat: new Cartesian2(1, 1),
+            },
+          },
+          translucent: true,
+        });
         this.shell = new Primitive({
           allowPicking: false,
           appearance: new EllipsoidSurfaceAppearance({
             aboveGround: true,
             flat: true,
-            material: new Material({
-              fabric: {
-                type: "Image",
-                uniforms: {
-                  color: Color.WHITE.withAlpha(0.46),
-                  image: NASA_GEOS5_CLOUDS_URL,
-                  repeat: new Cartesian2(1, 1),
-                },
-              },
-              translucent: true,
-            }),
+            material: this.shellMaterial,
             translucent: true,
           }),
           asynchronous: true,
@@ -104,6 +107,7 @@ export class ScientificCloudLayer implements EarthEngineLayer {
         context.scene.primitives.add(this.shell);
       } catch {
         this.shell = null;
+        this.shellMaterial = null;
         this.shellSupported = false;
       }
     }
@@ -121,7 +125,10 @@ export class ScientificCloudLayer implements EarthEngineLayer {
     this.applyVisualState();
   }
 
-  tick(): void {
+  tick(deltaSeconds: number): void {
+    this.orderCheckElapsed += Math.max(0, deltaSeconds);
+    if (this.orderCheckElapsed < 1) return;
+    this.orderCheckElapsed = 0;
     const collection = this.context?.scene.imageryLayers;
     if (!collection || !this.layer || !collection.contains(this.layer)) return;
     if (collection.indexOf(this.layer) !== collection.length - 1) {
@@ -140,6 +147,7 @@ export class ScientificCloudLayer implements EarthEngineLayer {
     }
     this.layer = null;
     this.shell = null;
+    this.shellMaterial = null;
     this.context = null;
   }
 
@@ -152,6 +160,10 @@ export class ScientificCloudLayer implements EarthEngineLayer {
     const alpha = CLOUD_ALPHA[this.quality];
     this.layer.dayAlpha = alpha.day;
     this.layer.nightAlpha = alpha.night;
+    if (this.shellMaterial) {
+      const uniforms = this.shellMaterial.uniforms as Record<string, unknown>;
+      uniforms["color"] = Color.WHITE.withAlpha(alpha.day * 0.9);
+    }
     const useShell = this.visible && this.shellSupported &&
       qualityProfiles[this.quality].cloudShell && this.shell !== null;
     this.layer.show = this.visible && !useShell;

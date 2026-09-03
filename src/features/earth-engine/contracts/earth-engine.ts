@@ -40,6 +40,12 @@ export interface MemorySnapshot {
   usedHeapMb: number;
 }
 
+export interface EarthTimeLensState {
+  playing: boolean;
+  rate: number;
+  timestampUnixMs: number;
+}
+
 export interface EarthEngineSnapshot {
   activePreset: CameraPresetId;
   autoRotation: boolean;
@@ -55,6 +61,9 @@ export interface EarthEngineSnapshot {
   phase: EnginePhase;
   quality: GraphicsQuality;
   terrain: SurfaceProviderStatus;
+  timeLensActive: boolean;
+  timeLensPlaying: boolean;
+  timeLensRate: number;
   utcIso: string;
 }
 
@@ -80,6 +89,7 @@ export interface EarthEngine {
   setNightLightsVisible: (visible: boolean) => void;
   setQualityCap: (quality: GraphicsQuality) => void;
   setReduceMotion: (reduceMotion: boolean) => void;
+  setTimeLensState: (state: EarthTimeLensState | null) => void;
   subscribe: (listener: () => void) => () => void;
 }
 
@@ -98,5 +108,8 @@ export const initialEarthEngineSnapshot: EarthEngineSnapshot = {
   phase: "idle",
   quality: "balanced",
   terrain: "loading",
+  timeLensActive: false,
+  timeLensPlaying: false,
+  timeLensRate: 60,
   utcIso: new Date().toISOString(),
 };

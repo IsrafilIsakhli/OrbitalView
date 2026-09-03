@@ -362,6 +362,271 @@
   transform: none;
 }
 
+.earth-time-lens-button {
+  display: grid;
+  min-width: 76px;
+  flex: 0 0 76px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  place-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid rgba(107, 196, 239, 0.12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #93afc1;
+  cursor: pointer;
+}
+
+.earth-time-lens-button span {
+  overflow: hidden;
+  font: 650 9px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.earth-time-lens-button:hover,
+.earth-time-lens-button:focus-visible,
+.earth-time-lens-button[data-active="true"] {
+  border-color: rgba(103, 215, 255, 0.34);
+  background: rgba(36, 151, 211, 0.14);
+  color: #dff7ff;
+}
+
+.earth-time-lens-button[data-active="true"] {
+  box-shadow: inset 0 0 0 1px rgba(93, 208, 255, 0.08), 0 0 24px rgba(34, 147, 204, 0.08);
+}
+
+.orbital-time-lens {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  z-index: 18;
+  display: grid;
+  width: min(920px, calc(100% - 410px));
+  gap: 10px;
+  padding: 12px 14px 11px;
+  overflow: hidden;
+  border: 1px solid rgba(102, 207, 251, 0.2);
+  border-radius: 16px;
+  background: linear-gradient(155deg, rgba(7, 18, 30, 0.96), rgba(4, 10, 18, 0.94));
+  box-shadow: 0 22px 72px rgba(0, 0, 0, 0.45), inset 0 1px rgba(255, 255, 255, 0.04);
+  pointer-events: auto;
+  transform: translateX(-50%);
+}
+
+.orbital-time-lens::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(48, 173, 229, 0.06), transparent 42%, rgba(120, 103, 255, 0.035));
+  content: "";
+  pointer-events: none;
+}
+
+.orbital-time-lens__header,
+.orbital-time-lens__controls,
+.orbital-time-lens__track,
+.orbital-time-lens footer {
+  position: relative;
+  z-index: 1;
+}
+
+.orbital-time-lens__header {
+  display: grid;
+  min-height: 40px;
+  grid-template-columns: minmax(0, 1fr) auto 40px;
+  align-items: center;
+  gap: 12px;
+}
+
+.orbital-time-lens__header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.orbital-time-lens__header span,
+.orbital-time-lens footer span {
+  color: #69d8ff;
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.orbital-time-lens__header strong {
+  color: #e9f7ff;
+  font-size: 14px;
+  font-weight: 620;
+}
+
+.orbital-time-lens__header time {
+  color: #c9e8f7;
+  font: 650 11px var(--font-mono);
+}
+
+.orbital-time-lens__close,
+.orbital-time-lens__play {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(118, 197, 237, 0.13);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #a6c2d3;
+  cursor: pointer;
+}
+
+.orbital-time-lens__controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.orbital-time-lens__play {
+  border-color: rgba(91, 211, 255, 0.28);
+  background: rgba(41, 157, 214, 0.15);
+  color: #9be7ff;
+}
+
+.orbital-time-lens__now,
+.orbital-time-lens__next,
+.orbital-time-lens__rates button {
+  min-height: 44px;
+  border: 1px solid rgba(118, 197, 237, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #8faabb;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.orbital-time-lens__now {
+  padding: 0 12px;
+  color: #d6edf8;
+  font: 650 10px var(--font-mono);
+}
+
+.orbital-time-lens__rates {
+  display: flex;
+  gap: 4px;
+}
+
+.orbital-time-lens__rates button {
+  min-width: 42px;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+}
+
+.orbital-time-lens__rates button[aria-pressed="true"] {
+  border-color: rgba(86, 206, 255, 0.3);
+  background: rgba(41, 157, 214, 0.13);
+  color: #bdefff;
+}
+
+.orbital-time-lens__next {
+  display: inline-flex;
+  min-width: 118px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-left: auto;
+  padding: 0 11px;
+}
+
+.orbital-time-lens__next:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.orbital-time-lens__track {
+  display: grid;
+  min-height: 46px;
+  align-content: center;
+  padding: 0 4px;
+}
+
+.orbital-time-lens__track input {
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.orbital-time-lens__track input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #62d9ff var(--time-lens-progress), rgba(111, 149, 172, 0.2) var(--time-lens-progress));
+}
+
+.orbital-time-lens__track input::-webkit-slider-thumb {
+  width: 15px;
+  height: 15px;
+  margin-top: -5px;
+  appearance: none;
+  border: 3px solid #dff8ff;
+  border-radius: 50%;
+  background: #42bce9;
+  box-shadow: 0 0 0 5px rgba(73, 193, 235, 0.12), 0 0 18px rgba(74, 204, 248, 0.36);
+}
+
+.orbital-time-lens__events {
+  position: absolute;
+  top: 12px;
+  right: 4px;
+  left: 4px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.orbital-time-lens__events button {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 1px solid rgba(255, 214, 139, 0.88);
+  border-radius: 2px;
+  background: #f1aa46;
+  box-shadow: 0 0 10px rgba(240, 168, 67, 0.38);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.orbital-time-lens__events button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+.orbital-time-lens__ticks {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 2px;
+  color: #617d90;
+  font: 8px var(--font-mono);
+}
+
+.orbital-time-lens footer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(116, 194, 232, 0.08);
+}
+
+.orbital-time-lens footer strong {
+  overflow: hidden;
+  color: #8ea8b8;
+  font-size: 10px;
+  font-weight: 520;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .earth-mission-dock .earth-context-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -400,6 +665,11 @@
   .earth-mission-dock .earth-context-cards {
     display: none;
   }
+
+  .orbital-time-lens {
+    left: calc(50% - 76px);
+    width: min(760px, calc(100% - 390px));
+  }
 }
 
 @media (max-width: 1280px) {
@@ -407,6 +677,11 @@
     left: 50%;
     width: min(696px, calc(100% - 24px));
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .orbital-time-lens {
+    left: 50%;
+    width: min(760px, calc(100% - 24px));
   }
 }
 
@@ -605,11 +880,70 @@
   .earth-mission-dock .camera-preset small {
     display: none;
   }
+
+  .earth-time-lens-button {
+    min-width: 48px;
+    flex-basis: 48px;
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  .earth-time-lens-button span {
+    display: none;
+  }
+
+  .earth-viewport[data-time-lens="forecast"] .earth-layer-trigger {
+    display: none;
+  }
+
+  .orbital-time-lens {
+    position: fixed;
+    right: 12px;
+    bottom: 150px;
+    left: 12px;
+    z-index: 23;
+    width: auto;
+    gap: 8px;
+    padding: 10px;
+    transform: none;
+  }
+
+  .orbital-time-lens__header {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .orbital-time-lens__header time {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .orbital-time-lens__close {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .orbital-time-lens__next span {
+    display: none;
+  }
+
+  .orbital-time-lens__next {
+    min-width: 44px;
+    padding: 0;
+  }
+
+  .orbital-time-lens footer strong {
+    text-align: right;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .earth-layer-panel {
     transition: none;
+  }
+
+  .orbital-time-lens__track input::-webkit-slider-thumb,
+  .orbital-time-lens__events button {
+    box-shadow: none;
   }
 }
 

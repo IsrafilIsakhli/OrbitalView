@@ -22,6 +22,7 @@ export class PerformanceMonitor {
     if (this.removePostRender) {
       return;
     }
+    this.frameCount = 0;
     this.lastSampleAt = performance.now();
     this.removePostRender = this.scene.postRender.addEventListener(
       this.handlePostRender,
@@ -31,6 +32,7 @@ export class PerformanceMonitor {
   dispose(): void {
     this.removePostRender?.();
     this.removePostRender = null;
+    this.frameCount = 0;
   }
 
   private readonly handlePostRender = (): void => {
