@@ -1,0 +1,228 @@
+{
+  "stage": "after",
+  "environment": "Isolated Chromium, real cached catalog, not native FPS acceptance",
+  "errors": [],
+  "fetchedAt": "2026-09-04T22:30:24.682Z",
+  "count": 16531,
+  "followStart": {
+    "position": [
+      368800.5411170663,
+      -889764.2625249289,
+      459784.6822419027
+    ],
+    "direction": [
+      -0.19783605390655823,
+      0.8991589357451178,
+      -0.39035125725990527
+    ],
+    "range": 1067284.515028237,
+    "height": 945614.311313969,
+    "follow": true,
+    "auto": false
+  },
+  "zoomIn": {
+    "position": [
+      288869.8734502697,
+      -526481.7735473625,
+      302073.1023693336
+    ],
+    "direction": [
+      -0.19783605390656184,
+      0.8991589357451168,
+      -0.3903512572599057
+    ],
+    "range": 672217.9861025626,
+    "height": 749525.0663105067,
+    "follow": true,
+    "auto": false
+  },
+  "zoomHeld": {
+    "position": [
+      288869.87345026736,
+      -526481.7735473514,
+      302073.1023693327
+    ],
+    "direction": [
+      -0.19783605390656311,
+      0.899158935745116,
+      -0.3903512572599069
+    ],
+    "range": 672217.9861025525,
+    "height": 749521.0215246585,
+    "follow": true,
+    "auto": false
+  },
+  "zoomOut": {
+    "position": [
+      1051699.5588264046,
+      -3993519.8311379272,
+      1807215.976389614
+    ],
+    "direction": [
+      -0.1978360539065595,
+      0.8991589357451177,
+      -0.39035125725990444
+    ],
+    "range": 4507804.586386306,
+    "height": 3170480.699448385,
+    "follow": true,
+    "auto": false
+  },
+  "drag": {
+    "position": [
+      -1734202.441563905,
+      -1490561.4715642445,
+      3884722.7160000987
+    ],
+    "direction": [
+      0.4162811855474511,
+      0.3081191338052019,
+      -0.8554370660325287
+    ],
+    "range": 4507804.586386277,
+    "height": 4548806.609184712,
+    "follow": true,
+    "auto": false
+  },
+  "focusAutoRotation": false,
+  "refresh": {
+    "focusCount": 0,
+    "follow": true
+  },
+  "followRelease": 0,
+  "flightConflict": false,
+  "closed": {
+    "position": [
+      -28114795.563854754,
+      -21609005.751689617,
+      9883636.400726464
+    ],
+    "direction": [
+      0.7729601378281173,
+      0.5940964438535183,
+      -0.22267025110988942
+    ],
+    "range": 36811372.260154426,
+    "height": 30434776.122803915,
+    "follow": false,
+    "auto": false
+  },
+  "hiddenFrames": 0,
+  "layouts": [
+    {
+      "width": 320,
+      "overflow": false,
+      "center": {
+        "x": 159.99999782366007,
+        "y": 111.68313060168259
+      },
+      "insets": {
+        "bottom": 356.625,
+        "left": 12,
+        "right": 12,
+        "top": 12
+      }
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "center": {
+        "x": 194.9999962655162,
+        "y": 183.43833774900122
+      },
+      "insets": {
+        "bottom": 489.109375,
+        "left": 12,
+        "right": 12,
+        "top": 12
+      }
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "center": {
+        "x": 199.864822466419,
+        "y": 571.001529381447
+      },
+      "insets": {
+        "bottom": 102,
+        "left": 12,
+        "right": 380,
+        "top": 220
+      }
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "center": {
+        "x": 533.8822456689063,
+        "y": 509.00165595880986
+      },
+      "insets": {
+        "bottom": 102,
+        "left": 12,
+        "right": 384,
+        "top": 220
+      }
+    },
+    {
+      "width": 1920,
+      "overflow": false,
+      "center": {
+        "x": 774.0649614700642,
+        "y": 597.5015651452302
+      },
+      "insets": {
+        "bottom": 105,
+        "left": 12,
+        "right": 384,
+        "top": 220
+      }
+    }
+  ],
+  "final": {
+    "activePreset": "earth",
+    "autoRotation": false,
+    "cloudCount": 1,
+    "cloudsVisible": true,
+    "errorDetail": null,
+    "fps": 61.862047633723215,
+    "frameTimeMs": 16.700000000186265,
+    "p95FrameTimeMs": 17.40000000037253,
+    "lateFrameRatio": 0,
+    "cpuRenderMs": 1.1000000005587935,
+    "gpuTimeMs": null,
+    "presentedFrames": 776,
+    "renderMode": "on-demand",
+    "renderWidth": 1766,
+    "renderHeight": 993,
+    "effectiveFrameRateTarget": 60,
+    "gpu": {
+      "antialias": true,
+      "api": "WebGL 2",
+      "maxMsaaSamples": 8,
+      "maxTextureSize": 16384,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "vendor": "Google Inc. (NVIDIA)"
+    },
+    "imagery": "fallback",
+    "memory": {
+      "heapLimitMb": 4192,
+      "totalHeapMb": 207.5,
+      "usedHeapMb": 136.1
+    },
+    "nightLightsVisible": true,
+    "phase": "degraded",
+    "quality": "balanced",
+    "terrain": "fallback",
+    "timeLensActive": false,
+    "timeLensPlaying": false,
+    "timeLensRate": 60,
+    "utcIso": "2026-09-05T00:01:03.277Z"
+  },
+  "clouds": {
+    "ready": true,
+    "shell": false,
+    "imagery": true
+  }
+}

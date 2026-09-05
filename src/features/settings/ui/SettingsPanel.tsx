@@ -43,6 +43,8 @@ export function SettingsPanel({ open, onClose, onOpenLanguage }: SettingsPanelPr
   const dialogRef = useRef<HTMLDialogElement>(null);
   const operations = useControlCenterSnapshot();
   const graphicsQuality = usePreferencesStore((state) => state.graphicsQuality);
+  const frameRateMode = usePreferencesStore((state) => state.earthFrameRateMode);
+  const setFrameRateMode = usePreferencesStore((state) => state.setEarthFrameRateMode);
   const defaultCameraPreset = usePreferencesStore((state) => state.defaultCameraPreset);
   const locale = usePreferencesStore((state) => state.locale);
   const reduceMotion = usePreferencesStore((state) => state.reduceMotion);
@@ -114,6 +116,22 @@ export function SettingsPanel({ open, onClose, onOpenLanguage }: SettingsPanelPr
                   type="button"
                 >
                   {t(`settings:graphics.${quality}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="setting-row setting-row--stacked">
+            <span className="setting-row__icon"><Gauge24Regular aria-hidden /></span>
+            <span className="setting-row__copy">
+              <strong>{t("settings:frameRate.label")}</strong>
+              <span>{t("settings:frameRate.description")}</span>
+            </span>
+            <div className="segmented-control">
+              {(["60", "120"] as const).map((mode) => (
+                <button key={mode} type="button" aria-pressed={frameRateMode === mode}
+                  data-active={frameRateMode === mode} onClick={() => setFrameRateMode(mode)}>
+                  {t("settings:frameRate.option", { count: Number(mode) })}
                 </button>
               ))}
             </div>

@@ -1,0 +1,745 @@
+{
+  "environment": "Isolated Chromium; real cached CelesTrak; current UTC; not native WebView/installer or FPS acceptance",
+  "hash": "212c647ae379227e20e167d688c92a784c1372a176487879fb121adcfbefba2c",
+  "fetchedAt": "2026-09-03T23:40:12.039Z",
+  "cases": [
+    {
+      "width": 320,
+      "height": 568,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 160.00000029725257,
+        "y": 309.5006730175812
+      },
+      "insets": {
+        "bottom": 156,
+        "left": 12,
+        "right": 12,
+        "top": 207
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 195.00000052924435,
+        "y": 447.5007995485758
+      },
+      "insets": {
+        "bottom": 156,
+        "left": 12,
+        "right": 12,
+        "top": 207
+      }
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 384.00000099977086,
+        "y": 577.0031923681472
+      },
+      "insets": {
+        "bottom": 93,
+        "left": 12,
+        "right": 12,
+        "top": 223
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 720.0000008511522,
+        "y": 515.0019214499316
+      },
+      "insets": {
+        "bottom": 93,
+        "left": 12,
+        "right": 12,
+        "top": 223
+      }
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 960.0000011078644,
+        "y": 601.501760485941
+      },
+      "insets": {
+        "bottom": 100,
+        "left": 12,
+        "right": 12,
+        "top": 223
+      }
+    },
+    {
+      "width": 3840,
+      "height": 2160,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 1920.0000026798432,
+        "y": 1141.502085990355
+      },
+      "insets": {
+        "bottom": 100,
+        "left": 12,
+        "right": 12,
+        "top": 223
+      }
+    }
+  ],
+  "errors": [],
+  "samples": [
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 36.21378621375252,
+      "frameTimeMs": 28.799999999813735,
+      "p95FrameTimeMs": 55.299999999813735,
+      "lateFrameRatio": 0.6551724137931034,
+      "cpuRenderMs": 0.6000000005587935,
+      "gpuTimeMs": null,
+      "presentedFrames": 559,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 234.7,
+        "usedHeapMb": 159.3
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:26.922Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 33.973823447507655,
+      "frameTimeMs": 29.700000000186265,
+      "p95FrameTimeMs": 39.40000000037253,
+      "lateFrameRatio": 0.7704918032786885,
+      "cpuRenderMs": 2,
+      "gpuTimeMs": null,
+      "presentedFrames": 591,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 235.5,
+        "usedHeapMb": 164.4
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:27.914Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 33.99674197888472,
+      "frameTimeMs": 29.59999999962747,
+      "p95FrameTimeMs": 39.40000000037253,
+      "lateFrameRatio": 0.8020833333333334,
+      "cpuRenderMs": 1.5,
+      "gpuTimeMs": null,
+      "presentedFrames": 626,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 236.2,
+        "usedHeapMb": 169.7
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:28.943Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.2824243693064,
+      "frameTimeMs": 29.299999999813735,
+      "p95FrameTimeMs": 37.30000000074506,
+      "lateFrameRatio": 0.8473282442748091,
+      "cpuRenderMs": 1.5,
+      "gpuTimeMs": null,
+      "presentedFrames": 661,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 212.9,
+        "usedHeapMb": 133.5
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:29.940Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.49565687211537,
+      "frameTimeMs": 29.09999999962747,
+      "p95FrameTimeMs": 37,
+      "lateFrameRatio": 0.8734939759036144,
+      "cpuRenderMs": 1.2999999998137355,
+      "gpuTimeMs": null,
+      "presentedFrames": 696,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 213.5,
+        "usedHeapMb": 138.7
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:30.932Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.606246341378316,
+      "frameTimeMs": 28.90000000037253,
+      "p95FrameTimeMs": 35.299999999813735,
+      "lateFrameRatio": 0.8955223880597015,
+      "cpuRenderMs": 1,
+      "gpuTimeMs": null,
+      "presentedFrames": 731,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 214.2,
+        "usedHeapMb": 144
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:31.929Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.65491923641704,
+      "frameTimeMs": 28.799999999813735,
+      "p95FrameTimeMs": 35.299999999813735,
+      "lateFrameRatio": 0.902542372881356,
+      "cpuRenderMs": 1.5,
+      "gpuTimeMs": null,
+      "presentedFrames": 766,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 214.8,
+        "usedHeapMb": 149.2
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:32.929Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.74484256243214,
+      "frameTimeMs": 28.799999999813735,
+      "p95FrameTimeMs": 34.40000000037253,
+      "lateFrameRatio": 0.9117647058823529,
+      "cpuRenderMs": 1.5,
+      "gpuTimeMs": null,
+      "presentedFrames": 802,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 215.4,
+        "usedHeapMb": 154.5
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:33.949Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.68628811226765,
+      "frameTimeMs": 28.799999999813735,
+      "p95FrameTimeMs": 34.40000000037253,
+      "lateFrameRatio": 0.9180327868852459,
+      "cpuRenderMs": 1.1000000005587935,
+      "gpuTimeMs": null,
+      "presentedFrames": 835,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 216.1,
+        "usedHeapMb": 159.7
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:34.914Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.19916944873937,
+      "frameTimeMs": 28.799999999813735,
+      "p95FrameTimeMs": 37,
+      "lateFrameRatio": 0.9047619047619048,
+      "cpuRenderMs": 1.2000000001862645,
+      "gpuTimeMs": null,
+      "presentedFrames": 866,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 216.7,
+        "usedHeapMb": 141
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:35.945Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.105187578532316,
+      "frameTimeMs": 28.90000000037253,
+      "p95FrameTimeMs": 35.40000000037253,
+      "lateFrameRatio": 0.9269005847953217,
+      "cpuRenderMs": 1,
+      "gpuTimeMs": null,
+      "presentedFrames": 900,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 217.4,
+        "usedHeapMb": 146.2
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:36.920Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 34.365634365634364,
+      "frameTimeMs": 28.799999999813735,
+      "p95FrameTimeMs": 34.5,
+      "lateFrameRatio": 0.9302325581395349,
+      "cpuRenderMs": 1.699999999254942,
+      "gpuTimeMs": null,
+      "presentedFrames": 935,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 134,
+        "usedHeapMb": 129.9
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:07:37.925Z"
+    }
+  ],
+  "initial": {
+    "snapshot": {
+      "activePreset": "earth",
+      "autoRotation": false,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": null,
+      "frameTimeMs": null,
+      "p95FrameTimeMs": null,
+      "lateFrameRatio": null,
+      "cpuRenderMs": 1,
+      "gpuTimeMs": null,
+      "presentedFrames": 17,
+      "renderMode": "on-demand",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 206.5,
+        "usedHeapMb": 127.8
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-04T13:06:59.885Z"
+    },
+    "count": 16531,
+    "shell": true,
+    "shellVisible": true,
+    "imageryVisible": false
+  },
+  "drawerRestored": "true",
+  "focusRestored": true,
+  "primitivesBefore": {
+    "scene": 14,
+    "satellite": 11202
+  },
+  "primitivesAfter": {
+    "scene": 14,
+    "satellite": 11202
+  },
+  "locales": [
+    {
+      "locale": "az",
+      "overflow": false
+    },
+    {
+      "locale": "tr",
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "overflow": false
+    },
+    {
+      "locale": "ru",
+      "overflow": false
+    },
+    {
+      "locale": "es",
+      "overflow": false
+    }
+  ],
+  "timeLensPlayback": "continuous",
+  "forecastResumeDeltaMs": 2706,
+  "timeLensReturn": {
+    "active": false,
+    "deltaMs": 351
+  },
+  "suspension": {
+    "before": 510,
+    "after": 510,
+    "workerBefore": {
+      "created": 1,
+      "live": 1,
+      "frames": 27
+    },
+    "workerAfter": {
+      "created": 1,
+      "live": 1,
+      "frames": 27
+    },
+    "mode": "suspended",
+    "defaultLoop": false
+  },
+  "resumeMs": 10.899999999441206,
+  "updateVeto": "suspended",
+  "highDpi": {
+    "dpr": 2,
+    "scale": 1.5,
+    "width": 2161,
+    "height": 1350
+  },
+  "cloudFallback": {
+    "shell": false,
+    "imageryVisible": true,
+    "phase": "degraded"
+  },
+  "final": {
+    "activePreset": "earth",
+    "autoRotation": false,
+    "cloudCount": 1,
+    "cloudsVisible": true,
+    "errorDetail": null,
+    "fps": 33.32202645808684,
+    "frameTimeMs": 28.700000000186265,
+    "p95FrameTimeMs": 36.60000000055879,
+    "lateFrameRatio": 0.9251497005988024,
+    "cpuRenderMs": 1.2000000001862645,
+    "gpuTimeMs": null,
+    "presentedFrames": 959,
+    "renderMode": "continuous",
+    "renderWidth": 1440,
+    "renderHeight": 900,
+    "effectiveFrameRateTarget": 60,
+    "gpu": {
+      "antialias": true,
+      "api": "WebGL 2",
+      "maxMsaaSamples": 8,
+      "maxTextureSize": 16384,
+      "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "vendor": "Google Inc. (Intel)"
+    },
+    "imagery": "fallback",
+    "memory": {
+      "heapLimitMb": 4192,
+      "totalHeapMb": 135.4,
+      "usedHeapMb": 131
+    },
+    "nightLightsVisible": true,
+    "phase": "degraded",
+    "quality": "high",
+    "terrain": "fallback",
+    "timeLensActive": false,
+    "timeLensPlaying": false,
+    "timeLensRate": 60,
+    "utcIso": "2026-09-04T13:07:38.938Z"
+  },
+  "fatalErrorPause": {
+    "phase": "error",
+    "mode": "suspended"
+  },
+  "disposedCanvases": 0,
+  "disposedWorkers": 0
+}

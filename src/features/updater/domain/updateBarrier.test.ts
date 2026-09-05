@@ -26,3 +26,14 @@ it("aborts installation and resumes on a busy local writer", async () => {
   finish(); await write;
   await expect(trackLocalWrite(() => Promise.resolve(3))).resolves.toBe(3);
 });
+
+it("pauses workspaces mounted after update preparation has started", async () => {
+  const resume = await prepareUpdate();
+  const restart = vi.fn();
+  const pause = vi.fn(() => restart);
+  const unregister = registerUpdatePause(pause);
+  expect(pause).toHaveBeenCalledOnce();
+  resume();
+  expect(restart).toHaveBeenCalledOnce();
+  unregister();
+});

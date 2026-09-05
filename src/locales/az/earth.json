@@ -1,4 +1,22 @@
 {
+  "overview": {
+    "catalog": "Kataloqda {{amount}} obyekt",
+    "sceneDetails": "Səhnə və mənbələr"
+  },
+  "diagnostics": {
+    "title": "Render diaqnostikası",
+    "mode": "Render rejimi",
+    "continuous": "Davamlı",
+    "on-demand": "Tələb olduqda",
+    "suspended": "Dayandırılıb",
+    "target": "Effektiv FPS hədəfi",
+    "median": "Median kadr · ms",
+    "p95": "P95 kadr · ms",
+    "cpu": "CPU işi · ms",
+    "gpu": "GPU ölçməsi · ms",
+    "resolution": "Render pikselləri",
+    "explanation": "Son 10 saniyədə aktiv kadr intervalları. CPU işi GPU vaxtı deyil. Tire ölçülməyən dəyəri göstərir."
+  },
   "regionLabel": "İnteraktiv Yer mühərriki",
   "canvasLabel": "İnteraktiv 3D Yer. Fırlatmaq üçün sürüşdürün, yaxınlaşdırmaq üçün təkərdən və baxışı dəyişmək üçün kamera idarələrindən istifadə edin.",
   "eyebrow": "CANLI YER",
@@ -15,7 +33,7 @@
   "layers": { "orbits": "Orbit yolları", "groundTrack": "Seçilmiş Yer izi", "clouds": "Bulud örtüyü", "nightLights": "Gecə işıqları", "collapse": "Qat idarəetməsini yığ", "expand": "Qat idarəetməsini aç" },
   "rotation": { "pause": "Yerin kinematik fırlanmasını dayandır", "resume": "Yerin kinematik fırlanmasını davam etdir" },
   "timeLens": { "regionLabel": "Orbital proqnoz zaman xətti", "eyebrow": "ORBİTAL ZAMAN LİNZASI", "title": "24 saatlıq orbit proqnozu", "open": "Orbital Zaman Linzasını aç", "close": "Proqnozu bağla və canlı vaxta qayıt", "returnLive": "Canlı orbital vaxta qayıt", "forecast": "PROQNOZ", "now": "İNDİ", "play": "Orbital proqnozu oynat", "pause": "Orbital proqnozu dayandır", "speed": "Proqnoz oynatma sürəti", "nextEvent": "Növbəti buraxılış", "timeline": "Proqnoz vaxtını seç", "launchEvent": "Buraxılış hadisəsi", "model": "SGP4 proqnozu · cari OMM epoxası", "noEvents": "Bu 24 saatlıq intervalda real buraxılış hadisəsi yoxdur" },
-  "orbitLegend": { "eyebrow": "SSA QAT İDARƏSİ", "title": "CANLI ORBİT QATLARI", "subtitle": "Real kataloq obyektlərini koordinatlarını dəyişmədən araşdırın.", "overview": "Ümumi görünüş", "signals": "siqnal", "semantic": "marker", "satellites": "Peyklər", "launchSites": "Buraxılış məntəqələri", "visible": "{{count}} görünür · kataloqda {{total}}", "orbits": "{{count}} real orbit yolu", "rockets": "{{count}} yeni raket gövdəsi", "openLayers": "Qatlar", "closeLayers": "Qatları bağla", "sceneOverlays": "Səhnə qatları", "groups": { "orbitalNetworks": "Orbital şəbəkələr", "scienceObservation": "Elm və müşahidə", "vehiclesEnvironment": "Aparatlar və mühit" }, "visibilityState": { "visible": "görünür", "hidden": "gizlidir" }, "focusCategory": "{{category}} fokusla, {{count}} real obyekt", "categoryVisibility": "{{category}}, {{count}} obyekt, hazırda {{visibility}}" },
+  "orbitLegend": { "eyebrow": "SSA QAT İDARƏSİ", "title": "CANLI ORBİT QATLARI", "subtitle": "Real kataloq obyektlərini koordinatlarını dəyişmədən araşdırın.", "overview": "Ümumi görünüş", "signals": "siqnal", "semantic": "marker", "satellites": "Peyklər", "launchSites": "Buraxılış məntəqələri", "visible": "{{count}} görünür · kataloqda {{total}}", "orbits": "{{count}} real orbit yolu", "rockets": "{{count}} yeni raket gövdəsi", "renderDetails": "Göstərilən detallar", "openLayers": "Qatlar", "closeLayers": "Qatları bağla", "sceneOverlays": "Səhnə qatları", "groups": { "orbitalNetworks": "Orbital şəbəkələr", "scienceObservation": "Elm və müşahidə", "vehiclesEnvironment": "Aparatlar və mühit" }, "visibilityState": { "visible": "görünür", "hidden": "gizlidir" }, "focusCategory": "{{category}} fokusla, {{count}} real obyekt", "categoryVisibility": "{{category}}, {{count}} obyekt, hazırda {{visibility}}" },
   "context": { "title": "Prioritet canlı obyektlər", "station": "CANLI STANSİYA", "nextLaunch": "NÖVBƏTİ BURAXILIŞ", "norad": "NORAD {{id}}" },
   "camera": {
     "groupLabel": "Kamera görünüşləri",

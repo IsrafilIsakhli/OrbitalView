@@ -28,6 +28,8 @@ import {
 
 import type { EarthEngineLayer, EarthLayerContext } from "@/features/earth-engine/contracts/layers";
 import { qualityProfiles } from "@/features/earth-engine/quality/qualityProfiles";
+import { WorkerActivityGate } from "./WorkerActivityGate";
+import { FollowCameraFrame } from "@/features/earth-engine/camera/FollowCameraFrame";
 import type { GraphicsQuality } from "@/features/settings/model/preferences";
 
 import {
@@ -195,13 +197,17 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   private visualTier: SatelliteVisualTier = "global";
   private worker: Worker | null = null;
   private workerActive = true;
+  private readonly activityGate = new WorkerActivityGate((active) => {
+    this.worker?.postMessage({ active, type: "set-active" } satisfies OrbitWorkerRequest);
+  });
   private timeLensState: OrbitWorkerTimeLensState | null = null;
   private lastHoverAt = 0;
   private lastCameraChangeAt = Number.NEGATIVE_INFINITY;
   private hoverOrbitTimer: ReturnType<typeof setTimeout> | null = null;
   private followPosition: Cartesian3 | null = null;
   private followTarget: Cartesian3 | null = null;
-  private previousFollowTarget: Cartesian3 | null = null;
+  private readonly followFrame = new FollowCameraFrame();
+  private selectionPulseBase = 26;
 
   getSnapshot = (): SatelliteLayerSnapshot => this.snapshot;
 
@@ -265,9 +271,9 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     this.hoverVisualId = null;
     this.update({
       categoryCounts: countSatelliteCategories(catalog),
-      focusedCategory: null,
+      focusedCategory: this.snapshot.focusedCategory,
       lastUpdatedAt: null,
-      presentationMode: "overview",
+      presentationMode: this.snapshot.focusedCategory ? "category" : "overview",
       primitiveCount: 0,
       renderedCount: 0,
       rocketBodyCount: catalog.filter(
@@ -298,11 +304,13 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       ? -1
       : (this.indexById.get(id) ?? -1);
     const selectedId = index >= 0 ? id : null;
+    if (selectedId !== this.snapshot.selectedId) this.setFollowSelected(false);
     if (selectedId === null) {
       this.setFollowSelected(false);
       this.clearSelectedGeometry();
     } else {
       this.clearHover();
+      this.context?.cameraController.beginObjectFocus();
     }
     this.update({ selectedId, selectedOccluded: false, selectedTelemetry: null });
     this.worker?.postMessage({
@@ -321,23 +329,15 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     const position = this.selectedPosition();
     if (!position || !this.context) return;
     this.setFollowSelected(false);
+    this.context.cameraController.noteUserActivity();
     const selectedIndex = this.snapshot.selectedId
       ? this.indexById.get(this.snapshot.selectedId)
       : undefined;
     const selected = selectedIndex === undefined ? undefined : this.catalog[selectedIndex];
-    const canvas = this.context.scene.canvas;
-    const inspectorAllowance = canvas.clientWidth >= 1_180 ? 1.18 : 1;
-    const range = (selected?.category === "station" ? 680_000 : 920_000) *
-      inspectorAllowance;
+    const range = selected?.category === "station" ? 680_000 : 920_000;
     this.context.cameraController.focusBoundingSphere(
       new BoundingSphere(position, 90_000),
       {
-        complete: () => {
-          if (this.context && this.context.scene.canvas.clientWidth >= 1_180) {
-            this.context.scene.camera.moveRight(range * 0.16);
-            this.context.requestRender();
-          }
-        },
         duration: 1.25,
         offset: new HeadingPitchRange(-0.22, -0.4, range),
       },
@@ -360,19 +360,22 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   }
 
   setFollowSelected(enabled: boolean): void {
-    const next = enabled && this.snapshot.selectedId !== null;
+    const selected = enabled ? this.selectedPosition() : null;
+    const next = enabled && selected !== null && this.context !== null;
     if (this.snapshot.followSelected === next) return;
-    this.update({ followSelected: next });
     if (!next && this.context) {
-      this.followPosition = null;
       this.followTarget = null;
-      this.previousFollowTarget = null;
+      this.followPosition = null;
+      this.followFrame.clear();
       this.context.scene.camera.lookAtTransform(Matrix4.IDENTITY);
-    } else if (next) {
-      const selected = this.selectedPosition();
-      this.followTarget = selected ? Cartesian3.clone(selected) : null;
-      this.followPosition = selected ? Cartesian3.clone(selected) : null;
+    } else if (next && selected && this.context) {
+      this.context.cameraController.beginObjectFocus();
+      this.followTarget = Cartesian3.clone(selected);
+      this.followPosition = Cartesian3.clone(selected);
+      this.followFrame.begin(this.context.scene.camera, selected);
     }
+    this.update({ followSelected: next });
+    this.context?.requestRender();
   }
 
   setOrbitVisible(visible: boolean): void {
@@ -452,7 +455,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
 
   setActive(active: boolean): void {
     this.workerActive = active;
-    this.worker?.postMessage({ active, type: "set-active" } satisfies OrbitWorkerRequest);
+    this.activityGate.set(active);
     if (active) this.context?.requestRender();
   }
 
@@ -468,32 +471,14 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     if (!this.followPosition) this.followPosition = Cartesian3.clone(this.followTarget);
     const blend = 1 - Math.exp(-Math.max(0, deltaSeconds) * 5.5);
     Cartesian3.lerp(this.followPosition, this.followTarget, blend, this.followPosition);
-    const selectedIndex = this.snapshot.selectedId
-      ? this.indexById.get(this.snapshot.selectedId)
-      : undefined;
-    const satellite = selectedIndex === undefined ? undefined : this.catalog[selectedIndex];
-    const tangent = this.previousFollowTarget
-      ? Cartesian3.subtract(this.followTarget, this.previousFollowTarget, new Cartesian3())
-      : Cartesian3.ZERO;
-    const heading = Cartesian3.magnitudeSquared(tangent) > 1
-      ? Math.atan2(tangent.y, tangent.x)
-      : 0;
-    this.context.scene.camera.lookAt(
-      this.followPosition,
-      new HeadingPitchRange(
-        heading,
-        -0.44,
-        satellite?.category === "station" ? 680_000 : 920_000,
-      ),
-    );
-    if (this.context.scene.canvas.clientWidth >= 1_180) {
-      this.context.scene.camera.moveRight(
-        (satellite?.category === "station" ? 680_000 : 920_000) * 0.16,
-      );
-    }
+    const { camera, globe } = this.context.scene;
+    const position = camera.positionCartographic;
+    const terrainHeight = position.height < 12_000 ? globe.getHeight(position) ?? 0 : 0;
+    this.followFrame.update(camera, this.followPosition, Math.max(900, terrainHeight + 900));
   }
 
   unmount(): void {
+    this.setFollowSelected(false);
     this.clearHover();
     this.stopWorker();
     this.clickHandler?.destroy();
@@ -610,7 +595,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
           satelliteId: satellite?.id ?? "",
         } satisfies SatellitePickId,
         outlineColor: Color.WHITE.withAlpha(category === "station" ? 0.72 : 0.48),
-        outlineWidth: category === "station" ? 1.8 : 0.5,
+        outlineWidth: category === "station" ? 2 : 0.7,
         pixelSize: semanticSize(category),
         position: Cartesian3.ZERO,
         scaleByDistance: new NearFarScalar(350_000, 1.3, 50_000_000, 0.65),
@@ -685,6 +670,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   }
 
   private stopWorker(): void {
+    this.activityGate.cancel();
     this.worker?.postMessage({ type: "dispose" } satisfies OrbitWorkerRequest);
     this.worker?.terminate();
     this.worker = null;
@@ -769,11 +755,15 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     this.refreshSelectionVisuals();
     this.refreshHoverVisuals();
     const selected = this.selectedPosition();
-    if (selected) {
-      this.previousFollowTarget = this.followTarget
-        ? Cartesian3.clone(this.followTarget, this.previousFollowTarget ?? new Cartesian3())
-        : null;
-      this.followTarget = Cartesian3.clone(selected, this.followTarget ?? new Cartesian3());
+    if (selected && this.snapshot.followSelected) {
+      this.followTarget = Cartesian3.clone(
+        selected,
+        this.followTarget ?? new Cartesian3(),
+      );
+    } else if (!selected) {
+      // An invalid propagation is not a stationary target. Keep the last view,
+      // but stop following instead of carrying a stale frame indefinitely.
+      this.setFollowSelected(false);
     }
     this.context?.requestRender();
   }
@@ -814,10 +804,11 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       this.labels.removeAll();
       this.selectionPoints.removeAll();
       const color = CATEGORY_COLORS[satellite.category];
+      this.selectionPulseBase = satellite.category === "station" ? 30 : 26;
       this.selectedRing = this.selectionPoints.add({
         color: color.withAlpha(0.2),
         id: { kind: "satellite", satelliteId: selectedId } satisfies SatellitePickId,
-        pixelSize: satellite.category === "station" ? 30 : 26,
+        pixelSize: this.selectionPulseBase,
         position,
         scaleByDistance: new NearFarScalar(400_000, 1.25, 90_000_000, 0.86),
       });
@@ -968,9 +959,12 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       const satellite = this.catalog[index];
       const color = CATEGORY_COLORS[satellite?.category ?? "other"];
       this.orbitLines.add({
-        material: Material.fromType("Color", { color: color.withAlpha(0.74) }),
+        material: Material.fromType("PolylineGlow", {
+          color: color.withAlpha(0.82),
+          glowPower: 0.16,
+        }),
         positions,
-        width: 1.55,
+        width: 1.35,
       });
       const center = Math.floor(positions.length / 2);
       const trailPositions = positions.slice(Math.max(0, center - 24), center + 1);
@@ -1067,10 +1061,10 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       const color = CATEGORY_COLORS[satellite.category];
       this.showcaseLines.add({
         material: Material.fromType("Color", {
-          color: color.withAlpha(satellite.category === "station" ? 0.3 : 0.15),
+          color: color.withAlpha(satellite.category === "station" ? 0.34 : 0.18),
         }),
         positions,
-        width: satellite.category === "station" ? 1.05 : 0.72,
+        width: satellite.category === "station" ? 1.1 : 0.85,
       });
       rendered += 1;
     }
@@ -1091,10 +1085,10 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     if (positions.length > 1) {
       this.hoverOrbitLines.add({
         material: Material.fromType("Color", {
-          color: CATEGORY_COLORS[satellite.category].withAlpha(0.3),
+          color: CATEGORY_COLORS[satellite.category].withAlpha(0.55),
         }),
         positions,
-        width: 1.05,
+        width: 1.6,
       });
     }
     this.hoverOrbitLines.show = this.visible && this.snapshot.orbitVisible;
@@ -1260,26 +1254,26 @@ function isSatellitePickId(value: unknown): value is SatellitePickId {
 
 function signalSize(category: SatelliteCategory): number {
   if (category === "station") return 1.9;
-  if (category === "navigation" || category === "weather" || category === "science") return 1.45;
-  if (category === "rocket-body") return 1.25;
+  if (category === "navigation" || category === "weather" || category === "science") return 1.55;
+  if (category === "rocket-body") return 1.35;
   if (category === "debris") return 0.82;
   if (category === "starlink" || category === "other") return 0.96;
   return 1.12;
 }
 
 function semanticSize(category: SatelliteCategory): number {
-  if (category === "station") return 6;
-  if (category === "navigation" || category === "weather" || category === "science") return 4.4;
-  if (category === "rocket-body") return 4.8;
-  if (category === "debris") return 2.8;
-  return 3.5;
+  if (category === "station") return 7;
+  if (category === "navigation" || category === "weather" || category === "science") return 4.8;
+  if (category === "rocket-body") return 5.2;
+  if (category === "debris") return 3;
+  return 3.6;
 }
 
 function signalAlpha(
   category: SatelliteCategory,
   focusedCategory: SatelliteCategory | null,
 ): number {
-  if (focusedCategory) return category === focusedCategory ? 0.82 : 0.08;
+  if (focusedCategory) return category === focusedCategory ? 0.82 : 0.06;
   if (category === "station") return 0.82;
   if (category === "debris") return 0.3;
   if (category === "starlink" || category === "other") return 0.34;

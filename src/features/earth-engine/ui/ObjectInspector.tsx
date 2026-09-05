@@ -1,5 +1,6 @@
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useRef } from "react";
+import { usePreferencesStore } from "@/features/settings/model/preferences";
 
 interface ObjectInspectorProps {
   ariaLabel?: string;
@@ -15,6 +16,9 @@ export function ObjectInspector({
   headingId,
 }: ObjectInspectorProps) {
   const regionRef = useRef<HTMLElement>(null);
+  const systemReduceMotion = useReducedMotion();
+  const preferenceReduceMotion = usePreferencesStore((state) => state.reduceMotion);
+  const reduceMotion = systemReduceMotion || preferenceReduceMotion;
 
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement
@@ -29,7 +33,7 @@ export function ObjectInspector({
     return () => {
       window.cancelAnimationFrame(frame);
       window.requestAnimationFrame(() => {
-        if (previousFocus?.isConnected) {
+        if (previousFocus?.isConnected && previousFocus !== document.body && previousFocus !== document.documentElement) {
           previousFocus.focus({ preventScroll: true });
         } else {
           document.querySelector<HTMLElement>("[data-earth-focus-target]")
@@ -45,11 +49,11 @@ export function ObjectInspector({
       aria-label={ariaLabel}
       aria-labelledby={headingId}
       className={`object-inspector ${className}`}
-      exit={{ opacity: 0, x: 18 }}
-      initial={{ opacity: 0, x: 18 }}
+      exit={{ opacity: 0, x: reduceMotion ? 0 : 18 }}
+      initial={reduceMotion ? false : { opacity: 0, x: 18 }}
       ref={regionRef}
       role="complementary"
-      transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.2, 0.8, 0.2, 1] }}
     >
       {children}
     </motion.aside>

@@ -42,6 +42,7 @@ let selectedOrbitSampleCount = ORBIT_SAMPLE_COUNT;
 let active = true;
 let timeLensAnchorRealMs = 0;
 let timeLensState: OrbitWorkerTimeLensState | null = null;
+let pendingShowcase: Extract<OrbitWorkerRequest, { type: "showcase" }> | null = null;
 
 scope.onmessage = (event) => {
   void handleRequest(event.data);
@@ -53,7 +54,7 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
       disposeRuntime();
       runtime = await createPropagationRuntime(request.records);
       scope.postMessage({ type: "ready", count: request.records.length });
-      if (active) runFrame();
+      if (active) scheduleFrame();
       return;
     }
     if (request.type === "set-active") {
@@ -71,47 +72,50 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
         self.clearTimeout(frameTimer);
         frameTimer = null;
       } else if (active && runtime && frameTimer === null) {
-        runFrame();
+        scheduleFrame();
       }
       return;
     }
     if (request.type === "set-time-lens") {
+      lastOrbitAt = 0;
       timeLensState = normalizeTimeLensState(request.state);
       timeLensAnchorRealMs = Date.now();
       if (frameTimer !== null) {
         self.clearTimeout(frameTimer);
         frameTimer = null;
       }
-      if (runtime && selectedIndex !== null) {
+      if (active && runtime && selectedIndex !== null) {
         calculateOrbit(runtime, selectedIndex, selectedOrbitSampleCount);
         lastOrbitAt = Date.now();
       }
-      if (runtime && active) runFrame();
+      if (runtime && active) scheduleFrame();
       return;
     }
     if (request.type === "select") {
       selectedIndex = request.index;
       selectedOrbitSampleCount = normalizeSampleCount(request.sampleCount);
       lastOrbitAt = 0;
-      if (runtime && request.index !== null) {
+      if (active && runtime && request.index !== null) {
         calculateOrbit(runtime, request.index, selectedOrbitSampleCount);
         lastOrbitAt = Date.now();
       }
       return;
     }
     if (request.type === "preview") {
-      if (runtime && request.index !== null) {
+      if (active && runtime && request.index !== null) {
         calculatePreviewOrbit(runtime, request.index);
       }
       return;
     }
     if (request.type === "showcase") {
-      if (runtime) {
+      pendingShowcase = request;
+      if (active && runtime) {
         calculateShowcaseOrbits(
           runtime,
           request.indices,
           normalizeSampleCount(request.sampleCount),
         );
+        pendingShowcase = null;
       }
       return;
     }
@@ -146,10 +150,19 @@ async function createPropagationRuntime(records: Parameters<typeof json2satrec>[
   return { propagator, satRecs, wasmRuntime };
 }
 
+function scheduleFrame(): void {
+  // Yield to pending pause/time/selection messages instead of propagating once per resume.
+  if (frameTimer === null) frameTimer = self.setTimeout(runFrame, 16);
+}
+
 function runFrame(): void {
   frameTimer = null;
   if (!runtime || !active) {
     return;
+  }
+  if (pendingShowcase) {
+    calculateShowcaseOrbits(runtime, pendingShowcase.indices, normalizeSampleCount(pendingShowcase.sampleCount));
+    pendingShowcase = null;
   }
   const timestampUnixMs = currentPropagationTime();
   runtime.propagator.setDates([new Date(timestampUnixMs)]);
@@ -323,6 +336,7 @@ function currentPropagationTime(): number {
 }
 
 function disposeRuntime(): void {
+  pendingShowcase = null;
   if (frameTimer !== null) {
     self.clearTimeout(frameTimer);
     frameTimer = null;

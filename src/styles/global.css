@@ -573,18 +573,7 @@ kbd {
   pointer-events: none;
 }
 
-.earth-identity {
-  position: absolute;
-  top: 74px;
-  left: 24px;
-  width: min(460px, 44vw);
-  padding: 15px 17px 14px;
-  border-radius: 15px;
-}
 
-.earth-identity .eyebrow {
-  margin-bottom: 10px;
-}
 
 .earth-identity__title-row {
   display: flex;
@@ -593,7 +582,6 @@ kbd {
   gap: 24px;
 }
 
-.earth-identity h1,
 .earth-loading h1,
 .earth-error h1 {
   margin: 0;
@@ -611,8 +599,7 @@ kbd {
 }
 
 .utc-clock span,
-.surface-statuses span,
-.earth-performance small {
+.surface-statuses span {
   color: var(--color-text-tertiary);
   font-size: 9px;
   font-weight: 650;
@@ -797,40 +784,9 @@ kbd {
   font-size: 8px;
 }
 
-.earth-performance {
-  position: absolute;
-  top: 74px;
-  right: 20px;
-  display: grid;
-  grid-template-columns: 8px minmax(82px, auto) minmax(44px, auto) minmax(58px, auto);
-  align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border-radius: 14px;
-}
 
-.earth-performance > div {
-  display: grid;
-  gap: 3px;
-}
 
-.earth-performance strong {
-  overflow: hidden;
-  max-width: 130px;
-  color: #edf8ff;
-  font-size: 11px;
-  font-weight: 620;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.earth-performance__pulse {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-success);
-  box-shadow: 0 0 12px rgba(113, 223, 154, 0.76);
-}
 
 .orbital-legend {
   position: absolute;
@@ -918,16 +874,32 @@ kbd {
   max-width: 300px;
   gap: 3px;
   padding: 10px 12px;
-  border-left: 2px solid #63d8ff;
+  border-left: 2px solid var(--tooltip-accent, #63d8ff);
   border-radius: 10px;
   pointer-events: none;
   transform: translate(14px, calc(-100% - 14px));
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.26),
+    0 0 18px -8px var(--tooltip-accent, #63d8ff);
 }
 
-.earth-object-tooltip[data-accent="station"] { border-left-color: #79f2a6; }
+/* Connector: ties the floating card back to the exact object on the globe. */
+.earth-object-tooltip::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: calc(100% + 2px);
+  width: 2px;
+  height: 12px;
+  border-radius: 1px;
+  background: var(--tooltip-accent, #63d8ff);
+  box-shadow: 0 0 7px var(--tooltip-accent, #63d8ff);
+  opacity: 0.8;
+}
+
+.earth-object-tooltip[data-accent="station"] { --tooltip-accent: #79f2a6; }
 .earth-object-tooltip[data-accent="rocket"],
-.earth-object-tooltip[data-accent="launch"] { border-left-color: #ffad62; }
+.earth-object-tooltip[data-accent="launch"] { --tooltip-accent: #ffad62; }
 
 .earth-object-tooltip small {
   color: #6fd8ff;
@@ -946,7 +918,7 @@ kbd {
 }
 
 .earth-object-tooltip span {
-  color: #9fb5c6;
+  color: #b9ccdc;
   font: 9px "Cascadia Mono", Consolas, monospace;
 }
 
@@ -1016,9 +988,6 @@ kbd {
 }
 
 @media (max-width: 1600px) {
-  .earth-identity {
-    width: min(420px, 44vw);
-  }
 
   .earth-context-cards {
     width: min(640px, calc(100% - 340px));
@@ -1026,15 +995,7 @@ kbd {
 }
 
 @media (max-width: 1280px) {
-  .earth-identity {
-    top: 66px;
-    width: min(380px, 42vw);
-  }
 
-  .earth-performance {
-    top: 66px;
-    gap: 8px;
-  }
 
   .earth-context-cards {
     bottom: 84px;
@@ -3502,17 +3463,8 @@ dialog::backdrop {
     display: none;
   }
 
-  .earth-identity {
-    width: min(530px, 57vw);
-  }
 
-  .earth-performance {
-    grid-template-columns: 8px minmax(82px, auto) minmax(40px, auto);
-  }
 
-  .earth-performance > div:last-child {
-    display: none;
-  }
 }
 
 @media (max-height: 720px) {
@@ -3528,18 +3480,8 @@ dialog::backdrop {
     min-height: 40px;
   }
 
-  .earth-identity,
-  .earth-performance {
-    top: 72px;
-  }
 
-  .earth-identity {
-    padding: 15px 17px 13px;
-  }
 
-  .earth-identity h1 {
-    font-size: 34px;
-  }
 
   .surface-statuses {
     margin-top: 12px;
@@ -3570,22 +3512,8 @@ dialog::backdrop {
 }
 
 @media (min-width: 2200px) and (min-height: 1200px) {
-  .earth-identity {
-    top: 124px;
-    left: 40px;
-    width: 690px;
-    padding: 23px 26px 21px;
-    border-radius: 21px;
-  }
 
-  .earth-identity h1 { font-size: 52px; }
 
-  .earth-performance {
-    top: 124px;
-    right: 38px;
-    gap: 20px;
-    padding: 17px 21px;
-  }
 
   .earth-context-cards {
     bottom: 145px;

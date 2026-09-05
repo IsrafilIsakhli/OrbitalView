@@ -1,4 +1,22 @@
 {
+  "overview": {
+    "catalog": "{{amount}} catalogued objects",
+    "sceneDetails": "Scene & sources"
+  },
+  "diagnostics": {
+    "title": "Render diagnostics",
+    "mode": "Render mode",
+    "continuous": "Continuous",
+    "on-demand": "On demand",
+    "suspended": "Suspended",
+    "target": "Effective FPS target",
+    "median": "Median frame · ms",
+    "p95": "P95 frame · ms",
+    "cpu": "CPU submission · ms",
+    "gpu": "GPU timing · ms",
+    "resolution": "Render pixels",
+    "explanation": "Active-render intervals over 10 seconds. CPU submission is not GPU time. A dash means not measured."
+  },
   "regionLabel": "Interactive Earth engine",
   "canvasLabel": "Interactive 3D Earth. Drag to rotate, scroll to zoom and use the camera controls to change viewpoint.",
   "eyebrow": "LIVE EARTH",
@@ -15,7 +33,7 @@
   "layers": { "orbits": "Orbit paths", "groundTrack": "Selected ground track", "clouds": "Cloud cover", "nightLights": "Night lights", "collapse": "Collapse layer controller", "expand": "Expand layer controller" },
   "rotation": { "pause": "Pause cinematic Earth rotation", "resume": "Resume cinematic Earth rotation" },
   "timeLens": { "regionLabel": "Orbital forecast timeline", "eyebrow": "ORBITAL TIME LENS", "title": "24-hour orbit forecast", "open": "Open Orbital Time Lens", "close": "Close forecast and return to live time", "returnLive": "Return to live orbital time", "forecast": "FORECAST", "now": "NOW", "play": "Play orbital forecast", "pause": "Pause orbital forecast", "speed": "Forecast playback speed", "nextEvent": "Next launch", "timeline": "Select forecast time", "launchEvent": "Launch event", "model": "SGP4 forecast · current OMM epoch", "noEvents": "No real launch events in this 24-hour window" },
-  "orbitLegend": { "eyebrow": "SSA LAYER CONTROL", "title": "LIVE ORBITAL LAYERS", "subtitle": "Explore real catalog objects without changing their coordinates.", "overview": "Overview", "signals": "signals", "semantic": "markers", "satellites": "Satellites", "launchSites": "Launch sites", "visible": "{{count}} visible · {{total}} catalogued", "orbits": "{{count}} real orbit paths", "rockets": "{{count}} recent rocket bodies", "openLayers": "Layers", "closeLayers": "Close layers", "sceneOverlays": "Scene overlays", "groups": { "orbitalNetworks": "Orbital networks", "scienceObservation": "Science and observation", "vehiclesEnvironment": "Vehicles and environment" }, "visibilityState": { "visible": "visible", "hidden": "hidden" }, "focusCategory": "Focus {{category}}, {{count}} real objects", "categoryVisibility": "{{category}}, {{count}} objects, currently {{visibility}}" },
+  "orbitLegend": { "eyebrow": "SSA LAYER CONTROL", "title": "LIVE ORBITAL LAYERS", "subtitle": "Explore real catalog objects without changing their coordinates.", "overview": "Overview", "signals": "signals", "semantic": "markers", "satellites": "Satellites", "launchSites": "Launch sites", "visible": "{{count}} visible · {{total}} catalogued", "orbits": "{{count}} real orbit paths", "rockets": "{{count}} recent rocket bodies", "renderDetails": "Render details", "openLayers": "Layers", "closeLayers": "Close layers", "sceneOverlays": "Scene overlays", "groups": { "orbitalNetworks": "Orbital networks", "scienceObservation": "Science and observation", "vehiclesEnvironment": "Vehicles and environment" }, "visibilityState": { "visible": "visible", "hidden": "hidden" }, "focusCategory": "Focus {{category}}, {{count}} real objects", "categoryVisibility": "{{category}}, {{count}} objects, currently {{visibility}}" },
   "context": { "title": "Priority live objects", "station": "LIVE STATION", "nextLaunch": "NEXT LAUNCH", "norad": "NORAD {{id}}" },
   "camera": {
     "groupLabel": "Camera presets",

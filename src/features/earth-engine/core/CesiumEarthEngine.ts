@@ -10,7 +10,7 @@ import {
   buildModuleUrl,
 } from "cesium";
 
-import type { GraphicsQuality } from "@/features/settings/model/preferences";
+import type { EarthFrameRateMode, GraphicsQuality } from "@/features/settings/model/preferences";
 
 import { CesiumCameraController } from "../camera/CesiumCameraController";
 import type {
@@ -31,15 +31,16 @@ import {
   recommendGpuQuality,
 } from "../quality/qualityProfiles";
 import { configureScene } from "../scene/configureScene";
+import { resumeEarthClock } from "../time/resumeEarthClock";
 import { ScientificCloudLayer } from "../scene/ScientificCloudLayer";
-import { ProceduralStarLayer } from "../scene/ProceduralStarLayer";
 import { SurfaceProviderCoordinator } from "../scene/SurfaceProviderCoordinator";
 import {
   inspectGpuCapabilities,
   readDeviceMemoryGb,
   webGlContextAttributes,
 } from "../telemetry/gpuCapabilities";
-import { PerformanceMonitor } from "../telemetry/PerformanceMonitor";
+import { PerformanceMonitor, type PerformanceSample } from "../telemetry/PerformanceMonitor";
+import { boundedResolutionScale, resolveRenderMode } from "./renderPolicy";
 import { EarthLayerRegistry } from "./EarthLayerRegistry";
 
 const ADAPTATION_WARMUP_MS = 8_000;
@@ -84,12 +85,30 @@ async function createLocalBaseLayer(): Promise<ImageryLayer> {
 
 export class CesiumEarthEngine implements EarthEngine {
   private active = true;
+  private workspaceActive = true;
+  private updatePaused = false;
+  private windowVisible = true;
+  private followActive = false;
+  private cameraMoving = false;
+  private frameRateMode: EarthFrameRateMode;
+  private displayCadence = 60;
+  private cadenceFrame: number | null = null;
+  private recoveryFrame: number | null = null;
+  private resizeObserver: ResizeObserver | null = null;
+  private removeCameraMotion: (() => void)[] = [];
+  private enhancementLevel = 0;
+  private weakWindows = 0;
+  private strongWindows = 0;
+  private enhancementsBlockedUntil = 0;
   private adaptiveQuality: AdaptiveQualityController | null = null;
   private appliedQuality: GraphicsQuality;
   private cameraController: CesiumCameraController | null = null;
   private cloudLayer: ScientificCloudLayer | null = null;
   private disposed = false;
   private initialized = false;
+  private compositionInitialized = false;
+  private contextLost = false;
+  private renderFailed = false;
   private interactionResolutionActive = false;
   private interactionRestoreTimer: ReturnType<typeof setTimeout> | null = null;
   private layerRegistry: EarthLayerRegistry | null = null;
@@ -103,7 +122,6 @@ export class CesiumEarthEngine implements EarthEngine {
   private removeRenderError: (() => void) | null = null;
   private removeTileProgress: (() => void) | null = null;
   private snapshot: EarthEngineSnapshot;
-  private starLayer: ProceduralStarLayer | null = null;
   private surfaceBusy = true;
   private surfaceCoordinator: SurfaceProviderCoordinator | null = null;
   private timeLensState: EarthTimeLensState | null = null;
@@ -114,6 +132,8 @@ export class CesiumEarthEngine implements EarthEngine {
     private readonly options: EarthEngineOptions,
   ) {
     this.qualityCap = options.qualityCap;
+    this.workspaceActive = options.active ?? true;
+    this.frameRateMode = options.frameRateMode ?? "60";
     this.appliedQuality = options.qualityCap;
     this.reducedMotion = options.reduceMotion;
     this.snapshot = {
@@ -173,6 +193,7 @@ export class CesiumEarthEngine implements EarthEngine {
       }
 
       this.widget.canvas.setAttribute("aria-label", this.options.canvasLabel);
+      this.widget.canvas.setAttribute("data-earth-focus-target", "");
       this.widget.canvas.setAttribute("role", "img");
       this.widget.canvas.tabIndex = 0;
       configureScene(this.widget);
@@ -204,14 +225,12 @@ export class CesiumEarthEngine implements EarthEngine {
       this.cameraController.setAutoRotation(!this.reducedMotion);
 
       this.cloudLayer = new ScientificCloudLayer(initialQuality);
-      this.starLayer = new ProceduralStarLayer(initialQuality);
       this.layerRegistry = new EarthLayerRegistry({
         cameraController: this.cameraController,
         clock: this.widget.clock,
         requestRender: () => this.widget?.scene.requestRender(),
         scene: this.widget.scene,
       });
-      await this.layerRegistry.register(this.starLayer);
       await this.layerRegistry.register(this.cloudLayer);
       await this.layerRegistry.mount();
 
@@ -231,6 +250,8 @@ export class CesiumEarthEngine implements EarthEngine {
         this.handlePerformanceSample,
       );
       this.performanceMonitor.start();
+      this.syncRenderPolicy();
+      this.measureDisplayCadence();
 
       this.readyAt = performance.now();
       this.update({
@@ -263,6 +284,10 @@ export class CesiumEarthEngine implements EarthEngine {
 
   setDefaultCameraCompositionInsets(insets: CameraCompositionInsets): void {
     this.cameraController?.setDefaultCompositionInsets(insets);
+    if (this.cameraController && !this.compositionInitialized) {
+      this.compositionInitialized = true;
+      if (this.snapshot.activePreset === "earth") this.cameraController.flyTo("earth", true);
+    }
   }
 
   async registerLayer(layer: EarthEngineLayer): Promise<() => void> {
@@ -277,32 +302,36 @@ export class CesiumEarthEngine implements EarthEngine {
   }
 
   setActive(active: boolean): void {
-    if (this.active === active) return;
-    this.active = active;
-    this.layerRegistry?.setActive(active);
-    if (!this.widget) return;
-    this.widget.clock.shouldAnimate = active && (
-      this.timeLensState === null || this.timeLensState.playing
-    );
-    this.widget.scene.requestRenderMode = !active || !this.snapshot.autoRotation;
-    this.widget.scene.maximumRenderTimeChange = active && this.snapshot.autoRotation ? 0 : Number.POSITIVE_INFINITY;
-    if (active) {
-      this.performanceMonitor?.start();
-      this.widget.scene.requestRender();
-    } else {
-      this.performanceMonitor?.dispose();
-    }
+    this.workspaceActive = active;
+    this.syncRenderPolicy();
+  }
+
+  setUpdatePaused(paused: boolean): void {
+    this.updatePaused = paused;
+    this.syncRenderPolicy();
+  }
+
+  setWindowVisible(visible: boolean): void {
+    this.windowVisible = visible;
+    this.syncRenderPolicy();
+  }
+
+  setFollowActive(active: boolean): void {
+    this.followActive = active;
+    this.syncRenderPolicy();
+  }
+
+  setFrameRateMode(mode: EarthFrameRateMode): void {
+    this.frameRateMode = mode;
+    this.measureDisplayCadence();
+    this.syncRenderPolicy();
   }
 
   setAutoRotation(enabled: boolean): void {
     const next = enabled && !this.reducedMotion;
     this.cameraController?.setAutoRotation(next);
-    if (this.widget) {
-      this.widget.scene.requestRenderMode = !next;
-      this.widget.scene.maximumRenderTimeChange = next ? 0 : 1;
-      this.widget.scene.requestRender();
-    }
     this.update({ autoRotation: next });
+    this.syncRenderPolicy();
   }
 
   setCloudsVisible(visible: boolean): void {
@@ -323,6 +352,7 @@ export class CesiumEarthEngine implements EarthEngine {
     this.qualityCap = quality;
     const next = qualityAtMost(this.recommendedQuality, quality);
     this.adaptiveQuality = new AdaptiveQualityController(next, quality);
+    this.enhancementLevel = 0;
     this.applyQuality(next);
   }
 
@@ -350,6 +380,7 @@ export class CesiumEarthEngine implements EarthEngine {
         utcIso: new Date().toISOString(),
       });
       scene.requestRender();
+      this.syncRenderPolicy();
       return;
     }
 
@@ -372,6 +403,7 @@ export class CesiumEarthEngine implements EarthEngine {
       utcIso: new Date(normalized.timestampUnixMs).toISOString(),
     });
     scene.requestRender();
+    this.syncRenderPolicy();
   }
 
   dispose(): void {
@@ -393,6 +425,15 @@ export class CesiumEarthEngine implements EarthEngine {
     this.removePreRender?.();
     this.removeRenderError?.();
     this.removeTileProgress?.();
+    this.removeCameraMotion.forEach((remove) => remove());
+    this.removeCameraMotion = [];
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    document.removeEventListener("visibilitychange", this.handleVisibility);
+    if (this.cadenceFrame !== null) cancelAnimationFrame(this.cadenceFrame);
+    this.cadenceFrame = null;
+    if (this.recoveryFrame !== null) cancelAnimationFrame(this.recoveryFrame);
+    this.recoveryFrame = null;
     this.widget?.canvas.removeEventListener(
       "webglcontextlost",
       this.handleContextLost,
@@ -427,7 +468,6 @@ export class CesiumEarthEngine implements EarthEngine {
     this.cameraController = null;
     this.layerRegistry = null;
     this.cloudLayer = null;
-    this.starLayer = null;
   }
 
   private applyQuality(quality: GraphicsQuality): void {
@@ -441,22 +481,30 @@ export class CesiumEarthEngine implements EarthEngine {
     this.applyResolutionScale();
     this.widget.useBrowserRecommendedResolution =
       profile.useBrowserRecommendedResolution;
-    this.widget.targetFrameRate = profile.targetFrameRate;
     scene.globe.maximumScreenSpaceError = profile.maximumScreenSpaceError;
     scene.globe.tileCacheSize = profile.terrainTileCacheSize;
     scene.fog.enabled = profile.fog;
     scene.fog.renderable = profile.fog;
     scene.msaaSamples = scene.msaaSupported
-      ? Math.min(profile.msaaSamples, this.snapshot.gpu?.maxMsaaSamples ?? 4)
+      ? Math.min(this.enhancementLevel >= 2 ? 1 : profile.msaaSamples, this.snapshot.gpu?.maxMsaaSamples ?? 4)
       : 1;
     scene.postProcessStages.fxaa.enabled =
       !scene.msaaSupported || scene.msaaSamples <= 1;
+    // Enhancements are shed before changing the existing scientific LOD profile.
+    const bloom = scene.postProcessStages.bloom;
+    // Disabled for the release profile: real-cache visual QA showed broad
+    // yellow/red halos on night imagery. Re-enable only after a separate A/B gate.
+    bloom.enabled = false;
+    // Sun bloom is a separate, lightweight glow around the solar disc (not the
+    // full post-process bloom above). Only the high profile pays for it.
+    scene.sunBloom = profile.sunBloom;
     this.layerRegistry?.setQuality(quality);
     scene.requestRender();
     this.update({
       cloudCount: this.cloudLayer?.getCount() ?? 0,
       quality,
     });
+    this.syncRenderPolicy();
   }
 
   private installRenderLifecycle(): void {
@@ -464,6 +512,24 @@ export class CesiumEarthEngine implements EarthEngine {
       return;
     }
     let previousFrameAt = performance.now();
+    document.addEventListener("visibilitychange", this.handleVisibility);
+    this.resizeObserver = new ResizeObserver(() => {
+      if (!this.active) return;
+      this.applyResolutionScale();
+      this.widget?.resize();
+      this.widget?.scene.requestRender();
+    });
+    this.resizeObserver.observe(this.container);
+    this.removeCameraMotion = [
+      this.widget.camera.moveStart.addEventListener(() => {
+        this.cameraMoving = true;
+        this.syncRenderPolicy();
+      }),
+      this.widget.camera.moveEnd.addEventListener(() => {
+        this.cameraMoving = false;
+        this.syncRenderPolicy();
+      }),
+    ];
 
     this.widget.canvas.addEventListener(
       "webglcontextlost",
@@ -486,7 +552,9 @@ export class CesiumEarthEngine implements EarthEngine {
       passive: true,
     });
 
-    this.removePreRender = this.widget.scene.preRender.addEventListener(() => {
+    // Camera frames must be updated before Cesium samples matrices/picking and
+    // decides whether the view changed, not after that in preRender.
+    this.removePreRender = this.widget.scene.preUpdate.addEventListener(() => {
       if (!this.active) return;
       const now = performance.now();
       const deltaSeconds = Math.min(0.1, (now - previousFrameAt) / 1_000);
@@ -505,6 +573,16 @@ export class CesiumEarthEngine implements EarthEngine {
     });
     this.removeRenderError = this.widget.scene.renderError.addEventListener(
       (_scene, error: unknown) => {
+        if (this.cloudLayer?.fallbackFromShell()) {
+          this.recoveryFrame = requestAnimationFrame(() => {
+            this.recoveryFrame = null;
+            this.syncRenderPolicy();
+            this.widget?.scene.requestRender();
+          });
+          return;
+        }
+        this.renderFailed = true;
+        this.syncRenderPolicy();
         this.update({
           errorDetail: error instanceof Error ? error.message : String(error),
           phase: "error",
@@ -523,6 +601,9 @@ export class CesiumEarthEngine implements EarthEngine {
 
   private readonly handleContextLost = (event: Event): void => {
     event.preventDefault();
+    // Context loss is not an updater veto; workspace resume must not restart a broken scene.
+    this.contextLost = true;
+    this.syncRenderPolicy();
     this.update({ phase: "error" });
   };
 
@@ -534,6 +615,7 @@ export class CesiumEarthEngine implements EarthEngine {
     if (this.interactionResolutionActive) return;
     this.interactionResolutionActive = true;
     this.applyResolutionScale();
+    this.syncRenderPolicy();
   };
 
   private readonly handleInteractionEnd = (): void => {
@@ -545,6 +627,7 @@ export class CesiumEarthEngine implements EarthEngine {
       this.interactionRestoreTimer = null;
       this.interactionResolutionActive = false;
       this.applyResolutionScale();
+      this.syncRenderPolicy();
       this.widget?.scene.requestRender();
     }, INTERACTION_RESOLUTION_RESTORE_MS);
   };
@@ -560,14 +643,15 @@ export class CesiumEarthEngine implements EarthEngine {
     const interactionFactor = this.interactionResolutionActive
       ? profile.interactionResolutionFactor
       : 1;
-    this.widget.resolutionScale = profile.resolutionScale * interactionFactor;
+    const desired = this.appliedQuality === "high" && this.enhancementLevel < 2
+      ? Math.max(1, Math.min(1.5, window.devicePixelRatio || 1))
+      : profile.resolutionScale;
+    this.widget.resolutionScale = boundedResolutionScale(
+      this.container.clientWidth, this.container.clientHeight, desired * interactionFactor,
+    );
   }
 
-  private readonly handlePerformanceSample = (sample: {
-    fps: number;
-    frameTimeMs: number;
-    memory: EarthEngineSnapshot["memory"];
-  }): void => {
+  private readonly handlePerformanceSample = (sample: PerformanceSample): void => {
     if (this.disposed) {
       return;
     }
@@ -576,28 +660,130 @@ export class CesiumEarthEngine implements EarthEngine {
       ? JulianDate.toDate(this.widget.clock.currentTime).toISOString()
       : new Date().toISOString();
     this.update({
-      fps: sample.fps,
-      frameTimeMs: sample.frameTimeMs,
+      fps: sample.statistics?.fps ?? null,
+      frameTimeMs: sample.statistics?.medianFrameTimeMs ?? null,
+      p95FrameTimeMs: sample.statistics?.p95FrameTimeMs ?? null,
+      lateFrameRatio: sample.statistics?.lateFrameRatio ?? null,
+      cpuRenderMs: sample.cpuRenderMs,
+      gpuTimeMs: sample.gpuTimeMs,
+      presentedFrames: sample.presentedFrames,
+      renderWidth: this.widget?.canvas.width ?? 0,
+      renderHeight: this.widget?.canvas.height ?? 0,
       memory: sample.memory,
       utcIso: clockTime,
     });
+    this.syncRenderPolicy();
 
     if (performance.now() - this.readyAt < ADAPTATION_WARMUP_MS) {
       return;
     }
+    // In requestRenderMode the scene renders only on demand (idle cadence of
+    // roughly one frame per second), so raw FPS no longer measures GPU load.
+    // Feeding those samples to the adaptive controller would wrongly degrade
+    // quality while the user is simply idle, so adaptation is paused until
+    // continuous rendering resumes.
+    const statistics = sample.statistics;
+    if (!statistics || this.snapshot.renderMode !== "continuous" || this.surfaceBusy) {
+      this.weakWindows = 0;
+      this.strongWindows = 0;
+      return;
+    }
+    const target = this.snapshot.effectiveFrameRateTarget;
+    this.weakWindows = statistics.fps < target * 0.9 ? this.weakWindows + 1 : 0;
+    this.strongWindows = statistics.fps >= target * (59 / 60) ? this.strongWindows + 1 : 0;
+    if (this.weakWindows >= 3 && this.enhancementLevel < 2) {
+      this.enhancementLevel += 1;
+      this.enhancementsBlockedUntil = performance.now() + 30_000;
+      this.weakWindows = 0;
+      this.applyQuality(this.appliedQuality);
+      return;
+    }
+    if (this.strongWindows >= 20 && this.enhancementLevel > 0 && performance.now() >= this.enhancementsBlockedUntil) {
+      this.enhancementLevel -= 1;
+      this.strongWindows = 0;
+      this.applyQuality(this.appliedQuality);
+      return;
+    }
+    // Recovery must remain possible after optional effects have recovered too.
     const nextQuality = this.adaptiveQuality?.sample(
-      sample.fps,
-      this.surfaceBusy,
+      statistics.fps, false, target, performance.now(), this.enhancementLevel >= 2,
     );
     if (nextQuality) {
       this.applyQuality(nextQuality);
     }
   };
 
+  private readonly handleVisibility = (): void => {
+    this.syncRenderPolicy();
+    if (this.active) this.measureDisplayCadence();
+  };
+
+  private syncRenderPolicy(): void {
+    if (!this.widget || this.disposed) return;
+    const mode = resolveRenderMode({
+      workspace: this.workspaceActive,
+      document: !document.hidden && this.windowVisible,
+      update: this.updatePaused || this.contextLost || this.renderFailed,
+      motion: this.cameraMoving || this.interactionResolutionActive || this.followActive ||
+        Boolean(this.timeLensState?.playing) || Boolean(this.cameraController?.isAutoRotating()),
+    });
+    const active = mode !== "suspended";
+    const resumed = active && !this.active;
+    if (this.active !== active) this.layerRegistry?.setActive(active);
+    this.active = active;
+    this.widget.useDefaultRenderLoop = active;
+    if (resumed) resumeEarthClock(this.widget.clock, this.timeLensState === null);
+    this.widget.clock.shouldAnimate = active && (this.timeLensState === null || this.timeLensState.playing);
+    this.widget.scene.requestRenderMode = mode !== "continuous";
+    this.widget.scene.maximumRenderTimeChange = Number.POSITIVE_INFINITY;
+    const target = Math.min(this.appliedQuality === "eco" ? 45 : Number(this.frameRateMode), this.displayCadence);
+    this.widget.targetFrameRate = target;
+    this.performanceMonitor?.setMode(mode === "continuous", target);
+    if (active) {
+      this.performanceMonitor?.start();
+      if (resumed) {
+        this.widget.resize();
+        this.measureDisplayCadence();
+      }
+      if (resumed || mode !== this.snapshot.renderMode) this.widget.scene.requestRender();
+    } else {
+      this.performanceMonitor?.dispose();
+      if (this.cadenceFrame !== null) cancelAnimationFrame(this.cadenceFrame);
+      this.cadenceFrame = null;
+    }
+    this.update({ renderMode: mode, effectiveFrameRateTarget: target });
+  }
+
+  /** Browser presentation cadence, not GPU throughput. Never infer 120 Hz from a 60 Hz screen. */
+  private measureDisplayCadence(): void {
+    if (this.cadenceFrame !== null) cancelAnimationFrame(this.cadenceFrame);
+    this.cadenceFrame = null;
+    if (!this.active || this.frameRateMode !== "120") return;
+    const intervals: number[] = [];
+    let previous: number | null = null;
+    const sample = (now: number) => {
+      if (!this.active || this.disposed) return;
+      if (previous !== null) intervals.push(now - previous);
+      previous = now;
+      if (intervals.length < 90) {
+        this.cadenceFrame = requestAnimationFrame(sample);
+      } else {
+        this.cadenceFrame = null;
+        intervals.sort((a, b) => a - b);
+        // Fastest stable quartile tolerates occasional work without calling it display limitation.
+        const cadence = 1_000 / intervals[Math.floor(intervals.length / 4)]!;
+        this.displayCadence = Math.max(30, Math.min(120, Math.round(cadence)));
+        this.syncRenderPolicy();
+      }
+    };
+    this.cadenceFrame = requestAnimationFrame(sample);
+  }
+
   private readonly handleSurfaceUpdate = (update: {
     imagery?: SurfaceProviderStatus;
     terrain?: SurfaceProviderStatus;
   }): void => {
+    if (this.contextLost || this.renderFailed) return;
     const nextImagery = update.imagery ?? this.snapshot.imagery;
     const nextTerrain = update.terrain ?? this.snapshot.terrain;
     const degraded =

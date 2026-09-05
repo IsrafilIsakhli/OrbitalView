@@ -1,4 +1,9 @@
 {
+  "frameRate": {
+    "label": "Earth frame-rate ceiling",
+    "description": "Up to 120 FPS requires a high-refresh display. Adaptive quality and device limits still apply.",
+    "option": "Up to {{count}} FPS"
+  },
   "title": "Settings",
   "subtitle": "Shape Orbital Vision around your system.",
   "sections": {

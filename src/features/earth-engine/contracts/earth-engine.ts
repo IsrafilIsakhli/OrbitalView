@@ -1,4 +1,5 @@
-import type { GraphicsQuality } from "@/features/settings/model/preferences";
+import type { EarthFrameRateMode, GraphicsQuality } from "@/features/settings/model/preferences";
+import type { EarthRenderMode } from "../core/renderPolicy";
 
 import type { EarthEngineLayer, EarthLayerSlot } from "./layers";
 
@@ -54,6 +55,15 @@ export interface EarthEngineSnapshot {
   errorDetail: string | null;
   fps: number | null;
   frameTimeMs: number | null;
+  p95FrameTimeMs: number | null;
+  lateFrameRatio: number | null;
+  cpuRenderMs: number | null;
+  gpuTimeMs: number | null;
+  presentedFrames: number;
+  renderMode: EarthRenderMode;
+  renderWidth: number;
+  renderHeight: number;
+  effectiveFrameRateTarget: number;
   gpu: GpuCapabilities | null;
   imagery: SurfaceProviderStatus;
   memory: MemorySnapshot | null;
@@ -71,6 +81,8 @@ export interface EarthEngineOptions {
   canvasLabel: string;
   qualityCap: GraphicsQuality;
   reduceMotion: boolean;
+  frameRateMode?: EarthFrameRateMode;
+  active?: boolean;
 }
 
 export interface EarthEngine {
@@ -81,6 +93,10 @@ export interface EarthEngine {
   registerLayer: (layer: EarthEngineLayer) => Promise<() => void>;
   returnToDefaultEarth: () => boolean;
   setActive: (active: boolean) => void;
+  setUpdatePaused: (paused: boolean) => void;
+  setWindowVisible: (visible: boolean) => void;
+  setFollowActive: (active: boolean) => void;
+  setFrameRateMode: (mode: EarthFrameRateMode) => void;
   setCameraCompositionInsets: (insets: CameraCompositionInsets) => void;
   setDefaultCameraCompositionInsets: (insets: CameraCompositionInsets) => void;
   setAutoRotation: (enabled: boolean) => void;
@@ -101,6 +117,15 @@ export const initialEarthEngineSnapshot: EarthEngineSnapshot = {
   errorDetail: null,
   fps: null,
   frameTimeMs: null,
+  p95FrameTimeMs: null,
+  lateFrameRatio: null,
+  cpuRenderMs: null,
+  gpuTimeMs: null,
+  presentedFrames: 0,
+  renderMode: "on-demand",
+  renderWidth: 0,
+  renderHeight: 0,
+  effectiveFrameRateTarget: 60,
   gpu: null,
   imagery: "loading",
   memory: null,

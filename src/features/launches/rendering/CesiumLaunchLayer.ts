@@ -286,17 +286,10 @@ export class CesiumLaunchLayer implements EarthEngineLayer {
   private focusSite(site: LaunchSiteRecord, duration: number): void {
     if (!this.context) return;
     const position = Cartesian3.fromDegrees(site.longitude, site.latitude, 0);
-    const width = this.context.scene.canvas.clientWidth;
-    const range = width >= 1_180 ? 1_420_000 : 1_180_000;
+    const range = 1_180_000;
     this.context.cameraController.focusBoundingSphere(
       new BoundingSphere(position, 25_000),
       {
-        complete: () => {
-          if (this.context && width >= 1_180) {
-            this.context.scene.camera.moveRight(range * 0.16);
-            this.context.requestRender();
-          }
-        },
         duration,
         offset: new HeadingPitchRange(-0.28, -0.5, range),
       },

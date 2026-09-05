@@ -11,14 +11,13 @@ import {
 } from "cesium";
 
 import type { SurfaceProviderStatus } from "../contracts/earth-engine";
+import { retryTile, shouldUseDetailedTerrain } from "./surfacePolicy";
 
 const WORLD_IMAGERY_URL =
   "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
 const WORLD_TERRAIN_URL =
   "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer";
 const NIGHT_LIGHTS_URL = "/assets/earth/nasa-black-marble-2012.jpg";
-const MAX_ARCGIS_TERRAIN_HEIGHT_METERS = 5_000_000;
-const MAX_ARCGIS_TERRAIN_LATITUDE = CesiumMath.toRadians(70);
 
 interface SurfaceProviderUpdate {
   imagery?: SurfaceProviderStatus;
@@ -37,6 +36,8 @@ export class SurfaceProviderCoordinator {
   private removeTerrainErrorListener: (() => void) | null = null;
   private nightLightsLayer: ImageryLayer | null = null;
   private nightLightsVisible = true;
+  private imageryAttempts = 0;
+  private imageryRetry: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly widget: CesiumWidget,
@@ -45,7 +46,8 @@ export class SurfaceProviderCoordinator {
   ) {}
 
   start(): void {
-    void this.loadImageryStack();
+    void this.loadImagery();
+    void this.loadNightLights();
     void this.loadTerrain();
   }
 
@@ -59,6 +61,7 @@ export class SurfaceProviderCoordinator {
 
   dispose(): void {
     this.disposed = true;
+    if (this.imageryRetry !== null) clearTimeout(this.imageryRetry);
     this.removeImageryErrorListener?.();
     this.removeTerrainErrorListener?.();
     this.removeCameraListener?.();
@@ -83,12 +86,8 @@ export class SurfaceProviderCoordinator {
     this.nightLightsLayer = null;
   }
 
-  private async loadImageryStack(): Promise<void> {
-    await this.loadImagery();
-    await this.loadNightLights();
-  }
-
   private async loadImagery(): Promise<void> {
+    this.imageryAttempts += 1;
     try {
       const provider = await ArcGisMapServerImageryProvider.fromUrl(
         WORLD_IMAGERY_URL,
@@ -106,23 +105,30 @@ export class SurfaceProviderCoordinator {
         saturation: 0.92,
       });
       this.highResolutionImageryLayer = layer;
-      this.widget.imageryLayers.add(layer);
+      this.widget.imageryLayers.add(layer, this.widget.imageryLayers.indexOf(this.fallbackImageryLayer) + 1);
       this.removeImageryErrorListener = provider.errorEvent.addEventListener(
-        () => {
+        (error: { retry: boolean; timesRetried: number }) => {
           if (this.disposed) return;
-          layer.show = false;
+          error.retry = retryTile(error.timesRetried);
+          // One failed tile never hides all successfully loaded tiles.
           this.fallbackImageryLayer.show = true;
-          this.publishImageryStatus("fallback");
+          this.publishImageryStatus("adaptive");
           this.widget.scene.requestRender();
         },
       );
-      this.fallbackImageryLayer.show = false;
+      this.fallbackImageryLayer.show = true;
       this.publishImageryStatus("high-resolution");
       this.widget.scene.requestRender();
     } catch {
       if (!this.disposed) {
         this.fallbackImageryLayer.show = true;
         this.publishImageryStatus("fallback");
+        if (this.imageryAttempts < 3) {
+          this.imageryRetry = setTimeout(() => {
+            this.imageryRetry = null;
+            if (!this.disposed) void this.loadImagery();
+          }, 5_000 * this.imageryAttempts);
+        }
       }
     }
   }
@@ -142,8 +148,8 @@ export class SurfaceProviderCoordinator {
         contrast: 1.2,
         dayAlpha: 0,
         gamma: 1,
-        nightAlpha: 0.5,
-        saturation: 0.62,
+        nightAlpha: 0.55,
+        saturation: 0.66,
       });
       this.nightLightsLayer.show = this.nightLightsVisible;
       this.widget.imageryLayers.add(this.nightLightsLayer);
@@ -164,7 +170,10 @@ export class SurfaceProviderCoordinator {
 
       this.highResolutionTerrain = provider;
       this.removeTerrainErrorListener = provider.errorEvent.addEventListener(
-        () => {
+        (error: { retry: boolean; timesRetried: number }) => {
+          if (this.disposed) return;
+          error.retry = retryTile(error.timesRetried);
+          if (error.retry) return;
           this.highResolutionTerrain = null;
           this.removeCameraListener?.();
           this.removeCameraListener = null;
@@ -188,9 +197,11 @@ export class SurfaceProviderCoordinator {
     const terrain = this.highResolutionTerrain;
     if (!terrain || this.disposed) return;
     const cameraPosition = this.widget.camera.positionCartographic;
-    const useHighResolution =
-      cameraPosition.height < MAX_ARCGIS_TERRAIN_HEIGHT_METERS &&
-      Math.abs(cameraPosition.latitude) < MAX_ARCGIS_TERRAIN_LATITUDE;
+    const useHighResolution = shouldUseDetailedTerrain(
+      this.widget.terrainProvider === terrain,
+      cameraPosition.height,
+      CesiumMath.toDegrees(cameraPosition.latitude),
+    );
     const nextTerrain = useHighResolution ? terrain : this.fallbackTerrain;
     if (this.widget.terrainProvider !== nextTerrain) {
       this.widget.terrainProvider = nextTerrain;

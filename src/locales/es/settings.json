@@ -1,4 +1,9 @@
 {
+  "frameRate": {
+    "label": "Límite de FPS de Earth",
+    "description": "120 FPS requiere una pantalla de alta frecuencia. Se mantienen la calidad adaptativa y los límites del dispositivo.",
+    "option": "Hasta {{count}} FPS"
+  },
   "title": "Ajustes",
   "subtitle": "Adapta Orbital Vision a tu sistema.",
   "sections": {

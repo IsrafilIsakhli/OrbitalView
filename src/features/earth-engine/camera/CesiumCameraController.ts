@@ -63,11 +63,13 @@ export interface FocusBoundingSphereOptions {
 
 export class CesiumCameraController {
   private autoRotation = true;
+  private objectFocusActive = false;
   private activePreset: CameraPresetId = "earth";
   private lastInteractionAt = Number.NEGATIVE_INFINITY;
   private reducedMotion = false;
   private defaultEarthState: DefaultEarthCameraState | null = null;
   private defaultEarthViewpoint: EarthViewpoint | null = null;
+  private returnFrame: number | null = null;
   private defaultCompositionInsets: CameraCompositionInsets = {
     bottom: 0,
     left: 0,
@@ -102,16 +104,18 @@ export class CesiumCameraController {
     controller.maximumZoomDistance = 220_000_000_000;
     controller.zoomFactor = 4.25;
 
-    canvas.addEventListener("pointerdown", this.markInteraction, {
+    canvas.addEventListener("pointerdown", this.handleManualInput, {
       passive: true,
     });
-    canvas.addEventListener("touchstart", this.markInteraction, {
+    canvas.addEventListener("touchstart", this.handleManualInput, {
       passive: true,
     });
-    canvas.addEventListener("wheel", this.markInteraction, { passive: true });
+    canvas.addEventListener("wheel", this.handleManualInput, { passive: true });
   }
 
   flyTo(presetId: CameraPresetId, immediate = false): void {
+    this.cancelPendingReturn();
+    this.objectFocusActive = false;
     const preset = cameraPresets[presetId];
     this.markInteraction();
     this.activePreset = presetId;
@@ -152,6 +156,8 @@ export class CesiumCameraController {
     boundingSphere: BoundingSphere,
     options: FocusBoundingSphereOptions,
   ): void {
+    this.cancelPendingReturn();
+    this.objectFocusActive = true;
     this.markInteraction();
     this.camera.cancelFlight();
     this.camera.lookAtTransform(Matrix4.IDENTITY);
@@ -159,49 +165,76 @@ export class CesiumCameraController {
       1,
       this.canvas.clientWidth - this.compositionInsets.left - this.compositionInsets.right,
     );
-    const safeAreaScale = Math.min(
-      1.28,
-      Math.max(1, this.canvas.clientWidth / safeWidth),
-    );
+    const safeHeight = Math.max(128, this.canvas.clientHeight - this.compositionInsets.top - this.compositionInsets.bottom);
+    const safeAreaScale = Math.max(1, this.canvas.clientWidth / Math.max(128, safeWidth), this.canvas.clientHeight / safeHeight);
+    const range = options.offset.range * safeAreaScale;
     this.camera.flyToBoundingSphere(boundingSphere, {
-      ...(options.complete ? { complete: options.complete } : {}),
+      complete: () => {
+        this.alignFocusedTarget(range);
+        options.complete?.();
+      },
       duration: this.reducedMotion ? 0 : options.duration,
       easingFunction: EasingFunction.QUADRATIC_IN_OUT,
       offset: new HeadingPitchRange(
         options.offset.heading,
         options.offset.pitch,
-        options.offset.range * safeAreaScale,
+        range,
       ),
     });
   }
 
   returnToDefaultEarth(): boolean {
+    this.objectFocusActive = false;
     if (this.defaultEarthState === null) {
       this.defaultEarthViewpoint ??= this.daylightEarthViewpoint();
       this.refreshDefaultEarthState();
     }
-    const state = this.defaultEarthState;
-    if (state === null) return false;
-
+    if (this.defaultEarthState === null) return false;
+    this.cancelPendingReturn();
     this.markInteraction();
     this.activePreset = "earth";
     this.onPresetChanged("earth");
     this.camera.cancelFlight();
-    this.camera.lookAtTransform(Matrix4.IDENTITY);
-    this.camera.flyTo({
-      destination: Cartesian3.clone(state.destination),
-      duration: this.reducedMotion ? 0 : cameraPresets.earth.durationSeconds,
-      easingFunction: EasingFunction.QUADRATIC_IN_OUT,
-      orientation: {
-        direction: Cartesian3.clone(state.direction),
-        up: Cartesian3.clone(state.up),
-      },
+    // Coalesce X/Escape/hide. React commits the inspector removal, then the
+    // ResizeObserver supplies default overlay bounds before this single flight.
+    this.returnFrame = requestAnimationFrame(() => {
+      this.returnFrame = requestAnimationFrame(() => {
+        this.returnFrame = null;
+        this.refreshDefaultEarthState();
+        this.camera.lookAtTransform(Matrix4.IDENTITY);
+        this.flyToDefaultEarth(this.reducedMotion);
+      });
     });
     return true;
   }
 
+  /** Pause cinematic auto-rotation after UI-driven focus/follow actions that
+   *  do not originate on the canvas (toolbar buttons, inspector toggles). */
+  noteUserActivity(): void {
+    this.markInteraction();
+  }
+
+  /** Selection/follow owns the camera until an explicit preset or close. */
+  beginObjectFocus(): void {
+    this.objectFocusActive = true;
+    this.cancelPendingReturn();
+    this.camera.cancelFlight();
+    this.markInteraction();
+    this.scene.requestRender();
+  }
+
   setAutoRotation(enabled: boolean): void {
     this.autoRotation = enabled;
+  }
+
+  /** Call after lookAt/focus, never after a free manual camera movement. */
+  alignFocusedTarget(range: number): void {
+    const fovy = (this.camera.frustum as { fovy?: number }).fovy ?? Math.PI / 3;
+    const metersPerPixel = 2 * range * Math.tan(fovy / 2) / Math.max(1, this.canvas.clientHeight);
+    const { left, right, top, bottom } = this.compositionInsets;
+    this.camera.moveRight((right - left) * metersPerPixel * 0.5);
+    this.camera.moveUp((top - bottom) * metersPerPixel * 0.5);
+    this.scene.requestRender();
   }
 
   setCompositionInsets(insets: CameraCompositionInsets): void {
@@ -218,16 +251,7 @@ export class CesiumCameraController {
   }
 
   tick(deltaSeconds: number): void {
-    if (
-      !this.autoRotation ||
-      this.activePreset === "moon" ||
-      this.activePreset === "sun" ||
-      this.reducedMotion ||
-      performance.now() - this.lastInteractionAt < INTERACTION_PAUSE_MS ||
-      this.camera.positionCartographic.height < MINIMUM_ROTATION_HEIGHT_METERS
-    ) {
-      return;
-    }
+    if (!this.isAutoRotating()) return;
 
     this.camera.rotate(
       Cartesian3.UNIT_Z,
@@ -235,16 +259,35 @@ export class CesiumCameraController {
     );
   }
 
+  isAutoRotating(): boolean {
+    return this.autoRotation && !this.objectFocusActive && !this.reducedMotion && this.activePreset !== "moon" &&
+      this.activePreset !== "sun" && performance.now() - this.lastInteractionAt >= INTERACTION_PAUSE_MS &&
+      this.camera.positionCartographic.height >= MINIMUM_ROTATION_HEIGHT_METERS;
+  }
+
   dispose(): void {
+    this.cancelPendingReturn();
     this.camera.cancelFlight();
     this.defaultEarthState = null;
-    this.canvas.removeEventListener("pointerdown", this.markInteraction);
-    this.canvas.removeEventListener("touchstart", this.markInteraction);
-    this.canvas.removeEventListener("wheel", this.markInteraction);
+    this.canvas.removeEventListener("pointerdown", this.handleManualInput);
+    this.canvas.removeEventListener("touchstart", this.handleManualInput);
+    this.canvas.removeEventListener("wheel", this.handleManualInput);
+  }
+
+  private cancelPendingReturn(): void {
+    if (this.returnFrame !== null) cancelAnimationFrame(this.returnFrame);
+    this.returnFrame = null;
   }
 
   private readonly markInteraction = (): void => {
     this.lastInteractionAt = performance.now();
+  };
+
+  private readonly handleManualInput = (): void => {
+    this.cancelPendingReturn();
+    this.camera.cancelFlight();
+    this.markInteraction();
+    this.scene.requestRender();
   };
 
   private daylightEarthViewpoint(): EarthViewpoint {
@@ -266,7 +309,7 @@ export class CesiumCameraController {
     );
     const sun = Cartographic.fromCartesian(fixedPosition);
     const longitudeDegrees = CesiumMath.negativePiToPi(
-      sun.longitude + CesiumMath.toRadians(61),
+      sun.longitude + CesiumMath.toRadians(38),
     );
     const latitudeDegrees = CesiumMath.clamp(
       CesiumMath.toDegrees(sun.latitude) + 6,
@@ -285,15 +328,14 @@ export class CesiumCameraController {
     const frustum = this.camera.frustum as { fovy?: number };
     const verticalFov = frustum.fovy ?? CesiumMath.toRadians(60);
     const configuredOccupancy = cameraPresets.earth.targetEarthOccupancy ?? 0.72;
-    const occupancy = this.canvas.clientHeight >= 900
-      ? configuredOccupancy
-      : Math.max(0.68, configuredOccupancy - 0.06);
+    const occupancy = configuredOccupancy;
     const range = earthRangeForComposition(
       EARTH_RADIUS_METERS,
       verticalFov,
       this.canvas.clientHeight,
       occupancy,
       this.defaultCompositionInsets,
+      this.canvas.clientWidth,
     );
     const destination = Cartesian3.fromDegrees(
       viewpoint.longitudeDegrees,
@@ -317,6 +359,14 @@ export class CesiumCameraController {
       Cartesian3.cross(right, direction, earthUpScratch),
       earthUpScratch,
     );
+    // Translate the default camera in its image plane. This centers the globe
+    // in the measured free rectangle without changing a user's manual camera.
+    const metersPerPixel = 2 * range * Math.tan(verticalFov / 2) / Math.max(1, this.canvas.clientHeight);
+    const insets = this.defaultCompositionInsets;
+    Cartesian3.add(destination, Cartesian3.multiplyByScalar(right,
+      (insets.right - insets.left) * 0.5 * metersPerPixel, earthRightScratch), destination);
+    Cartesian3.add(destination, Cartesian3.multiplyByScalar(up,
+      (insets.top - insets.bottom) * 0.5 * metersPerPixel, celestialOffsetScratch), destination);
     this.defaultEarthState = {
       destination: Cartesian3.clone(destination),
       direction: Cartesian3.clone(direction),
@@ -443,14 +493,13 @@ export function earthRangeForComposition(
   viewportHeight: number,
   targetOccupancy: number,
   insets: CameraCompositionInsets,
+  viewportWidth = viewportHeight,
 ): number {
   const safeHeight = Math.max(1, viewportHeight - insets.top - insets.bottom);
-  const safeFraction = Math.min(1, safeHeight / Math.max(1, viewportHeight));
-  const insetAdjustment = 0.92 + (0.08 * safeFraction);
-  const angularDiameter = Math.max(
-    0.08,
-    verticalFovRadians * Math.min(0.9, targetOccupancy * insetAdjustment),
-  );
+  const safeWidth = Math.max(1, viewportWidth - insets.left - insets.right);
+  const safeFraction = Math.min(1, Math.min(safeHeight, safeWidth) / Math.max(1, viewportHeight));
+  const angularDiameter = 2 * Math.atan(Math.tan(verticalFovRadians / 2) *
+    safeFraction * Math.max(0.1, Math.min(0.9, targetOccupancy)));
   return Math.max(
     radiusMeters * 1.03,
     radiusMeters / Math.sin(angularDiameter / 2),

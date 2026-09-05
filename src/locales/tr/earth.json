@@ -1,4 +1,22 @@
 {
+  "overview": {
+    "catalog": "Katalogda {{amount}} nesne",
+    "sceneDetails": "Sahne ve kaynaklar"
+  },
+  "diagnostics": {
+    "title": "Render tanılaması",
+    "mode": "Render modu",
+    "continuous": "Sürekli",
+    "on-demand": "Gerektiğinde",
+    "suspended": "Duraklatıldı",
+    "target": "Etkin FPS hedefi",
+    "median": "Medyan kare · ms",
+    "p95": "P95 kare · ms",
+    "cpu": "CPU işlemi · ms",
+    "gpu": "GPU ölçümü · ms",
+    "resolution": "Render pikselleri",
+    "explanation": "Son 10 saniyedeki etkin kare aralıkları. CPU işlemi GPU süresi değildir. Çizgi ölçülmemiş değeri gösterir."
+  },
   "regionLabel": "Etkileşimli Dünya motoru",
   "canvasLabel": "Etkileşimli 3B Dünya. Döndürmek için sürükleyin, yakınlaştırmak için kaydırın ve bakış açısını değiştirmek için kamera kontrollerini kullanın.",
   "eyebrow": "CANLI DÜNYA",
@@ -12,7 +30,7 @@
   "layers": { "orbits": "Yörünge yolları", "groundTrack": "Seçili yer izi", "clouds": "Bulut örtüsü", "nightLights": "Gece ışıkları", "collapse": "Katman denetleyicisini daralt", "expand": "Katman denetleyicisini genişlet" },
   "rotation": { "pause": "Sinematik Dünya dönüşünü duraklat", "resume": "Sinematik Dünya dönüşünü sürdür" },
   "timeLens": { "regionLabel": "Yörünge tahmin zaman çizelgesi", "eyebrow": "YÖRÜNGE ZAMAN MERCEĞİ", "title": "24 saatlik yörünge tahmini", "open": "Yörünge Zaman Merceğini aç", "close": "Tahmini kapat ve canlı zamana dön", "returnLive": "Canlı yörünge zamanına dön", "forecast": "TAHMİN", "now": "ŞİMDİ", "play": "Yörünge tahminini oynat", "pause": "Yörünge tahminini duraklat", "speed": "Tahmin oynatma hızı", "nextEvent": "Sonraki fırlatma", "timeline": "Tahmin zamanını seç", "launchEvent": "Fırlatma olayı", "model": "SGP4 tahmini · güncel OMM epoku", "noEvents": "Bu 24 saatlik aralıkta gerçek fırlatma olayı yok" },
-  "orbitLegend": { "eyebrow": "SSA KATMAN KONTROLÜ", "title": "CANLI YÖRÜNGE KATMANLARI", "subtitle": "Gerçek katalog nesnelerini koordinatlarını değiştirmeden inceleyin.", "overview": "Genel bakış", "signals": "sinyal", "semantic": "işaretçi", "satellites": "Uydular", "launchSites": "Fırlatma sahaları", "visible": "{{count}} görünür · {{total}} katalogda", "orbits": "{{count}} gerçek yörünge yolu", "rockets": "{{count}} yeni roket gövdesi", "openLayers": "Katmanlar", "closeLayers": "Katmanları kapat", "sceneOverlays": "Sahne katmanları", "groups": { "orbitalNetworks": "Yörünge ağları", "scienceObservation": "Bilim ve gözlem", "vehiclesEnvironment": "Araçlar ve çevre" }, "visibilityState": { "visible": "görünür", "hidden": "gizli" }, "focusCategory": "{{category}} kategorisine odaklan, {{count}} gerçek nesne", "categoryVisibility": "{{category}}, {{count}} nesne, şu anda {{visibility}}" },
+  "orbitLegend": { "eyebrow": "SSA KATMAN KONTROLÜ", "title": "CANLI YÖRÜNGE KATMANLARI", "subtitle": "Gerçek katalog nesnelerini koordinatlarını değiştirmeden inceleyin.", "overview": "Genel bakış", "signals": "sinyal", "semantic": "işaretçi", "satellites": "Uydular", "launchSites": "Fırlatma sahaları", "visible": "{{count}} görünür · {{total}} katalogda", "orbits": "{{count}} gerçek yörünge yolu", "rockets": "{{count}} yeni roket gövdesi", "renderDetails": "Gösterilen detaylar", "openLayers": "Katmanlar", "closeLayers": "Katmanları kapat", "sceneOverlays": "Sahne katmanları", "groups": { "orbitalNetworks": "Yörünge ağları", "scienceObservation": "Bilim ve gözlem", "vehiclesEnvironment": "Araçlar ve çevre" }, "visibilityState": { "visible": "görünür", "hidden": "gizli" }, "focusCategory": "{{category}} kategorisine odaklan, {{count}} gerçek nesne", "categoryVisibility": "{{category}}, {{count}} nesne, şu anda {{visibility}}" },
   "context": { "title": "Öncelikli canlı nesneler", "station": "CANLI İSTASYON", "nextLaunch": "SONRAKİ FIRLATMA", "norad": "NORAD {{id}}" },
   "camera": { "groupLabel": "Kamera ön ayarları", "issNotice": "Kamera ön ayarı — mevcut konumunu incelemek için canlı ISS işaretçisini seçin.", "moonNotice": "Gerçek UTC Ay konumu ve NASA LRO yüzeyi — kamera mesafesi sinematiktir.", "sunNotice": "Gerçek UTC Güneş yönü — Güneş ölçeği ve kamera mesafesi sinematiktir.", "presets": { "earth": { "label": "Dünya", "detail": "Küresel görünüm" }, "leo": { "label": "Alçak Dünya Yörüngesi", "detail": "1.850 km" }, "iss": { "label": "ISS görünümü", "detail": "420 km" }, "moon": { "label": "Ay", "detail": "Gerçek konum" }, "sun": { "label": "Güneş", "detail": "Gerçek yön" } } }
 }

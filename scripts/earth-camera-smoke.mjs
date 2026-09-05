@@ -1,0 +1,102 @@
+// Dev-only camera regression with real local CelesTrak records. Never mutates the native cache.
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const { chromium } = await import(pathToFileURL(process.env.ORBITAL_PLAYWRIGHT_MODULE).href);
+const cache = process.env.ORBITAL_CATALOG_CACHE;
+if (!cache) throw new Error('Real CelesTrak cache directory required');
+const stage = process.argv[2] === 'before' ? 'before' : 'after';
+const output = resolve('docs/screenshots/earth-camera-refinement');
+await mkdir(output, { recursive: true });
+const [orbital, recent, catalog, recentCatalog] = await Promise.all(['orbital.json','recent-orbital.json','catalog.json','recent-catalog.json'].map(async name => JSON.parse(await readFile(join(cache,name),'utf8'))));
+const unique = records => [...new Map(records.map(record => [String(record.NORAD_CAT_ID), record])).values()];
+const payload = { orbital:unique([...orbital.data,...recent.data]), catalog:unique([...catalog.data,...recentCatalog.data]), metadata:{catalogObjectCount:catalog.objectCount,expiresAt:new Date(orbital.expiresAtUnixMs).toISOString(),fetchedAt:new Date(orbital.fetchedAtUnixMs).toISOString(),source:'CelesTrak (real local cache)',stale:true} };
+const report = { stage, environment:'Isolated Chromium, real cached catalog, not native FPS acceptance', errors:[], fetchedAt:payload.metadata.fetchedAt };
+const browser = await chromium.launch({headless:true,executablePath:process.env.ORBITAL_CHROMIUM});
+const watchdog = setTimeout(() => { report.errors.push('180 second timeout'); void browser.close(); },180000);
+try {
+  const context = await browser.newContext({viewport:{width:1440,height:900}, reducedMotion:'reduce'});
+  await context.route('**/__earth_qa_catalog.json',route=>route.fulfill({json:payload}));
+  await context.route(/https:\/\/.*arcgis.*/,route=>route.abort());
+  const page = await context.newPage();
+  page.on('pageerror',error=>report.errors.push(error.message));
+  await page.goto('http://127.0.0.1:1426/tests/earth-visual.html?quality=high');
+  await page.waitForFunction(()=>window.qa?.engine && window.qa.satelliteLayer()?.getSnapshot().status==='ready',{},{timeout:90000});
+  await page.waitForTimeout(2500);
+  const pose = () => page.evaluate(()=> {
+    const camera=window.qa.engine.widget.camera;
+    const xyz=v=>[v.x,v.y,v.z];
+    return { position:xyz(camera.position),direction:xyz(camera.direction),range:Math.hypot(camera.position.x,camera.position.y,camera.position.z),height:camera.positionCartographic.height,follow:window.qa.satelliteLayer().getSnapshot().followSelected,auto:window.qa.engine.cameraController.isAutoRotating() };
+  });
+  report.count = await page.evaluate(()=>window.qa.catalog.satellites.length);
+  await page.screenshot({path:join(output,`${stage}-overview.png`)});
+  await page.evaluate(()=>window.qa.select('norad:25544'));
+  await page.waitForSelector('.object-inspector');
+  await page.waitForTimeout(1800);
+  await page.evaluate(()=>window.qa.satelliteLayer().setFollowSelected(true));
+  await page.waitForTimeout(400);
+  report.followStart = await pose();
+  await page.mouse.move(650,420);
+  await page.mouse.wheel(0,-450);
+  await page.waitForTimeout(1400);
+  report.zoomIn = await pose();
+  await page.waitForTimeout(1200);
+  report.zoomHeld = await pose();
+  await page.mouse.wheel(0,650);
+  await page.waitForTimeout(1500);
+  report.zoomOut = await pose();
+  await page.mouse.move(650,420);
+  await page.mouse.down();
+  await page.mouse.move(750,490,{steps:18});
+  await page.mouse.up();
+  await page.waitForTimeout(1500);
+  report.drag = await pose();
+  await page.screenshot({path:join(output,`${stage}-follow.png`)});
+  await page.evaluate(()=> { window.qa.motion(true); window.qa.engine.setAutoRotation(true); window.qa.engine.cameraController.lastInteractionAt=-Infinity; });
+  report.focusAutoRotation = await page.evaluate(()=>window.qa.engine.cameraController.isAutoRotating());
+  await page.evaluate(()=>window.qa.motion(false));
+  // A refresh must neither refocus the satellite nor switch off the current follow session.
+  await page.evaluate(()=> { window.qa.engine.cameraController.focusAudit=0; const controller=window.qa.engine.cameraController; const focus=controller.focusBoundingSphere.bind(controller); controller.focusBoundingSphere=(...args)=> {controller.focusAudit++; return focus(...args);}; window.qa.refreshCatalog(); });
+  await page.waitForTimeout(2500);
+  report.refresh = await page.evaluate(()=>({focusCount:window.qa.engine.cameraController.focusAudit,follow:window.qa.satelliteLayer().getSnapshot().followSelected}));
+  report.followRelease = await page.evaluate(()=> {
+    const camera=window.qa.engine.widget.camera, p=camera.positionWC;
+    const before=[p.x,p.y,p.z]; window.qa.satelliteLayer().setFollowSelected(false);
+    const after=camera.positionWC;
+    return Math.hypot(after.x-before[0],after.y-before[1],after.z-before[2]);
+  });
+  await page.evaluate(()=> {window.qa.motion(true); window.qa.satelliteLayer().focusSelected();});
+  await page.waitForTimeout(120);
+  await page.evaluate(()=>window.qa.satelliteLayer().setFollowSelected(true));
+  report.flightConflict = await page.evaluate(()=>Boolean(window.qa.engine.widget.camera._currentFlight));
+  await page.evaluate(()=>window.qa.motion(false));
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(600);
+  report.closed = await pose();
+  await page.evaluate(()=> { window.presented=0; window.qa.engine.widget.scene.postRender.addEventListener(()=>window.presented++); window.qa.active(false); });
+  await page.waitForTimeout(150);
+  const pausedFrames=await page.evaluate(()=>window.presented);
+  await page.waitForTimeout(1100);
+  report.hiddenFrames=await page.evaluate(before=>window.presented-before,pausedFrames);
+  await page.evaluate(()=>window.qa.active(true));
+  await page.waitForTimeout(150);
+  await page.getByRole('button',{name:'Layers',exact:true}).click();
+  await page.evaluate(()=>window.qa.engine.flyTo('earth'));
+  await page.waitForTimeout(300);
+  await page.screenshot({path:join(output,`${stage}-layers.png`)});
+  report.layouts=[];
+  for(const [width,height] of [[320,568],[390,844],[768,1024],[1440,900],[1920,1080]]) {
+    await page.setViewportSize({width,height}); await page.waitForTimeout(200);
+    await page.evaluate(()=>window.qa.engine.flyTo('earth')); await page.waitForTimeout(300);
+    report.layouts.push(await page.evaluate(()=>({width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,center:window.qa.project(),insets:window.qa.engine.cameraController.defaultCompositionInsets})));
+    await page.screenshot({path:join(output,`${stage}-${width}.png`)});
+  }
+  report.final=await page.evaluate(()=>window.qa.engine.getSnapshot());
+  report.clouds=await page.evaluate(()=>({ready:window.qa.engine.cloudLayer.shell?.ready, shell:window.qa.engine.cloudLayer.shell?.show,imagery:window.qa.engine.cloudLayer.layer?.show}));
+  await page.evaluate(()=>window.qa.unmount());
+} finally {
+  clearTimeout(watchdog); await browser.close();
+  await writeFile(join(output,`${stage}.json`),JSON.stringify(report,null,2));
+}
+console.log(JSON.stringify(report,null,2));
+if(stage==='after' && (report.errors.length || report.zoomIn.range>=report.followStart.range*.98 || report.zoomOut.range<=report.zoomIn.range*1.02 || Math.abs(report.zoomHeld.range/report.zoomIn.range-1)>.02 || report.focusAutoRotation || report.refresh.focusCount || !report.refresh.follow || report.closed.follow || report.layouts.some(item=>item.overflow) || report.followRelease>1e-4 || report.flightConflict || report.hiddenFrames!==0)) process.exitCode=1;

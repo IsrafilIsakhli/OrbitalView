@@ -1,4 +1,9 @@
 {
+  "frameRate": {
+    "label": "Earth kadr tezliyi həddi",
+    "description": "120 FPS üçün yüksək tezlikli ekran lazımdır. Adaptiv keyfiyyət və cihaz məhdudiyyətləri qüvvədə qalır.",
+    "option": "{{count}} FPS-ə qədər"
+  },
   "title": "Parametrlər",
   "subtitle": "Orbital Vision-u sisteminizə uyğunlaşdırın.",
   "sections": {

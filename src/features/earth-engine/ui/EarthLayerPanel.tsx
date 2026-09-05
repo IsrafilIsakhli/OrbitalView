@@ -16,7 +16,7 @@ import {
   WeatherCloudy24Regular,
 } from "@fluentui/react-icons";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -46,6 +46,8 @@ const categoryGroups: ReadonlyArray<{
 type LayerSectionKey = (typeof categoryGroups)[number]["key"] | "sceneOverlays";
 
 interface EarthLayerPanelProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   categoryLabels: Record<SatelliteCategory, string>;
   categoryCounts: SatelliteCategoryCounts;
   categoryVisibility: Record<SatelliteCategory, boolean>;
@@ -82,6 +84,8 @@ interface EarthLayerPanelProps {
 }
 
 export function EarthLayerPanel({
+  open,
+  onOpenChange,
   categoryLabels,
   categoryCounts,
   categoryVisibility,
@@ -118,8 +122,17 @@ export function EarthLayerPanel({
 }: EarthLayerPanelProps) {
   const { i18n, t } = useTranslation("earth");
   const localizeNumber = (value: number) => formatNumber(value, i18n.resolvedLanguage);
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const wasOpen = useRef(open);
+  const close = () => {
+    onOpenChange(false);
+    triggerRef.current?.focus({ preventScroll: true });
+  };
+  useEffect(() => {
+    if (open && !wasOpen.current) headingRef.current?.focus({ preventScroll: true });
+    wasOpen.current = open;
+  }, [open]);
   const [expandedSections, setExpandedSections] = useState<Record<LayerSectionKey, boolean>>({
     orbitalNetworks: true,
     scienceObservation: false,
@@ -134,47 +147,42 @@ export function EarthLayerPanel({
     <>
       <button
         aria-controls="earth-layer-controller"
-        aria-expanded={mobileOpen}
+        aria-expanded={open}
         className="earth-layer-trigger glass-surface"
-        onClick={() => setMobileOpen(true)}
+        ref={triggerRef}
+        onClick={() => onOpenChange(!open)}
         type="button"
       >
         <Layer24Regular aria-hidden />
         <span>{t("orbitLegend.openLayers")}</span>
       </button>
-      {mobileOpen && (
+      {open && (
         <button
           aria-label={t("orbitLegend.closeLayers")}
           className="earth-layer-backdrop"
-          onClick={() => setMobileOpen(false)}
+          onClick={close}
           type="button"
         />
       )}
       <aside
-        aria-label={title}
+        aria-labelledby="earth-layer-controller-title"
         className="earth-layer-panel glass-surface"
-        data-collapsed={collapsed}
-        data-mobile-open={mobileOpen}
+        hidden={!open}
+        data-mobile-open={open}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
+        }}
         id="earth-layer-controller"
       >
         <header className="earth-layer-panel__header">
           <div>
-            <span className="earth-layer-panel__eyebrow">{t("orbitLegend.eyebrow")}</span>
-            <strong>{title}</strong>
+            <h2 id="earth-layer-controller-title" ref={headingRef} tabIndex={-1}>{title}</h2>
             <small>{t("orbitLegend.subtitle")}</small>
           </div>
           <button
-            aria-label={collapsed ? expandLabel : collapseLabel}
-            className="earth-layer-panel__collapse"
-            onClick={() => setCollapsed((value) => !value)}
-            type="button"
-          >
-            {collapsed ? <ChevronDown16Regular aria-hidden /> : <ChevronUp16Regular aria-hidden />}
-          </button>
-          <button
             aria-label={t("orbitLegend.closeLayers")}
-            className="earth-layer-panel__mobile-close"
-            onClick={() => setMobileOpen(false)}
+            className="earth-layer-panel__collapse"
+            onClick={close}
             type="button"
           >
             <Dismiss24Regular aria-hidden />
@@ -183,11 +191,10 @@ export function EarthLayerPanel({
         <div className="earth-layer-panel__body">
           <div className="earth-layer-panel__summary">
             <span>{visibleSummary}</span>
-            <span>
-              <strong>{localizeNumber(signalCount)}</strong> {signalLabel}
-              {" · "}
-              <strong>{localizeNumber(semanticMarkerCount)}</strong> {semanticLabel}
-            </span>
+            <details>
+              <summary>{t("orbitLegend.renderDetails")}</summary>
+              <span><strong>{localizeNumber(signalCount)}</strong> {signalLabel}{" · "}<strong>{localizeNumber(semanticMarkerCount)}</strong> {semanticLabel}</span>
+            </details>
           </div>
 
           <button
@@ -199,7 +206,7 @@ export function EarthLayerPanel({
           >
             <GlobeLocation24Regular aria-hidden />
             <span>{overviewLabel}</span>
-            <strong>{focusedCategory ? categoryLabels[focusedCategory] : overviewLabel}</strong>
+            {focusedCategory && <strong>{categoryLabels[focusedCategory]}</strong>}
           </button>
 
           <div className="earth-layer-panel__scroll-region">
@@ -211,22 +218,21 @@ export function EarthLayerPanel({
                   key={group.key}
                 >
                   <header className="earth-layer-panel__section-header">
-                    <h3 id={`earth-layer-group-${group.key}`}>
-                      {t(`orbitLegend.groups.${group.key}`)}
-                    </h3>
-                    <button
+                    <h3 id={`earth-layer-group-${group.key}`}><button
+                      aria-controls={`earth-layer-content-${group.key}`}
                       aria-expanded={expandedSections[group.key]}
                       aria-label={`${expandedSections[group.key] ? collapseLabel : expandLabel}: ${t(`orbitLegend.groups.${group.key}`)}`}
                       onClick={() => toggleSection(group.key)}
                       type="button"
                     >
+                      <span>{t(`orbitLegend.groups.${group.key}`)}</span>
                       <strong>{localizeNumber(group.categories.reduce((sum, category) => sum + categoryCounts[category], 0))}</strong>
                       {expandedSections[group.key]
                         ? <ChevronUp16Regular aria-hidden />
                         : <ChevronDown16Regular aria-hidden />}
-                    </button>
+                    </button></h3>
                   </header>
-                  <div className="earth-layer-panel__section-content" hidden={!expandedSections[group.key]}>
+                  <div className="earth-layer-panel__section-content" hidden={!expandedSections[group.key]} id={`earth-layer-content-${group.key}`}>
                   {group.categories.map((category) => {
                     const categoryVisible = categoryVisibility[category];
                     const visibility = t(
@@ -245,6 +251,7 @@ export function EarthLayerPanel({
                           aria-label={t("orbitLegend.focusCategory", {
                             category: categoryLabels[category],
                             count: localizeNumber(categoryCounts[category]),
+                            visibility,
                           })}
                           aria-pressed={focusedCategory === category}
                           className="earth-layer-panel__category-focus"
@@ -285,13 +292,14 @@ export function EarthLayerPanel({
               className="earth-layer-panel__overlay-section"
             >
               <header className="earth-layer-panel__section-header">
-                <h3 id="earth-layer-overlays">{t("orbitLegend.sceneOverlays")}</h3>
-                <button
+                <h3 id="earth-layer-overlays"><button
+                  aria-controls="earth-layer-overlay-content"
                   aria-expanded={expandedSections.sceneOverlays}
                   aria-label={`${expandedSections.sceneOverlays ? collapseLabel : expandLabel}: ${t("orbitLegend.sceneOverlays")}`}
                   onClick={() => toggleSection("sceneOverlays")}
                   type="button"
                 >
+                  <span>{t("orbitLegend.sceneOverlays")}</span>
                   <strong>{localizeNumber([
                     cloudsVisible,
                     nightLightsVisible,
@@ -302,11 +310,11 @@ export function EarthLayerPanel({
                   {expandedSections.sceneOverlays
                     ? <ChevronUp16Regular aria-hidden />
                     : <ChevronDown16Regular aria-hidden />}
-                </button>
+                </button></h3>
               </header>
-              <div className="earth-layer-panel__switches" hidden={!expandedSections.sceneOverlays}>
-                <LayerSwitch active={cloudsVisible} count={cloudsVisible ? 1 : 0} label={cloudsLabel} localizeNumber={localizeNumber} onClick={onToggleClouds} />
-                <LayerSwitch active={nightLightsVisible} count={nightLightsVisible ? 1 : 0} label={nightLightsLabel} localizeNumber={localizeNumber} onClick={onToggleNightLights} />
+              <div className="earth-layer-panel__switches" hidden={!expandedSections.sceneOverlays} id="earth-layer-overlay-content">
+                <LayerSwitch active={cloudsVisible} label={cloudsLabel} localizeNumber={localizeNumber} onClick={onToggleClouds} />
+                <LayerSwitch active={nightLightsVisible} label={nightLightsLabel} localizeNumber={localizeNumber} onClick={onToggleNightLights} />
                 <LayerSwitch active={orbitsVisible} count={orbitCount} label={orbitLabel} localizeNumber={localizeNumber} onClick={onToggleOrbits} />
                 <LayerSwitch active={groundTrackVisible} count={groundTrackCount} label={groundTrackLabel} localizeNumber={localizeNumber} onClick={onToggleGroundTrack} />
                 <LayerSwitch active={launchSitesVisible} count={launchSiteCount} label={launchSitesLabel} localizeNumber={localizeNumber} onClick={onToggleLaunchSites} />
@@ -342,14 +350,14 @@ function LayerSwitch({
   onClick,
 }: {
   active: boolean;
-  count: number;
+  count?: number;
   label: string;
   localizeNumber: (value: number) => string;
   onClick: () => void;
 }) {
   return (
-    <button aria-pressed={active} data-active={active} onClick={onClick} type="button">
-      <span>{label}</span><strong>{localizeNumber(count)}</strong><i aria-hidden />
+    <button aria-checked={active} data-active={active} onClick={onClick} role="switch" type="button">
+      <span>{label}</span><strong>{count === undefined ? null : localizeNumber(count)}</strong><i aria-hidden />
     </button>
   );
 }

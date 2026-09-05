@@ -8,6 +8,8 @@ export const preferencesSchema = z.object({
   backgroundSync: z.boolean(),
   defaultCameraPreset: z.enum(["earth", "leo", "iss", "moon", "sun"]),
   graphicsQuality: z.enum(["eco", "balanced", "high"]),
+  earthFrameRateMode: z.enum(["60", "120"]).default("60"),
+  earthLayerDrawerOpen: z.boolean().default(false),
   locale: z.enum(["az", "tr", "en", "ru", "es"]),
   reduceMotion: z.boolean(),
   timeDisplay: z.enum(["utc-local", "utc-only", "local-only"]),
@@ -16,6 +18,7 @@ export const preferencesSchema = z.object({
 
 export type Preferences = z.infer<typeof preferencesSchema>;
 export type GraphicsQuality = Preferences["graphicsQuality"];
+export type EarthFrameRateMode = Preferences["earthFrameRateMode"];
 export type DefaultCameraPreset = Preferences["defaultCameraPreset"];
 export type TimeDisplayMode = Preferences["timeDisplay"];
 export type UnitSystem = Preferences["units"];
@@ -24,6 +27,8 @@ interface PreferencesActions {
   setBackgroundSync: (enabled: boolean) => void;
   setDefaultCameraPreset: (preset: DefaultCameraPreset) => void;
   setGraphicsQuality: (quality: GraphicsQuality) => void;
+  setEarthFrameRateMode: (mode: EarthFrameRateMode) => void;
+  setEarthLayerDrawerOpen: (open: boolean) => void;
   setLocale: (locale: Preferences["locale"]) => void;
   setReduceMotion: (reduceMotion: boolean) => void;
   setTimeDisplay: (mode: TimeDisplayMode) => void;
@@ -35,7 +40,9 @@ type PreferencesStore = Preferences & PreferencesActions;
 export const defaultPreferences: Preferences = {
   backgroundSync: true,
   defaultCameraPreset: "earth",
-  graphicsQuality: "balanced",
+  graphicsQuality: "high",
+  earthFrameRateMode: "60",
+  earthLayerDrawerOpen: false,
   locale: getInitialLocale(),
   reduceMotion: false,
   timeDisplay: "utc-local",
@@ -50,6 +57,8 @@ export function migratePreferences(persistedState: unknown): Preferences {
     defaultCameraPreset:
       result.data.defaultCameraPreset ?? defaultPreferences.defaultCameraPreset,
     graphicsQuality: result.data.graphicsQuality ?? defaultPreferences.graphicsQuality,
+    earthFrameRateMode: result.data.earthFrameRateMode ?? "60",
+    earthLayerDrawerOpen: result.data.earthLayerDrawerOpen ?? false,
     locale: result.data.locale ?? defaultPreferences.locale,
     reduceMotion: result.data.reduceMotion ?? defaultPreferences.reduceMotion,
     timeDisplay: result.data.timeDisplay ?? defaultPreferences.timeDisplay,
@@ -64,6 +73,8 @@ export const usePreferencesStore = create<PreferencesStore>()(
       setBackgroundSync: (backgroundSync) => set({ backgroundSync }),
       setDefaultCameraPreset: (defaultCameraPreset) => set({ defaultCameraPreset }),
       setGraphicsQuality: (graphicsQuality) => set({ graphicsQuality }),
+      setEarthFrameRateMode: (earthFrameRateMode) => set({ earthFrameRateMode }),
+      setEarthLayerDrawerOpen: (earthLayerDrawerOpen) => set({ earthLayerDrawerOpen }),
       setLocale: (locale) => set({ locale }),
       setReduceMotion: (reduceMotion) => set({ reduceMotion }),
       setTimeDisplay: (timeDisplay) => set({ timeDisplay }),
@@ -81,6 +92,8 @@ export const usePreferencesStore = create<PreferencesStore>()(
                 result.data.defaultCameraPreset ?? currentState.defaultCameraPreset,
               graphicsQuality:
                 result.data.graphicsQuality ?? currentState.graphicsQuality,
+              earthFrameRateMode: result.data.earthFrameRateMode ?? currentState.earthFrameRateMode,
+              earthLayerDrawerOpen: result.data.earthLayerDrawerOpen ?? currentState.earthLayerDrawerOpen,
               locale: result.data.locale ?? currentState.locale,
               reduceMotion:
                 result.data.reduceMotion ?? currentState.reduceMotion,
@@ -92,6 +105,8 @@ export const usePreferencesStore = create<PreferencesStore>()(
       migrate: (persistedState) => migratePreferences(persistedState),
       name: "orbital-vision.preferences",
       partialize: ({
+        earthFrameRateMode,
+        earthLayerDrawerOpen,
         backgroundSync,
         defaultCameraPreset,
         graphicsQuality,
@@ -100,6 +115,8 @@ export const usePreferencesStore = create<PreferencesStore>()(
         timeDisplay,
         units,
       }) => ({
+        earthFrameRateMode,
+        earthLayerDrawerOpen,
         backgroundSync,
         defaultCameraPreset,
         graphicsQuality,
@@ -109,7 +126,7 @@ export const usePreferencesStore = create<PreferencesStore>()(
         units,
       }),
       storage: createJSONStorage(() => window.localStorage),
-      version: 3,
+      version: 4,
     },
   ),
 );

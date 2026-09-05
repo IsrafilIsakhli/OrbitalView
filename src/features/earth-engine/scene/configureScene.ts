@@ -11,7 +11,7 @@ export function configureScene(widget: CesiumWidget): void {
   scene.gamma = 1.01;
   scene.logarithmicDepthBuffer = true;
   scene.sunBloom = false;
-  scene.light = new SunLight({ intensity: 1.12 });
+  scene.light = new SunLight({ intensity: 1.05 });
   globe.show = true;
 
   if (scene.skyBox) {
@@ -19,10 +19,11 @@ export function configureScene(widget: CesiumWidget): void {
   }
   if (scene.skyAtmosphere) {
     scene.skyAtmosphere.show = true;
-    scene.skyAtmosphere.atmosphereLightIntensity = 8.6;
+    scene.skyAtmosphere.atmosphereLightIntensity = 8.5;
     scene.skyAtmosphere.atmosphereMieAnisotropy = 0.76;
-    scene.skyAtmosphere.brightnessShift = -0.08;
+    scene.skyAtmosphere.brightnessShift = -0.05;
     scene.skyAtmosphere.saturationShift = -0.04;
+    scene.skyAtmosphere.hueShift = 0;
   }
   if (scene.sun) {
     scene.sun.show = true;
@@ -42,15 +43,19 @@ export function configureScene(widget: CesiumWidget): void {
   globe.dynamicAtmosphereLighting = true;
   globe.dynamicAtmosphereLightingFromSun = true;
   globe.showGroundAtmosphere = true;
-  globe.atmosphereLightIntensity = 7.2;
+  globe.atmosphereLightIntensity = 7.4;
   globe.atmosphereMieAnisotropy = 0.76;
-  globe.atmosphereBrightnessShift = -0.09;
+  globe.atmosphereBrightnessShift = -0.03;
   globe.atmosphereSaturationShift = -0.05;
+  globe.atmosphereHueShift = 0;
   globe.depthTestAgainstTerrain = true;
-  globe.lightingFadeInDistance = 12_000_000;
-  globe.lightingFadeOutDistance = 65_000_000;
-  globe.nightFadeInDistance = 9_000_000;
-  globe.nightFadeOutDistance = 75_000_000;
+  // Cesium measures these from Earth's centre, not camera altitude. Keeping
+  // the entire transition below the surface preserves sunlight at every zoom.
+  // Reversed, orbital-scale distances made zooming out relight the night side.
+  globe.lightingFadeOutDistance = 0;
+  globe.lightingFadeInDistance = 1;
+  globe.nightFadeOutDistance = 0;
+  globe.nightFadeInDistance = 1;
   globe.loadingDescendantLimit = 12;
   globe.preloadAncestors = true;
   globe.preloadSiblings = false;
@@ -58,7 +63,7 @@ export function configureScene(widget: CesiumWidget): void {
 
   scene.fog.density = 0.00036;
   scene.fog.heightScalar = 0.001;
-  scene.fog.visualDensityScalar = 0.14;
+  scene.fog.visualDensityScalar = 0.16;
   scene.fog.screenSpaceErrorFactor = 2.2;
-  scene.fog.minimumBrightness = 0.08;
+  scene.fog.minimumBrightness = 0.1;
 }

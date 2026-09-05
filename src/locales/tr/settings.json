@@ -1,4 +1,9 @@
 {
+  "frameRate": {
+    "label": "Earth kare hızı sınırı",
+    "description": "120 FPS için yüksek yenileme hızlı ekran gerekir. Uyarlanabilir kalite ve cihaz sınırları geçerlidir.",
+    "option": "{{count}} FPS'ye kadar"
+  },
   "title": "Ayarlar",
   "subtitle": "Orbital Vision'ı sisteminize göre yapılandırın.",
   "sections": {

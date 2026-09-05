@@ -1,4 +1,6 @@
 import { registerUpdatePause } from "@/features/updater/domain/updateBarrier";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { measureOverlayInsets, type MeasuredOverlay } from "../camera/overlayInsets";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,9 +24,10 @@ import type {
 import { SatelliteInfoPanel } from "@/features/satellites/ui/SatelliteInfoPanel";
 import { usePreferencesStore } from "@/features/settings/model/preferences";
 import { BrandMark } from "@/shared/ui/BrandMark";
-import { formatTime } from "@/shared/i18n/formatters";
+import { formatNumber, formatTime } from "@/shared/i18n/formatters";
 import { formatDistanceFromKm, formatOrbitalSpeed } from "@/shared/formatting/units";
 import { AUTOMATIC_REFRESH_INTERVAL_MS } from "@/shared/data/refreshPolicy";
+import { isTauriRuntime } from "@/shared/platform/window-controls";
 
 import type {
   CameraPresetId,
@@ -62,6 +65,12 @@ export function EarthViewport({
 }) {
   const { i18n, t } = useTranslation(["earth", "launches", "satellites"]);
   const graphicsQuality = usePreferencesStore((state) => state.graphicsQuality);
+  const frameRateMode = usePreferencesStore((state) => state.earthFrameRateMode);
+  const drawerOpen = usePreferencesStore((state) => state.earthLayerDrawerOpen);
+  const setDrawerOpen = usePreferencesStore((state) => state.setEarthLayerDrawerOpen);
+  const updatePausedRef = useRef(false);
+  const windowVisibleRef = useRef(true);
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reduceMotion = usePreferencesStore((state) => state.reduceMotion);
   const units = usePreferencesStore((state) => state.units);
   const satelliteCatalogQuery = useActiveSatelliteCatalog();
@@ -88,6 +97,7 @@ export function EarthViewport({
     active,
     canvasLabel,
     qualityCap: graphicsQuality,
+    frameRateMode,
     reduceMotion,
   });
   const [attempt, setAttempt] = useState(0);
@@ -132,6 +142,7 @@ export function EarthViewport({
       totalCount: 0,
       validCount: 0,
     });
+  const selectedTelemetryReady = satelliteSnapshot.selectedTelemetry !== null;
   const [launchSnapshot, setLaunchSnapshot] = useState<LaunchLayerSnapshot>({
     hoverScreenPosition: null,
     hoveredSiteId: null,
@@ -147,9 +158,10 @@ export function EarthViewport({
       active,
       canvasLabel,
       qualityCap: graphicsQuality,
+      frameRateMode,
       reduceMotion,
     };
-  }, [active, canvasLabel, graphicsQuality, reduceMotion]);
+  }, [active, canvasLabel, graphicsQuality, frameRateMode, reduceMotion]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -190,6 +202,8 @@ export function EarthViewport({
         }
         engine = createEarthEngine(container, engineOptions);
         engineRef.current = engine;
+        engine.setUpdatePaused(updatePausedRef.current);
+        engine.setWindowVisible(windowVisibleRef.current);
         unsubscribe = engine.subscribe(() => {
           if (!cancelled && engine) {
             setSnapshot(engine.getSnapshot());
@@ -208,6 +222,7 @@ export function EarthViewport({
         unsubscribeSatellite = satelliteLayer.subscribe(() => {
           if (!cancelled && satelliteLayer) {
             const nextSatelliteSnapshot = satelliteLayer.getSnapshot();
+            engine?.setFollowActive(nextSatelliteSnapshot.followSelected);
             if (nextSatelliteSnapshot.selectedId) {
               launchLayer?.selectLaunch(null, false, false);
             }
@@ -233,7 +248,9 @@ export function EarthViewport({
         if (launchesRef.current) {
           launchLayer.setLaunches(launchesRef.current);
         }
-        engine.setActive(engineOptions.active);
+        engine.setActive(engineOptionsRef.current.active);
+        engine.setUpdatePaused(updatePausedRef.current);
+        engine.setFrameRateMode(engineOptionsRef.current.frameRateMode);
         setSnapshot(engine.getSnapshot());
       })
       .catch((error: unknown) => {
@@ -248,6 +265,7 @@ export function EarthViewport({
 
     return () => {
       cancelled = true;
+      if (focusTimerRef.current !== null) clearTimeout(focusTimerRef.current);
       unregisterLaunch?.();
       unsubscribeLaunch?.();
       unregisterSatellite?.();
@@ -268,11 +286,42 @@ export function EarthViewport({
 
   useEffect(() => {
     engineRef.current?.setActive(active);
-    return registerUpdatePause(() => {
-      engineRef.current?.setActive(false);
-      return () => engineRef.current?.setActive(active);
-    });
   }, [active]);
+
+  useEffect(() => registerUpdatePause(() => {
+    updatePausedRef.current = true;
+    engineRef.current?.setUpdatePaused(true);
+    return () => {
+      updatePausedRef.current = false;
+      engineRef.current?.setUpdatePaused(false);
+    };
+  }), []);
+
+  useEffect(() => { engineRef.current?.setFrameRateMode(frameRateMode); }, [frameRateMode]);
+
+  useEffect(() => {
+    if (!isTauriRuntime()) return;
+    let disposed = false;
+    let sequence = 0;
+    const removers: (() => void)[] = [];
+    const nativeWindow = getCurrentWindow();
+    const check = async () => {
+      const request = ++sequence;
+      const minimized = await nativeWindow.isMinimized();
+      if (!disposed && request === sequence) {
+        windowVisibleRef.current = !minimized;
+        engineRef.current?.setWindowVisible(!minimized);
+      }
+    };
+    const refresh = () => { void check().catch(() => undefined); };
+    for (const registration of [nativeWindow.onResized(refresh), nativeWindow.onFocusChanged(refresh)]) {
+      void registration.then((remove) => {
+        if (disposed) remove(); else removers.push(remove);
+      }).catch(() => undefined);
+    }
+    refresh();
+    return () => { disposed = true; removers.forEach((remove) => remove()); };
+  }, [attempt]);
 
   useEffect(() => {
     catalogRef.current = satelliteCatalogQuery.data ?? null;
@@ -291,11 +340,19 @@ export function EarthViewport({
   }, [spaceIntelligenceQuery.data]);
 
   useEffect(() => {
-    if (requestedSatelliteId && satelliteCatalogQuery.data) {
-      satelliteLayerRef.current?.selectSatellite(requestedSatelliteId);
-      window.setTimeout(() => satelliteLayerRef.current?.focusSelected(), 80);
+    if (active && requestedSatelliteId && satelliteCatalogQuery.data && satelliteSnapshot.status === "ready") {
+      const layer = satelliteLayerRef.current;
+      if (!layer) return;
+      if (layer.getSnapshot().selectedId !== requestedSatelliteId) layer.selectSatellite(requestedSatelliteId);
+      const timer = window.setTimeout(() => {
+        if (engineOptionsRef.current.active && layer.getSnapshot().selectedId === requestedSatelliteId && layer.getSnapshot().selectedTelemetry) {
+          layer.focusSelected();
+          clearRequestedSatellite();
+        }
+      }, 80);
+      return () => window.clearTimeout(timer);
     }
-  }, [requestedSatelliteId, satelliteCatalogQuery.data, satelliteSnapshot.status]);
+  }, [active, requestedSatelliteId, satelliteCatalogQuery.data, satelliteSnapshot.status, selectedTelemetryReady, clearRequestedSatellite]);
 
   useEffect(() => {
     if (requestedLaunchId && spaceIntelligenceQuery.data) {
@@ -305,12 +362,13 @@ export function EarthViewport({
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented) return;
+      if (!active || event.key !== "Escape" || event.defaultPrevented) return;
       const hasSelection = Boolean(
         satelliteLayerRef.current?.getSnapshot().selectedId
         || launchLayerRef.current?.getSnapshot().selectedId,
       );
       if (!hasSelection) {
+        if (drawerOpen) { event.preventDefault(); setDrawerOpen(false); return; }
         if (engineRef.current?.getSnapshot().timeLensActive) {
           engineRef.current.setTimeLensState(null);
           satelliteLayerRef.current?.setTimeLensState(null);
@@ -327,7 +385,7 @@ export function EarthViewport({
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [clearRequestedLaunch, clearRequestedSatellite]);
+  }, [active, clearRequestedLaunch, clearRequestedSatellite, drawerOpen, setDrawerOpen]);
 
   useEffect(() => {
     const canvas = containerRef.current?.querySelector("canvas");
@@ -508,34 +566,42 @@ export function EarthViewport({
     const container = containerRef.current;
     if (!container) return;
     const updateComposition = () => {
-      const width = container.clientWidth;
-      const overlayRoot = viewportRef.current;
-      const layerPanelWidth = width >= 768
-        ? overlayRoot?.querySelector<HTMLElement>(".earth-layer-panel")?.offsetWidth ?? 0
-        : 0;
-      const inspectorWidth = width >= 768
-        ? overlayRoot?.querySelector<HTMLElement>(".object-inspector")?.offsetWidth ?? 0
-        : 0;
-      const defaultInsets = {
-        bottom: width < 900 ? 82 : 104,
-        left: width >= 1_180 ? 260 : 20,
-        right: layerPanelWidth > 0 ? layerPanelWidth + 32 : 20,
-        top: width < 900 ? 72 : 86,
+      const root = viewportRef.current;
+      if (!root) return;
+      const bounds = container.getBoundingClientRect();
+      const overlays: MeasuredOverlay[] = [];
+      const add = (element: HTMLElement | null, edge: MeasuredOverlay["edge"]) => {
+        if (element && element.getClientRects().length && !element.hidden) {
+          overlays.push({ bounds: element.getBoundingClientRect(), edge });
+        }
       };
-      engineRef.current?.setDefaultCameraCompositionInsets(defaultInsets);
-      engineRef.current?.setCameraCompositionInsets(selectedSatellite || selectedLaunch
-        ? { ...defaultInsets, right: inspectorWidth > 0 ? inspectorWidth + 32 : 20 }
-        : defaultInsets);
+      add(root.querySelector(".earth-overview"), "top");
+      add(root.querySelector(".earth-mission-dock"), "bottom");
+      add(root.querySelector(".orbital-time-lens"), "bottom");
+      add(document.querySelector(".command-bar"), "top");
+      const panel = root.querySelector<HTMLElement>(".earth-layer-panel");
+      const inspector = root.querySelector<HTMLElement>(".object-inspector");
+      add(panel, bounds.width < 768 ? "bottom" : "right");
+      if (!selectedSatellite && !selectedLaunch) {
+        engineRef.current?.setDefaultCameraCompositionInsets(measureOverlayInsets(bounds, overlays));
+      }
+      add(inspector, bounds.width < 768 ? "bottom" : "right");
+      engineRef.current?.setCameraCompositionInsets(measureOverlayInsets(bounds, overlays));
     };
     updateComposition();
     const observer = new ResizeObserver(updateComposition);
     observer.observe(container);
-    const overlay = viewportRef.current?.querySelector<HTMLElement>(
-      selectedSatellite || selectedLaunch ? ".object-inspector" : ".earth-layer-panel",
-    );
-    if (overlay) observer.observe(overlay);
-    return () => observer.disconnect();
-  }, [selectedLaunch, selectedSatellite]);
+    const root = viewportRef.current;
+    root?.querySelectorAll<HTMLElement>(
+      ".earth-overview, .earth-layer-panel, .object-inspector, .earth-mission-dock, .orbital-time-lens",
+    ).forEach((element) => observer.observe(element));
+    // Details toggles and drawer visibility can change without resizing the canvas.
+    root?.addEventListener("toggle", updateComposition, true);
+    return () => {
+      observer.disconnect();
+      root?.removeEventListener("toggle", updateComposition, true);
+    };
+  }, [selectedLaunch, selectedSatellite, drawerOpen, snapshot.phase, snapshot.timeLensActive]);
   const hoveredSatellite = useMemo(
     () => satelliteCatalogQuery.data?.satellites.find(
       (satellite) => satellite.id === satelliteSnapshot.hoveredId,
@@ -589,6 +655,10 @@ export function EarthViewport({
       ref={viewportRef}
       data-engine-fps={snapshot.fps ?? "pending"}
       data-engine-phase={snapshot.phase}
+      data-render-mode={snapshot.renderMode}
+      data-presented-frames={snapshot.presentedFrames}
+      data-frame-p95={snapshot.p95FrameTimeMs ?? ""}
+      data-drawer-open={drawerOpen && !selectedSatellite && !selectedLaunch}
       data-engine-quality={snapshot.quality}
       data-gpu-renderer={snapshot.gpu?.renderer ?? "pending"}
       data-satellite-count={satelliteSnapshot.totalCount}
@@ -608,8 +678,7 @@ export function EarthViewport({
 
       {!isError && (
         <div className="earth-hud">
-          <div className="earth-identity glass-surface">
-            <p className="eyebrow"><span />{t("eyebrow")}</p>
+          <div className="earth-overview glass-surface">
             <div className="earth-identity__title-row">
               <h1>{t("title")}</h1>
               <div className="utc-clock">
@@ -617,6 +686,12 @@ export function EarthViewport({
                 <strong>{utc}</strong>
               </div>
             </div>
+            <p className="earth-catalog-count">{t("overview.catalog", {
+              amount: formatNumber(satelliteSnapshot.totalCount, i18n.resolvedLanguage),
+            })}</p>
+            <details className="earth-scene-details">
+              <summary>{t("overview.sceneDetails")}</summary>
+              <p>{t("surface.cloudCount")}</p>
             <div className="surface-statuses">
               <span>
                 {t("surface.earthData")}
@@ -648,10 +723,29 @@ export function EarthViewport({
                 </strong>
               </span>
             </div>
+            <details className="earth-diagnostics">
+              <summary>{t("diagnostics.title")}</summary>
+              <dl>
+                <dt>{t("diagnostics.mode")}</dt><dd>{t(`diagnostics.${snapshot.renderMode}`)}</dd>
+                <dt>{t("telemetry.quality")}</dt><dd>{t(`quality.${snapshot.quality}`)}</dd>
+                <dt>{t("telemetry.fps")}</dt><dd>{snapshot.fps === null ? "—" : formatNumber(snapshot.fps, locale, { maximumFractionDigits: 1 })}</dd>
+                <dt>{t("diagnostics.target")}</dt><dd>{snapshot.effectiveFrameRateTarget}</dd>
+                <dt>{t("diagnostics.median")}</dt><dd>{snapshot.frameTimeMs?.toFixed(2) ?? "—"}</dd>
+                <dt>{t("diagnostics.p95")}</dt><dd>{snapshot.p95FrameTimeMs?.toFixed(2) ?? "—"}</dd>
+                <dt>{t("diagnostics.cpu")}</dt><dd>{snapshot.cpuRenderMs?.toFixed(2) ?? "—"}</dd>
+                <dt>{t("diagnostics.gpu")}</dt><dd>{snapshot.gpuTimeMs?.toFixed(2) ?? "—"}</dd>
+                <dt>{t("diagnostics.resolution")}</dt><dd>{snapshot.renderWidth} × {snapshot.renderHeight}</dd>
+                <dt>{t("telemetry.renderer")}</dt><dd>{snapshot.gpu?.renderer ?? "—"}</dd>
+              </dl>
+              <p>{t("diagnostics.explanation")}</p>
+            </details>
+            </details>
           </div>
 
           {!selectedSatellite && !selectedLaunch && !isLoading && (
             <EarthLayerPanel
+              open={drawerOpen}
+              onOpenChange={setDrawerOpen}
               categoryCounts={satelliteSnapshot.categoryCounts}
               categoryLabels={Object.fromEntries(satelliteCategories.map(
                 (category) => [category, t(`satellites:category.${category}`)],
@@ -689,7 +783,7 @@ export function EarthViewport({
               semanticMarkerCount={satelliteSnapshot.semanticMarkerCount}
               signalCount={satelliteSnapshot.signalCount}
               signalLabel={t("orbitLegend.signals")}
-              title={t("orbitLegend.title")}
+            title={t("orbitLegend.openLayers")}
               visibleSummary={t("orbitLegend.visible", {
                 count: satelliteSnapshot.renderedCount,
                 total: satelliteSnapshot.totalCount,
@@ -705,7 +799,11 @@ export function EarthViewport({
                   onSelectLaunch={(id) => launchLayerRef.current?.selectLaunch(id, true)}
                   onSelectSatellite={(id) => {
                     satelliteLayerRef.current?.selectSatellite(id);
-                    window.setTimeout(() => satelliteLayerRef.current?.focusSelected(), 80);
+                    if (focusTimerRef.current !== null) clearTimeout(focusTimerRef.current);
+                    focusTimerRef.current = setTimeout(() => {
+                      focusTimerRef.current = null;
+                      if (engineOptionsRef.current.active) satelliteLayerRef.current?.focusSelected();
+                    }, 80);
                   }}
                   station={priorityStation}
                 />

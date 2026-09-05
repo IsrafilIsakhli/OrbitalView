@@ -2,14 +2,14 @@ import type { GraphicsQuality } from "@/features/settings/model/preferences";
 
 import { qualityAbove, qualityAtMost, qualityBelow } from "./qualityProfiles";
 
-const LOW_FPS_THRESHOLD = 54;
-const RECOVERY_FPS_THRESHOLD = 59;
 const LOW_WINDOWS_REQUIRED = 3;
 const RECOVERY_WINDOWS_REQUIRED = 20;
 
 export class AdaptiveQualityController {
   private highFpsWindows = 0;
   private lowFpsWindows = 0;
+  private recoveryBlockedUntil = 0;
+  private lastUpgradeAt = Number.NEGATIVE_INFINITY;
 
   constructor(
     private current: GraphicsQuality,
@@ -31,27 +31,29 @@ export class AdaptiveQualityController {
     return next;
   }
 
-  sample(fps: number, surfaceBusy: boolean): GraphicsQuality | null {
+  sample(fps: number, surfaceBusy: boolean, target = 60, now = performance.now(), allowDegrade = true): GraphicsQuality | null {
     if (surfaceBusy || !Number.isFinite(fps) || fps <= 0) {
       this.resetCounters();
       return null;
     }
 
-    this.lowFpsWindows = fps < LOW_FPS_THRESHOLD ? this.lowFpsWindows + 1 : 0;
+    this.lowFpsWindows = allowDegrade && fps < target * 0.9 ? this.lowFpsWindows + 1 : 0;
     this.highFpsWindows =
-      fps >= RECOVERY_FPS_THRESHOLD ? this.highFpsWindows + 1 : 0;
+      fps >= target * (59 / 60) ? this.highFpsWindows + 1 : 0;
 
     if (this.lowFpsWindows >= LOW_WINDOWS_REQUIRED && this.current !== "eco") {
+      if (now - this.lastUpgradeAt < 30_000) this.recoveryBlockedUntil = now + 30_000;
       this.current = qualityBelow(this.current);
       this.resetCounters();
       return this.current;
     }
 
-    if (this.highFpsWindows >= RECOVERY_WINDOWS_REQUIRED) {
+    if (this.highFpsWindows >= RECOVERY_WINDOWS_REQUIRED && now >= this.recoveryBlockedUntil) {
       const next = qualityAbove(this.current, this.cap);
       this.resetCounters();
       if (next !== this.current) {
         this.current = next;
+        this.lastUpgradeAt = now;
         return next;
       }
     }

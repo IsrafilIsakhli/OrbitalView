@@ -23,19 +23,40 @@ interface StarDefinition {
   position: Cartesian3;
 }
 
+interface StarTint {
+  red: number;
+  green: number;
+  blue: number;
+}
+
+// Deterministic spectral variety modeled on main-sequence classes so the
+// backdrop reads as a real field rather than a uniform dot grid.
+const STAR_TINTS: StarTint[] = [
+  { red: 0.66, green: 0.77, blue: 1 }, // B — hot blue-white
+  { red: 0.88, green: 0.92, blue: 1 }, // A — cool white
+  { red: 1, green: 0.97, blue: 0.88 }, // G — solar white
+  { red: 1, green: 0.86, blue: 0.66 }, // K — amber giant
+];
+
 function createStarDefinitions(): StarDefinition[] {
   return Array.from({ length: MAX_STARS }, (_, index) => {
     const normalizedY = 1 - (2 * (index + 0.5)) / MAX_STARS;
     const horizontalRadius = Math.sqrt(1 - normalizedY * normalizedY);
     const angle = index * GOLDEN_ANGLE + Math.sin(index * 12.9898) * 0.18;
-    const intensity = 0.34 + ((index * 47) % 100) / 260;
-    const cool = index % 13 === 0;
+    const hash = (index * 47) % 100;
+    const tint = STAR_TINTS[index % STAR_TINTS.length]!;
+    const bright = index % 21 === 0;
+    const intensity = 0.3 + hash / 250 + (bright ? 0.22 : 0);
 
     return {
-      color: cool
-        ? new Color(0.68, 0.82, 1, intensity)
-        : new Color(0.98, 0.95, 0.87, intensity),
-      pixelSize: index % 41 === 0 ? 1.1 : index % 13 === 0 ? 0.72 : 0.44,
+      color: new Color(tint.red, tint.green, tint.blue, intensity),
+      pixelSize: bright
+        ? 1.9
+        : index % 13 === 0
+          ? 0.78
+          : index % 7 === 0
+            ? 0.56
+            : 0.4,
       position: new Cartesian3(
         Math.cos(angle) * horizontalRadius * STAR_SPHERE_RADIUS_METERS,
         normalizedY * STAR_SPHERE_RADIUS_METERS,

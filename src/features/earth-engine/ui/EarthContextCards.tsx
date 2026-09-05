@@ -25,26 +25,26 @@ export function EarthContextCards({
   return (
     <nav aria-label={t("context.title")} className="earth-context-cards">
       {station && (
-        <button onClick={() => onSelectSatellite(station.id)} type="button">
+        <button aria-label={`${t("context.station")}: ${station.name} · ${t("context.norad", { id: station.noradId })}`} onClick={() => onSelectSatellite(station.id)} type="button">
           <span className="earth-context-cards__icon" data-kind="station">
             <Globe24Regular aria-hidden />
           </span>
           <span>
             <small>{t("context.station")}</small>
-            <strong>{station.name}</strong>
+            <strong title={station.name}>{station.name}</strong>
             <em>{t("context.norad", { id: station.noradId })}</em>
           </span>
         </button>
       )}
       {nextLaunch && (
-        <button onClick={() => onSelectLaunch(nextLaunch.id)} type="button">
+        <button aria-label={`${t("context.nextLaunch")}: ${nextLaunch.name} · ${formatLaunch(nextLaunch, locale)}`} onClick={() => onSelectLaunch(nextLaunch.id)} type="button">
           <span className="earth-context-cards__icon" data-kind="launch">
             <Rocket24Regular aria-hidden />
           </span>
           <span>
             <small>{t("context.nextLaunch")}</small>
-            <strong>{nextLaunch.name}</strong>
-            <em>{formatLaunch(nextLaunch, locale)}</em>
+            <strong title={nextLaunch.name}>{nextLaunch.name}</strong>
+            <em title={formatLaunch(nextLaunch, locale)}>{formatLaunch(nextLaunch, locale)}</em>
           </span>
         </button>
       )}

@@ -1,4 +1,22 @@
 {
+  "overview": {
+    "catalog": "{{amount}} objetos catalogados",
+    "sceneDetails": "Escena y fuentes"
+  },
+  "diagnostics": {
+    "title": "Diagnóstico de renderizado",
+    "mode": "Modo de renderizado",
+    "continuous": "Continuo",
+    "on-demand": "Bajo demanda",
+    "suspended": "Suspendido",
+    "target": "Objetivo efectivo de FPS",
+    "median": "Mediana de fotograma · ms",
+    "p95": "P95 de fotograma · ms",
+    "cpu": "Trabajo de CPU · ms",
+    "gpu": "Medición de GPU · ms",
+    "resolution": "Píxeles de renderizado",
+    "explanation": "Intervalos de fotogramas activos durante 10 segundos. El tiempo de CPU no es tiempo de GPU. Un guion significa que no se ha medido."
+  },
   "regionLabel": "Motor interactivo de la Tierra",
   "canvasLabel": "Tierra 3D interactiva. Arrastra para girar, usa la rueda para acercar y los controles de cámara para cambiar la vista.",
   "eyebrow": "TIERRA EN VIVO",
@@ -15,7 +33,7 @@
   "layers": { "orbits": "Trayectorias orbitales", "groundTrack": "Traza terrestre seleccionada", "clouds": "Cobertura nubosa", "nightLights": "Luces nocturnas", "collapse": "Contraer control de capas", "expand": "Expandir control de capas" },
   "rotation": { "pause": "Pausar la rotación cinematográfica", "resume": "Reanudar la rotación cinematográfica" },
   "timeLens": { "regionLabel": "Línea temporal de predicción orbital", "eyebrow": "LENTE DE TIEMPO ORBITAL", "title": "Predicción orbital de 24 horas", "open": "Abrir la Lente de Tiempo Orbital", "close": "Cerrar la predicción y volver al tiempo real", "returnLive": "Volver al tiempo orbital en vivo", "forecast": "PREDICCIÓN", "now": "AHORA", "play": "Reproducir la predicción orbital", "pause": "Pausar la predicción orbital", "speed": "Velocidad de reproducción", "nextEvent": "Próximo lanzamiento", "timeline": "Seleccionar hora de predicción", "launchEvent": "Evento de lanzamiento", "model": "Predicción SGP4 · época OMM actual", "noEvents": "No hay lanzamientos reales en esta ventana de 24 horas" },
-  "orbitLegend": { "eyebrow": "CONTROL DE CAPAS SSA", "title": "CAPAS ORBITALES EN VIVO", "subtitle": "Explora objetos reales del catálogo sin cambiar sus coordenadas.", "overview": "Vista general", "signals": "señales", "semantic": "marcadores", "satellites": "Satélites", "launchSites": "Sitios de lanzamiento", "visible": "{{count}} visibles · {{total}} catalogados", "orbits": "{{count}} órbitas reales", "rockets": "{{count}} cuerpos de cohete recientes", "openLayers": "Capas", "closeLayers": "Cerrar capas", "sceneOverlays": "Capas de escena", "groups": { "orbitalNetworks": "Redes orbitales", "scienceObservation": "Ciencia y observación", "vehiclesEnvironment": "Vehículos y entorno" }, "visibilityState": { "visible": "visible", "hidden": "oculto" }, "focusCategory": "Enfocar {{category}}, {{count}} objetos reales", "categoryVisibility": "{{category}}, {{count}} objetos, actualmente {{visibility}}" },
+  "orbitLegend": { "eyebrow": "CONTROL DE CAPAS SSA", "title": "CAPAS ORBITALES EN VIVO", "subtitle": "Explora objetos reales del catálogo sin cambiar sus coordenadas.", "overview": "Vista general", "signals": "señales", "semantic": "marcadores", "satellites": "Satélites", "launchSites": "Sitios de lanzamiento", "visible": "{{count}} visibles · {{total}} catalogados", "orbits": "{{count}} órbitas reales", "rockets": "{{count}} cuerpos de cohete recientes", "renderDetails": "Detalles de renderizado", "openLayers": "Capas", "closeLayers": "Cerrar capas", "sceneOverlays": "Capas de escena", "groups": { "orbitalNetworks": "Redes orbitales", "scienceObservation": "Ciencia y observación", "vehiclesEnvironment": "Vehículos y entorno" }, "visibilityState": { "visible": "visible", "hidden": "oculto" }, "focusCategory": "Enfocar {{category}}, {{count}} objetos reales", "categoryVisibility": "{{category}}, {{count}} objetos, actualmente {{visibility}}" },
   "context": { "title": "Objetos prioritarios", "station": "ESTACIÓN EN VIVO", "nextLaunch": "PRÓXIMO LANZAMIENTO", "norad": "NORAD {{id}}" },
   "camera": {
     "groupLabel": "Vistas de cámara",

@@ -14,10 +14,11 @@ export interface QualityProfile {
   orbitSampleCount: number;
   resolutionScale: number;
   semanticMarkerLimit: number;
+  starCount: number;
+  sunBloom: boolean;
   targetFrameRate: number;
   terrainTileCacheSize: number;
   useBrowserRecommendedResolution: boolean;
-  starCount: number;
 }
 
 export const qualityProfiles: Record<GraphicsQuality, QualityProfile> = {
@@ -33,10 +34,11 @@ export const qualityProfiles: Record<GraphicsQuality, QualityProfile> = {
     orbitSampleCount: 121,
     resolutionScale: 0.76,
     semanticMarkerLimit: 90,
+    starCount: 0,
+    sunBloom: false,
     targetFrameRate: 45,
     terrainTileCacheSize: 80,
     useBrowserRecommendedResolution: true,
-    starCount: 0,
   },
   balanced: {
     catalogSignalLimit: 8_500,
@@ -50,10 +52,11 @@ export const qualityProfiles: Record<GraphicsQuality, QualityProfile> = {
     orbitSampleCount: 161,
     resolutionScale: 0.92,
     semanticMarkerLimit: 160,
+    starCount: 72,
+    sunBloom: false,
     targetFrameRate: 60,
     terrainTileCacheSize: 140,
     useBrowserRecommendedResolution: true,
-    starCount: 72,
   },
   high: {
     catalogSignalLimit: 11_000,
@@ -63,14 +66,15 @@ export const qualityProfiles: Record<GraphicsQuality, QualityProfile> = {
     interactionResolutionFactor: 0.84,
     labelLimit: 28,
     maximumScreenSpaceError: 1.45,
-    msaaSamples: 2,
+    msaaSamples: 4,
     orbitSampleCount: 181,
     resolutionScale: 1,
     semanticMarkerLimit: 180,
+    starCount: 128,
+    sunBloom: true,
     targetFrameRate: 60,
     terrainTileCacheSize: 180,
     useBrowserRecommendedResolution: true,
-    starCount: 128,
   },
 };
 
