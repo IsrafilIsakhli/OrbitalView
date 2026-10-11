@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 40 40" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Orbital Vision</title>
+  <!-- Matches the application's BrandMark component in src/shared/ui/BrandMark.tsx. -->
+  <defs>
+    <linearGradient id="orbit" x1="7" x2="34" y1="31" y2="8">
+      <stop stop-color="#168FFF"/>
+      <stop offset="1" stop-color="#74E5FF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="20" cy="20" r="9.5" stroke="url(#orbit)" stroke-width="2.6"/>
+  <path d="M4.9 25.2c3.9 5.4 14.4 5.2 23.5-.5 9.1-5.8 13.3-14.9 9.4-20.3" stroke="url(#orbit)" stroke-linecap="round" stroke-width="2.2"/>
+  <circle cx="33.1" cy="8.2" fill="#D9FAFF" r="2.8"/>
+</svg>
