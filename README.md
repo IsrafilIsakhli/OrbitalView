@@ -94,7 +94,7 @@ NASA API keys are stored in the operating system's credential store. The fronten
 
 ## Run locally
 
-You will need **Node.js 22.12+**, **pnpm 11+** and **stable Rust**, plus the native build tools for your operating system:
+You will need **Node.js 22.22.2+ LTS or 24.15+ LTS** (or Node 26+), **pnpm 11+** and **stable Rust**, plus the native build tools for your operating system:
 
 | Platform | Native prerequisites |
 | --- | --- |
@@ -111,7 +111,7 @@ pnpm tauri:dev
 
 Use `pnpm tauri:dev` for the complete desktop app. `pnpm dev` starts only the frontend, so features that depend on native commands will be unavailable.
 
-The native process can read `NASA_API_KEY` from its environment or an ignored `.env.local` file during development. Previously saved credentials remain in the operating system's credential store; key management is no longer shown in Settings. Keep credentials out of frontend variables and source control.
+The native process can read `NASA_API_KEY` from its environment or an ignored `.env.local` file during development. Previously saved credentials remain in the operating system's credential store; key management is no longer shown in Settings. Without a configured key, feeds use limited public NASA demo access, with a persistent six-hour attempt interval per feed (including failed requests) and daily APOD caching. Manual refresh cannot bypass this public quota protection. Shared-IP quotas can still make NASA data unavailable; cached results are preserved. For dependable production NASA access, provision a registered native credential or a separately operated authenticated gateway; never embed a private key in the distributed binary. See [NASA's access limits](https://api.nasa.gov/assets/html/authentication.html). Keep credentials out of frontend variables and source control.
 
 News works in English without additional setup. To enable translations, configure the [translation gateway](services/translation-gateway/README.md).
 
@@ -125,6 +125,11 @@ pnpm lint
 pnpm test
 pnpm build
 ```
+
+`pnpm production:check` also runs release-tooling tests, update-policy validation,
+the complete frontend dependency audit and a working-tree secret scan. The
+Production quality workflow runs these checks on every main-branch push and pull
+request, with Windows native Clippy/tests and audits of both Rust lockfiles.
 
 <details>
 <summary><strong>Native and release checks</strong></summary>

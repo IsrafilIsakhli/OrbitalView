@@ -22,6 +22,9 @@ const NASA_API_BASE: &str = "https://api.nasa.gov";
 const MAX_RESPONSE_BYTES: usize = 16 * 1024 * 1024;
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(20);
 const MAX_RETRIES: u8 = 1;
+// NASA's public demo quota is per IP (30/hour, 50/day). Persist a six-hour
+// attempt interval per feed, including failures, so refresh/restart cannot loop.
+const PUBLIC_ACCESS_INTERVAL_MS: u64 = 6 * 60 * 60 * 1_000;
 
 #[derive(Clone, Copy, Debug)]
 pub enum ExpectedPayload {
@@ -247,6 +250,8 @@ impl NasaProvider {
         now: u64,
         force_refresh: bool,
     ) -> NasaComponentPayload {
+        let public_access = !self.is_configured();
+        let force_refresh = force_refresh && !public_access;
         let cached = read_component(cache_path).await;
         if !force_refresh
             && let Some(component) = cached
@@ -267,12 +272,57 @@ impl NasaProvider {
             );
         }
 
+        if public_access {
+            let attempt_path = cache_path.with_extension("attempt.json");
+            let next_attempt = tokio::fs::read_to_string(&attempt_path)
+                .await
+                .ok()
+                .and_then(|value| value.parse::<u64>().ok())
+                .unwrap_or(0);
+            let error = if next_attempt > now {
+                Some("public_access_cooldown")
+            } else if write_atomic(
+                &attempt_path,
+                now.saturating_add(PUBLIC_ACCESS_INTERVAL_MS)
+                    .to_string()
+                    .as_bytes(),
+            )
+            .await
+            .is_err()
+            {
+                Some("cache_write")
+            } else {
+                None
+            };
+            if let Some(code) = error {
+                return if let Some(component) = cached {
+                    component_payload(
+                        component,
+                        request,
+                        ResolutionMetadata {
+                            cache_hit: true,
+                            duration_ms: 0,
+                            error_type: Some(code.to_owned()),
+                            rate_limit_remaining: None,
+                            retry_count: 0,
+                            status: ProviderStatus::Stale,
+                        },
+                    )
+                } else {
+                    unavailable_payload(request, 0, 0, code, None)
+                };
+            }
+        }
         let started = Instant::now();
         match self.fetch(request).await {
             Ok(result) => {
                 let component = CachedComponent {
                     data: result.data,
-                    expires_at_unix_ms: now + request.ttl_ms,
+                    expires_at_unix_ms: now.saturating_add(if public_access {
+                        request.ttl_ms.max(PUBLIC_ACCESS_INTERVAL_MS)
+                    } else {
+                        request.ttl_ms
+                    }),
                     fetched_at_unix_ms: now,
                 };
                 let cache_error = write_component(cache_path, &component)
@@ -326,12 +376,7 @@ impl NasaProvider {
             .unwrap_or_else(|error| error.into_inner())
             .api_key
             .clone()
-            .ok_or(FetchError {
-                code: "missing_api_key",
-                rate_limit_remaining: None,
-                retry_count: 0,
-                retryable: false,
-            })?;
+            .unwrap_or_else(|| "DEMO_KEY".to_owned());
 
         let mut retry_count = 0;
         loop {
@@ -388,7 +433,8 @@ impl NasaProvider {
                 code: status_error_code(status),
                 rate_limit_remaining,
                 retry_count: 0,
-                retryable: status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error(),
+                // Retrying a rate limit immediately consumes quota without recovery.
+                retryable: status.is_server_error(),
             });
         }
         if response
@@ -616,6 +662,7 @@ mod tests {
         CachedComponent, ExpectedPayload, NasaProvider, NasaRequest, ProviderStatus,
         extract_env_value, normalize_api_key, status_error_code, validate_payload,
     };
+    use crate::domain::credentials::NasaCredentialSource;
 
     #[test]
     fn validates_supported_payload_shapes() {
@@ -679,6 +726,67 @@ mod tests {
             status_error_code(reqwest::StatusCode::BAD_REQUEST),
             "upstream_request"
         );
+    }
+
+    #[tokio::test]
+    async fn public_access_works_without_a_saved_key_and_cannot_force_refresh() {
+        let base_url = spawn_http_server("200 OK", "[]", Duration::ZERO);
+        let provider = NasaProvider::for_test(base_url, Duration::from_secs(1), 0);
+        provider.set_credential(None, NasaCredentialSource::Unconfigured);
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 10, 25).unwrap();
+        let request = NasaRequest::donki("cme", "/DONKI/CME", date, date);
+        let cache_path = unique_test_cache_path();
+        let result = provider.resolve(&request, &cache_path, 1_000).await;
+        assert_eq!(result.status, ProviderStatus::Fresh);
+        assert!(!provider.is_configured());
+        assert_eq!(
+            result.expires_at_unix_ms,
+            1_000 + super::PUBLIC_ACCESS_INTERVAL_MS
+        );
+        // The server accepted one request and has closed. A forced request must
+        // still return the fresh cached payload without consuming public quota.
+        let cached = provider.resolve_force(&request, &cache_path, 2_000).await;
+        assert_eq!(cached.status, ProviderStatus::Fresh);
+        assert!(cached.diagnostics.cache_hit);
+        let _ = std::fs::remove_file(&cache_path);
+        let _ = std::fs::remove_file(cache_path.with_extension("attempt.json"));
+    }
+
+    #[tokio::test]
+    async fn public_access_failure_budget_survives_provider_restart() {
+        let base_url = spawn_http_server("503 Service Unavailable", "{}", Duration::ZERO);
+        let provider = NasaProvider::for_test(base_url.clone(), Duration::from_secs(1), 0);
+        provider.set_credential(None, NasaCredentialSource::Unconfigured);
+        let request = NasaRequest::apod(chrono::NaiveDate::from_ymd_opt(2026, 10, 25).unwrap());
+        let cache_path = unique_test_cache_path();
+        let first = provider.resolve(&request, &cache_path, 1_000).await;
+        assert_eq!(
+            first.diagnostics.error_type.as_deref(),
+            Some("upstream_unavailable")
+        );
+        let restarted = NasaProvider::for_test(base_url, Duration::from_secs(1), 0);
+        restarted.set_credential(None, NasaCredentialSource::Unconfigured);
+        let second = restarted.resolve_force(&request, &cache_path, 2_000).await;
+        assert_eq!(
+            second.diagnostics.error_type.as_deref(),
+            Some("public_access_cooldown")
+        );
+        assert_eq!(second.diagnostics.retry_count, 0);
+        let _ = std::fs::remove_file(cache_path.with_extension("attempt.json"));
+    }
+
+    #[tokio::test]
+    async fn rate_limits_are_not_retried_immediately() {
+        let base_url = spawn_http_server("429 Too Many Requests", "{}", Duration::ZERO);
+        let provider = NasaProvider::for_test(base_url, Duration::from_secs(1), 1);
+        let error = provider
+            .fetch(&NasaRequest::apod(
+                chrono::NaiveDate::from_ymd_opt(2026, 10, 25).unwrap(),
+            ))
+            .await
+            .unwrap_err();
+        assert_eq!(error.code, "rate_limited");
+        assert_eq!(error.retry_count, 0);
     }
 
     #[tokio::test]

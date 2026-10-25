@@ -11,6 +11,7 @@ node_modules
 .pnpm-store
 .tools
 .release-baselines/
+release-artifacts/
 test-results/
 .qa-temp/
 playwright-report/

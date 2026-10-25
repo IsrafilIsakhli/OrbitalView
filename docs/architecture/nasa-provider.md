@@ -18,7 +18,7 @@ The endpoints, authentication rules, response shapes, and default 1,000-request-
 
 ## Security
 
-Installed builds resolve the key from Windows Credential Manager first. A native-process `NASA_API_KEY` is the fallback; debug builds may additionally read the ignored workspace file `.env.local`. The frontend receives only `configured`, `source` and `verified` status. The secret is never returned to React, localStorage, the frontend bundle, logs or diagnostics. Error messages never include request URLs because NASA authentication is supplied as a query parameter.
+Installed builds resolve previously saved credentials from the operating system's credential store first. A native-process `NASA_API_KEY` is the fallback; debug builds may additionally read the ignored workspace file `.env.local`. When none is configured, the provider uses NASA's public `DEMO_KEY` and displays limited public access in all five languages. Private credentials are never embedded in installers. The frontend receives only `configured`, `source` and `verified` status. The secret is never returned to React, localStorage, the frontend bundle, logs or diagnostics. Error messages never include request URLs because NASA authentication is supplied as a query parameter.
 
 The frontend content security policy does not allow connections to `api.nasa.gov`; the API remains native-only. APOD media is downloaded through a provider-scoped native cache with HTTPS, public-address, redirect, MIME, size and decode limits. External links pass through the centralized native public-HTTPS command.
 
@@ -39,7 +39,9 @@ NeoWs objects retain NASA's authoritative `is_potentially_hazardous_asteroid` de
 
 ## Resilience and rate control
 
-Each component has its own cache file, expiry, status, and diagnostics. A fresh cache response avoids an upstream request. An expired component performs at most one retry with a short backoff for timeouts, network failures, HTTP 429, or server errors. If refresh fails, a last-known-good component is returned as `stale`; a feed without usable live or cached data becomes `unavailable` while the other feeds remain active.
+Each component has its own cache file, expiry, status, and diagnostics. A fresh cache response avoids an upstream request. An expired component performs at most one retry with a short backoff for timeouts, network failures or server errors. HTTP 429 is never retried immediately. If refresh fails, a last-known-good component is returned as `stale`; a feed without usable live or cached data becomes `unavailable` while the other feeds remain active.
+
+Public demo access applies a minimum six-hour TTL to each feed (APOD retains its 24-hour TTL). Before every public attempt, a six-hour cooldown timestamp is atomically persisted alongside the feed cache, including for failed requests. Refresh and process restart cannot bypass it; credentials configured by the operator retain their normal TTLs and explicit force refresh. NASA's public limits are shared per IP, so this is a limited fallback, not a production availability guarantee. A registered operator credential or separately operated authenticated gateway is needed for dependable NASA availability. [Official NASA limits](https://api.nasa.gov/assets/html/authentication.html), verified 2026-10-25.
 
 Diagnostics contain only safe operational fields:
 

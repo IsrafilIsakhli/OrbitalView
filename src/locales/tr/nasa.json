@@ -1,7 +1,7 @@
 {
   "eyebrow": "UZAY İSTİHBARATI", "title": "Göreve genel bakış", "subtitle": "NASA astronomisi, Dünya'ya yakın nesneler ve son uzay hava olayları tek doğrulanmış operasyonel görünümde.", "source": "NASA Open API'leri",
   "status": { "fresh": "GÜNCEL", "stale": "ÖNBELLEK", "degraded": "KISITLI", "unavailable": "KULLANILAMIYOR" },
-  "configuration": { "title": "NASA API anahtarı yapılandırılmadı", "description": "Yerel çalışma ortamında NASA_API_KEY ayarlayın. Anahtar web arayüzüne veya frontend paketine eklenmez." },
+  "configuration": { "title": "NASA verilerine sınırlı genel erişim", "description": "NASA verileri ortak genel erişimle alınır. Akışlar en erken altı saatte bir, günlük astronomi günde bir kez yenilenir. Erişim sınırlanabilir; kayıtlı veriler çevrimdışı kullanılabilir." },
   "apod": { "label": "GÜNÜN ASTRONOMİ GÖRSELİ", "credit": "Görsel: {{credit}}", "publicDomain": "NASA astronomi medyası", "unavailable": "Bugünün astronomi içeriği geçici olarak kullanılamıyor." },
   "actions": { "openMedia": "Kaynağı aç", "openEvent": "NASA olayını aç", "retry": "Tekrar dene" },
   "summary": { "label": "SAĞLAYICI DURUMU", "title": "Operasyonel özet", "approaches": "Yakın geçiş", "spaceWeather": "Uzay hava olayı", "sourcesReady": "Hazır akış", "retrieved": "Panel {{date}} UTC kontrol edildi" },

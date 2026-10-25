@@ -3,5 +3,8 @@ packages:
 
 confirmModulesPurge: false
 
+overrides:
+  dompurify: ^3.4.17
+
 allowBuilds:
   esbuild: true

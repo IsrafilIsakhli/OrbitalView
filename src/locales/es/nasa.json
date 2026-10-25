@@ -10,8 +10,8 @@
     "unavailable": "NO DISPONIBLE"
   },
   "configuration": {
-    "title": "La clave de NASA API no está configurada",
-    "description": "Define NASA_API_KEY en el entorno nativo. La clave nunca se incluye en la interfaz ni en el paquete frontend."
+    "title": "Acceso público limitado a NASA",
+    "description": "Se utiliza el acceso público compartido. Los datos se actualizan como máximo cada seis horas y la astronomía una vez al día. La disponibilidad puede ser limitada; los datos guardados siguen disponibles sin conexión."
   },
   "apod": {
     "label": "IMAGEN ASTRONÓMICA DEL DÍA",

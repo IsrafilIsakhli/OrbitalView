@@ -1,6 +1,6 @@
 # Orbital Vision Privacy Notice
 
-Effective date: 15 August 2026
+Effective date: 25 October 2026
 
 Orbital Vision is a local-first desktop application. This notice explains what the application stores locally and which external services it contacts. It applies to the official desktop builds distributed by the project owner.
 
@@ -27,7 +27,7 @@ Ground-station profiles may contain coordinates entered by the user. Orbital pas
 
 ## Credentials
 
-A NASA API key saved through Settings is stored by the operating system's secure credential facility: Windows Credential Manager, macOS Keychain or the supported Linux secret service. The credential value is not returned to the React interface. A native process environment variable and an ignored development-only `.env.local` file may be used by developers as fallbacks.
+Previously saved NASA API keys remain in the operating system's secure credential facility: Windows Credential Manager, macOS Keychain or the supported Linux secret service. Key management is no longer displayed in Settings. The credential value is not returned to the React interface. The native process can also read a developer-supplied environment variable or an ignored development-only `.env.local` file. Without a configured credential, NASA requests use NASA's shared public demo access with reduced refresh frequency and a persistent local request cooldown. Public access is subject to NASA's per-IP quotas.
 
 Do not place credentials in screenshots, public issues, exported diagnostic text or repository files.
 
@@ -57,7 +57,7 @@ Validated provider media may be downloaded by the Rust backend, resized and stor
 
 Provider and image caches use bounded retention or freshness rules. News and translation data may remain as a last-good offline copy until pruned or cleared. Preferences, favorites and analysis profiles remain until the user changes or deletes them or clears application data.
 
-Settings provides controls for applicable provider caches and saved credentials. Uninstall behavior varies by operating system and may leave application-data directories behind. Users who want a complete removal should also delete Orbital Vision's application data and cache through their operating-system tools after uninstalling.
+Settings provides controls for applicable provider caches. Previously saved credentials can be removed through the operating system's credential manager. Uninstall behavior varies by operating system and may leave application-data directories behind. Users who want a complete removal should also delete Orbital Vision's application data and cache through their operating-system tools after uninstalling.
 
 ## Updates to this notice
 

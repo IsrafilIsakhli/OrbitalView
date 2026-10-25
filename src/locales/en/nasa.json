@@ -10,8 +10,8 @@
     "unavailable": "UNAVAILABLE"
   },
   "configuration": {
-    "title": "NASA API key is not configured",
-    "description": "Set NASA_API_KEY in the native runtime environment. No key is ever included in the web interface or frontend bundle."
+    "title": "Limited public NASA access",
+    "description": "NASA data uses shared public access. Feeds refresh at most every six hours; daily astronomy refreshes once a day. Availability may be limited, and saved data stays available offline."
   },
   "apod": {
     "label": "ASTRONOMY PICTURE OF THE DAY",

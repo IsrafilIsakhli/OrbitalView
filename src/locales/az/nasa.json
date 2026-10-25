@@ -10,8 +10,8 @@
     "unavailable": "ƏLÇATMAZ"
   },
   "configuration": {
-    "title": "NASA API açarı sazlanmayıb",
-    "description": "Native iş mühitində NASA_API_KEY təyin edin. Açar heç vaxt veb interfeysə və ya frontend paketinə daxil edilmir."
+    "title": "NASA məlumatlarına məhdud açıq giriş",
+    "description": "NASA məlumatları ortaq açıq girişdən alınır. Axınlar ən tez altı saatdan bir, gündəlik astronomiya isə gündə bir dəfə yenilənir. Əlçatanlıq məhdudlaşa bilər; saxlanmış məlumatlar oflayn açılır."
   },
   "apod": {
     "label": "GÜNÜN ASTRONOMİYA ŞƏKLİ",
