@@ -1,0 +1,5 @@
+# Reviewed historical public Minisign updater keys, not private credentials.
+# Each exception is limited to one immutable commit, path, rule and line.
+e830d1dc9deba4131695aab68691f4b53ce5c7af:src-tauri/tauri.conf.json:generic-api-key:42
+ea96018836945d8aa40343fd8292007c20a64d60:release/updater-public-key.txt:generic-api-key:1
+ea96018836945d8aa40343fd8292007c20a64d60:src-tauri/src/lib.rs:generic-api-key:43

@@ -23,6 +23,10 @@ jobs:
       repository: ${{ steps.channel.outputs.repository }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan complete history for secrets
+        run: bash scripts/check-secret-history.sh
       - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}

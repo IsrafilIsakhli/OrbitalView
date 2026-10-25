@@ -3,7 +3,9 @@ name: Production quality
 on:
   push:
     branches: [main]
+    paths-ignore: ['**/*.md']
   pull_request:
+    paths-ignore: ['**/*.md']
   workflow_dispatch:
 
 permissions:
@@ -66,3 +68,63 @@ jobs:
         run: command -v cargo-audit || cargo install cargo-audit --version 0.22.2 --locked
       - run: cargo audit --file src-tauri/Cargo.lock
       - run: cargo audit --file services/translation-gateway/Cargo.lock
+
+  secret-history:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan history with checksum-pinned Gitleaks
+        run: bash scripts/check-secret-history.sh
+
+  windows-package:
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    needs: [frontend, windows-native, native-security, secret-history]
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      WIKIMEDIA_CONTACT: ${{ vars.WIKIMEDIA_CONTACT }}
+      ORBITAL_PACKAGE_KIND: nsis
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - run: pnpm install --frozen-lockfile
+      - name: Build installer and signed updater candidate
+        shell: pwsh
+        run: |
+          if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw 'Updater signing key is required' }
+          if (-not $env:WIKIMEDIA_CONTACT) { throw 'Wikimedia contact is required' }
+          $configPath = Join-Path $env:RUNNER_TEMP 'tauri-candidate-config.json'
+          node scripts/create-tauri-updater-config.mjs $configPath
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm tauri build --bundles nsis --config $configPath
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $installers = @(Get-ChildItem src-tauri/target/release/bundle/nsis/*.exe)
+          if ($installers.Count -ne 1) { throw 'Expected exactly one NSIS candidate' }
+          if (-not (Test-Path -LiteralPath ($installers[0].FullName + '.sig'))) { throw 'Updater signature is missing' }
+          $digest = Get-FileHash -LiteralPath $installers[0].FullName -Algorithm SHA256
+          "$($digest.Hash.ToLowerInvariant())  $($installers[0].Name)" | Set-Content src-tauri/target/release/bundle/nsis/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-candidate-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.sig
+            src-tauri/target/release/bundle/nsis/SHA256SUMS.txt

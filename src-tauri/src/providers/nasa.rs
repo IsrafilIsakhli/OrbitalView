@@ -19,6 +19,7 @@ use crate::{
 };
 
 const NASA_API_BASE: &str = "https://api.nasa.gov";
+const DONKI_API_BASE: &str = "https://ccmc.gsfc.nasa.gov/DONKI-API/get";
 const MAX_RESPONSE_BYTES: usize = 16 * 1024 * 1024;
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(20);
 const MAX_RETRIES: u8 = 1;
@@ -132,6 +133,7 @@ struct CachedComponent {
 
 pub struct NasaProvider {
     base_url: String,
+    donki_base_url: String,
     client: Client,
     credential: RwLock<NasaCredentialRuntime>,
     max_retries: u8,
@@ -156,6 +158,7 @@ impl NasaProvider {
             .unwrap_or((None, NasaCredentialSource::Unconfigured));
         Ok(Self {
             base_url: NASA_API_BASE.to_owned(),
+            donki_base_url: DONKI_API_BASE.to_owned(),
             client,
             credential: RwLock::new(NasaCredentialRuntime {
                 api_key,
@@ -212,6 +215,7 @@ impl NasaProvider {
     #[cfg(test)]
     fn for_test(base_url: String, timeout: Duration, max_retries: u8) -> Self {
         Self {
+            donki_base_url: base_url.clone(),
             base_url,
             client: Client::builder().timeout(timeout).build().unwrap(),
             credential: RwLock::new(NasaCredentialRuntime {
@@ -404,10 +408,21 @@ impl NasaProvider {
         api_key: &str,
     ) -> Result<FetchResult, FetchError> {
         let mut query = request.query.clone();
-        query.push(("api_key", api_key.to_owned()));
+        // DONKI moved to CCMC's public data API on 2026-09-30. It does not
+        // need the api.nasa.gov credential; never forward private keys there.
+        let url = if matches!(request.expected, ExpectedPayload::Donki) {
+            format!(
+                "{}/{}",
+                self.donki_base_url,
+                request.path.trim_start_matches("/DONKI/")
+            )
+        } else {
+            query.push(("api_key", api_key.to_owned()));
+            format!("{}{}", self.base_url, request.path)
+        };
         let response = self
             .client
-            .get(format!("{}{}", self.base_url, request.path))
+            .get(url)
             .query(&query)
             .send()
             .await
@@ -790,6 +805,22 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn donki_uses_the_public_route_without_forwarding_private_credentials() {
+        let (base_url, captured) = spawn_http_server_with_capture("200 OK", "[]", Duration::ZERO);
+        let provider = NasaProvider::for_test(base_url, Duration::from_secs(1), 0);
+        let date = chrono::NaiveDate::from_ymd_opt(2026, 10, 25).unwrap();
+        provider
+            .fetch(&NasaRequest::donki("cme", "/DONKI/CME", date, date))
+            .await
+            .unwrap();
+        let request = captured.recv_timeout(Duration::from_secs(1)).unwrap();
+        assert!(request.starts_with("GET /CME?"));
+        assert!(request.contains("startDate=2026-10-25"));
+        assert!(!request.contains("api_key"));
+        assert!(!request.contains("abcdefghijklmnopqrstuvwxyz1234567890"));
+    }
+
+    #[tokio::test]
     async fn accepts_a_successful_provider_response() {
         let base_url = spawn_http_server(
             "200 OK",
@@ -887,12 +918,22 @@ mod tests {
     }
 
     fn spawn_http_server(status: &'static str, body: &'static str, delay: Duration) -> String {
+        spawn_http_server_with_capture(status, body, delay).0
+    }
+
+    fn spawn_http_server_with_capture(
+        status: &'static str,
+        body: &'static str,
+        delay: Duration,
+    ) -> (String, std::sync::mpsc::Receiver<String>) {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let address = listener.local_addr().unwrap();
+        let (sender, receiver) = std::sync::mpsc::channel();
         thread::spawn(move || {
             let (mut stream, _) = listener.accept().unwrap();
             let mut request = [0_u8; 2_048];
-            let _ = stream.read(&mut request);
+            let count = stream.read(&mut request).unwrap_or(0);
+            let _ = sender.send(String::from_utf8_lossy(&request[..count]).into_owned());
             thread::sleep(delay);
             let response = format!(
                 "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
@@ -900,7 +941,7 @@ mod tests {
             );
             let _ = stream.write_all(response.as_bytes());
         });
-        format!("http://{address}")
+        (format!("http://{address}"), receiver)
     }
 
     fn unique_test_cache_path() -> PathBuf {

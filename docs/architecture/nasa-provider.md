@@ -4,17 +4,19 @@ Module 6 introduces NASA astronomy, near-Earth-object, and space-weather data wi
 
 ## Native boundary
 
-Only the Rust host contacts `api.nasa.gov`. React invokes one typed `nasa_intelligence` command and never receives or stores the API key. The native service resolves five independent components in parallel:
+Only the Rust host contacts `api.nasa.gov` and the public CCMC DONKI API. React invokes one typed `nasa_intelligence` command and never receives or stores the API key. The native service resolves five independent components in parallel:
 
 | Component | Official endpoint | Product use | Native TTL |
 | --- | --- | --- | --- |
 | APOD | `/planetary/apod` | Daily astronomy feature | 24 hours |
 | NeoWs | `/neo/rest/v1/feed` | Seven-day close-approach list | 3 hours |
-| DONKI CME | `/DONKI/CME` | Recent coronal mass ejections | 1 hour |
-| DONKI flare | `/DONKI/FLR` | Recent solar flares | 1 hour |
-| DONKI storm | `/DONKI/GST` | Recent geomagnetic storms | 1 hour |
+| DONKI CME | `ccmc.gsfc.nasa.gov/DONKI-API/get/CME` | Recent coronal mass ejections | 1 hour |
+| DONKI flare | `ccmc.gsfc.nasa.gov/DONKI-API/get/FLR` | Recent solar flares | 1 hour |
+| DONKI storm | `ccmc.gsfc.nasa.gov/DONKI-API/get/GST` | Recent geomagnetic storms | 1 hour |
 
 The endpoints, authentication rules, response shapes, and default 1,000-request-per-hour key limit were verified against the official [NASA Open APIs documentation](https://api.nasa.gov/) on 2026-08-07. The supplied development key was also checked against APOD, NeoWs, and DONKI with successful HTTP 200 responses.
+
+On 2026-10-25, the legacy `api.nasa.gov/DONKI/CME` proxy returned HTTP 503. The provider now uses the public CCMC data API documented in [NASA's September 2026 migration announcement](https://ccmc.gsfc.nasa.gov/news/major-updates/). All three direct routes returned HTTP 200 and valid arrays in live smoke checks. No NASA API credential is forwarded to CCMC; a native request-capture regression test covers that boundary. APOD and NeoWs still use `api.nasa.gov`.
 
 ## Security
 
