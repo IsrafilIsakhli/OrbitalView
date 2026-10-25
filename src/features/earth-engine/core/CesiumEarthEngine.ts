@@ -24,19 +24,15 @@ import type {
 } from "../contracts/earth-engine";
 import { initialEarthEngineSnapshot } from "../contracts/earth-engine";
 import type { EarthEngineLayer, EarthLayerSlot } from "../contracts/layers";
-import { AdaptiveQualityController } from "../quality/AdaptiveQualityController";
-import {
-  qualityAtMost,
-  qualityProfiles,
-  recommendGpuQuality,
-} from "../quality/qualityProfiles";
+import { qualityProfiles } from "../quality/qualityProfiles";
+import { createStarSkyBox } from "../scene/starSkyBox";
 import { configureScene } from "../scene/configureScene";
 import { resumeEarthClock } from "../time/resumeEarthClock";
 import { ScientificCloudLayer } from "../scene/ScientificCloudLayer";
 import { SurfaceProviderCoordinator } from "../scene/SurfaceProviderCoordinator";
+import { SolarSurface } from "../scene/SolarSurface";
 import {
   inspectGpuCapabilities,
-  readDeviceMemoryGb,
   webGlContextAttributes,
 } from "../telemetry/gpuCapabilities";
 import { PerformanceMonitor, type PerformanceSample } from "../telemetry/PerformanceMonitor";
@@ -101,10 +97,10 @@ export class CesiumEarthEngine implements EarthEngine {
   private weakWindows = 0;
   private strongWindows = 0;
   private enhancementsBlockedUntil = 0;
-  private adaptiveQuality: AdaptiveQualityController | null = null;
   private appliedQuality: GraphicsQuality;
   private cameraController: CesiumCameraController | null = null;
   private cloudLayer: ScientificCloudLayer | null = null;
+  private solarSurface: SolarSurface | null = null;
   private disposed = false;
   private initialized = false;
   private compositionInitialized = false;
@@ -117,7 +113,6 @@ export class CesiumEarthEngine implements EarthEngine {
   private performanceMonitor: PerformanceMonitor | null = null;
   private qualityCap: GraphicsQuality;
   private readyAt = 0;
-  private recommendedQuality: GraphicsQuality = "balanced";
   private reducedMotion: boolean;
   private removePreRender: (() => void) | null = null;
   private removeRenderError: (() => void) | null = null;
@@ -197,30 +192,20 @@ export class CesiumEarthEngine implements EarthEngine {
       this.widget.canvas.setAttribute("data-earth-focus-target", "");
       this.widget.canvas.setAttribute("role", "img");
       this.widget.canvas.tabIndex = 0;
-      configureScene(this.widget);
+      configureScene(this.widget, qualityProfiles[this.qualityCap].starCount);
 
       const gpu = inspectGpuCapabilities(this.widget.scene);
 
-      this.recommendedQuality = recommendGpuQuality(
-        gpu,
-        navigator.hardwareConcurrency || 4,
-        readDeviceMemoryGb(),
-      );
-      const initialQuality = qualityAtMost(
-        this.recommendedQuality,
-        this.qualityCap,
-      );
-      this.adaptiveQuality = new AdaptiveQualityController(
-        initialQuality,
-        this.qualityCap,
-      );
+      // A manual quality selection is a profile, not a silent hardware cap.
+      // Adapt render cost below without replacing the selected surface profile.
+      const initialQuality = this.qualityCap;
 
       this.cameraController = new CesiumCameraController(
         this.widget.scene,
         this.widget.camera,
         this.widget.canvas,
         this.widget.clock,
-        (activePreset) => this.update({ activePreset }),
+        this.handlePresetChanged,
       );
       this.cameraController.setReducedMotion(this.reducedMotion);
       this.cameraController.setAutoRotation(!this.reducedMotion);
@@ -346,7 +331,7 @@ export class CesiumEarthEngine implements EarthEngine {
   }
 
   setCloudsVisible(visible: boolean): void {
-    this.cloudLayer?.setVisible(visible);
+    this.layerRegistry?.setSlotVisible("system", visible);
     this.update({ cloudsVisible: visible });
   }
 
@@ -361,10 +346,11 @@ export class CesiumEarthEngine implements EarthEngine {
 
   setQualityCap(quality: GraphicsQuality): void {
     this.qualityCap = quality;
-    const next = qualityAtMost(this.recommendedQuality, quality);
-    this.adaptiveQuality = new AdaptiveQualityController(next, quality);
     this.enhancementLevel = 0;
-    this.applyQuality(next);
+    this.weakWindows = 0;
+    this.strongWindows = 0;
+    this.readyAt = performance.now();
+    this.applyQuality(quality);
   }
 
   setReduceMotion(reduceMotion: boolean): void {
@@ -468,6 +454,8 @@ export class CesiumEarthEngine implements EarthEngine {
     this.removeRenderError = null;
     this.removeTileProgress = null;
     this.cameraController?.dispose();
+    this.solarSurface?.dispose();
+    this.solarSurface = null;
     this.layerRegistry?.dispose();
 
     if (this.widget && !this.widget.isDestroyed()) {
@@ -488,6 +476,7 @@ export class CesiumEarthEngine implements EarthEngine {
     const profile = qualityProfiles[quality];
     const { scene } = this.widget;
 
+    const changedProfile = this.appliedQuality !== quality;
     this.appliedQuality = quality;
     this.applyResolutionScale();
     this.widget.useBrowserRecommendedResolution =
@@ -508,8 +497,15 @@ export class CesiumEarthEngine implements EarthEngine {
     bloom.enabled = false;
     // Sun bloom is a separate, lightweight glow around the solar disc (not the
     // full post-process bloom above). Only the high profile pays for it.
-    scene.sunBloom = profile.sunBloom;
+    // The solar disc already has its own corona; a full-frame sun-bloom pass
+    // adds glare and render-target churn when switching from Earth to Sun.
+    scene.sunBloom = false;
+    if (changedProfile || !scene.skyBox) {
+      scene.skyBox?.destroy();
+      scene.skyBox = createStarSkyBox(profile.starCount);
+    }
     this.layerRegistry?.setQuality(quality);
+    this.cloudLayer?.setShellEnabled(this.enhancementLevel === 0);
     scene.requestRender();
     this.update({
       cloudCount: this.cloudLayer?.getCount() ?? 0,
@@ -572,6 +568,7 @@ export class CesiumEarthEngine implements EarthEngine {
       const deltaSeconds = Math.min(0.1, (now - previousFrameAt) / 1_000);
       previousFrameAt = now;
       this.cameraController?.tick(deltaSeconds);
+      if (this.widget) this.solarSurface?.tick(this.widget.clock.currentTime);
       this.layerRegistry?.tick(deltaSeconds);
       if (this.timeLensState?.playing && this.widget) {
         const timestampUnixMs = JulianDate.toDate(
@@ -659,9 +656,7 @@ export class CesiumEarthEngine implements EarthEngine {
     const interactionFactor = this.interactionResolutionActive
       ? profile.interactionResolutionFactor
       : 1;
-    const desired = this.appliedQuality === "high" && this.enhancementLevel < 2
-      ? Math.max(1, Math.min(1.5, window.devicePixelRatio || 1))
-      : profile.resolutionScale;
+    const desired = profile.resolutionScale * (1 - this.enhancementLevel * 0.08);
     this.widget.resolutionScale = boundedResolutionScale(
       this.container.clientWidth, this.container.clientHeight, desired * interactionFactor,
     );
@@ -720,13 +715,6 @@ export class CesiumEarthEngine implements EarthEngine {
       this.applyQuality(this.appliedQuality);
       return;
     }
-    // Recovery must remain possible after optional effects have recovered too.
-    const nextQuality = this.adaptiveQuality?.sample(
-      statistics.fps, false, target, performance.now(), this.enhancementLevel >= 2,
-    );
-    if (nextQuality) {
-      this.applyQuality(nextQuality);
-    }
   };
 
   private readonly handleVisibility = (): void => {
@@ -741,7 +729,7 @@ export class CesiumEarthEngine implements EarthEngine {
       document: !document.hidden && this.windowVisible,
       update: this.updatePaused || this.contextLost || this.renderFailed,
       motion: this.cameraMoving || this.interactionResolutionActive || this.followActive || Boolean(this.cameraController?.isZooming()) ||
-        Boolean(this.timeLensState?.playing) || Boolean(this.cameraController?.isAutoRotating()),
+        Boolean(this.timeLensState?.playing) || Boolean(this.cameraController?.isAutoRotating()) || Boolean(this.cameraController?.isCelestialView()),
     });
     const active = mode !== "suspended";
     const resumed = active && !this.active;
@@ -759,8 +747,13 @@ export class CesiumEarthEngine implements EarthEngine {
     this.widget.clock.shouldAnimate = active && (this.timeLensState === null || this.timeLensState.playing);
     this.widget.scene.requestRenderMode = mode !== "continuous";
     this.widget.scene.maximumRenderTimeChange = Number.POSITIVE_INFINITY;
-    const target = Math.min(this.appliedQuality === "eco" ? 45 : Number(this.frameRateMode), this.displayCadence);
-    this.widget.targetFrameRate = target;
+    const target = Math.min(Number(this.frameRateMode), this.displayCadence);
+    // A 45 Hz limiter on a 60 Hz display alternates short and long frames.
+    // Let rAF present every refresh when the display is already the ceiling.
+    // Cesium's public setter accepts undefined (display cadence); its type
+    // declaration currently omits that documented runtime option.
+    (this.widget as unknown as { targetFrameRate: number | undefined }).targetFrameRate =
+      Number(this.frameRateMode) >= this.displayCadence ? undefined : target;
     this.performanceMonitor?.setMode(mode === "continuous", target);
     if (active) {
       this.performanceMonitor?.start();
@@ -782,7 +775,7 @@ export class CesiumEarthEngine implements EarthEngine {
   private measureDisplayCadence(): void {
     if (this.cadenceFrame !== null) cancelAnimationFrame(this.cadenceFrame);
     this.cadenceFrame = null;
-    if (!this.active || this.frameRateMode !== "120") return;
+    if (!this.active) return;
     const intervals: number[] = [];
     let previous: number | null = null;
     const sample = (now: number) => {
@@ -816,6 +809,23 @@ export class CesiumEarthEngine implements EarthEngine {
       ...update,
       phase: degraded ? "degraded" : "ready",
     });
+  };
+
+  private readonly handlePresetChanged = (activePreset: CameraPresetId): void => {
+    const celestial = activePreset === "moon" || activePreset === "sun";
+    const scene = this.widget?.scene;
+    if (scene) {
+      scene.globe.show = !celestial;
+      if (scene.skyAtmosphere) scene.skyAtmosphere.show = !celestial;
+      if (activePreset === "sun" && !this.solarSurface) this.solarSurface = new SolarSurface(scene);
+      this.solarSurface?.setVisible(activePreset === "sun");
+      if (scene.sun) scene.sun.show = activePreset !== "sun";
+      if (scene.moon) scene.moon.show = activePreset !== "sun";
+      this.layerRegistry?.setSceneVisible(!celestial);
+      scene.requestRender();
+    }
+    this.update({ activePreset });
+    this.syncRenderPolicy();
   };
 
   private update(patch: Partial<EarthEngineSnapshot>): void {

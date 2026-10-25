@@ -1628,3 +1628,22 @@
     transition: border-color 1ms, background-color 1ms, color 1ms;
   }
 }
+.earth-quality-indicator {
+  display: inline-block;
+  margin-inline-start: 10px;
+  padding: 2px 7px;
+  border: 1px solid rgba(121, 230, 255, .2);
+  border-radius: 5px;
+  color: #91d9ed;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .earth-viewport .camera-context {
+    bottom: 156px;
+    width: calc(100% - 32px);
+    border-radius: 12px;
+    text-align: center;
+  }
+}

@@ -20,21 +20,15 @@ import type {
 } from "../contracts/earth-engine";
 import { cameraPresets } from "./cameraPresets";
 import { EARTH_MAXIMUM_ZOOM_METERS, StableCameraZoom } from "./StableCameraZoom";
+import { CelestialCameraFrame, celestialRadii, type CelestialBody } from "./CelestialCameraFrame";
 
 const INTERACTION_PAUSE_MS = 10_000;
 const CINEMATIC_ROTATION_RADIANS_PER_SECOND = 0.00062;
 const MINIMUM_ROTATION_HEIGHT_METERS = 1_150_000;
-const MOON_VIEW_DISTANCE_METERS = 4_800_000;
-const SUN_VIEW_DISTANCE_METERS = 28_000_000_000;
 const EARTH_RADIUS_METERS = 6_378_137;
 
 const inertialPositionScratch = new Cartesian3();
 const fixedPositionScratch = new Cartesian3();
-const celestialDirectionScratch = new Cartesian3();
-const celestialDestinationScratch = new Cartesian3();
-const celestialOffsetScratch = new Cartesian3();
-const celestialRightScratch = new Cartesian3();
-const celestialUpScratch = new Cartesian3();
 const transformScratch = new Matrix3();
 const earthDestinationScratch = new Cartesian3();
 const earthDirectionScratch = new Cartesian3();
@@ -64,6 +58,8 @@ export interface FocusBoundingSphereOptions {
 
 export class CesiumCameraController {
   private readonly zoomController: StableCameraZoom;
+  private readonly celestialFrame = new CelestialCameraFrame();
+  private celestialLayout = "";
   private autoRotation = true;
   private objectFocusActive = false;
   private activePreset: CameraPresetId = "earth";
@@ -121,36 +117,39 @@ export class CesiumCameraController {
   }
 
   flyTo(presetId: CameraPresetId, immediate = false): void {
+    const fromCelestial = this.isCelestialView();
+    this.celestialFrame.clear();
     this.cancelPendingReturn();
     this.objectFocusActive = false;
     const preset = cameraPresets[presetId];
     this.markInteraction();
     this.activePreset = presetId;
-    this.configureZoom(presetId === "moon" || presetId === "sun");
+    this.configureZoom(presetId === "moon" || presetId === "sun" ? presetId : null);
     this.onPresetChanged(presetId);
     this.camera.cancelFlight();
     this.camera.lookAtTransform(Matrix4.IDENTITY);
 
     if (presetId === "moon" || presetId === "sun") {
-      this.flyToCelestialBody(presetId, immediate);
+      this.flyToCelestialBody(presetId);
       return;
     }
 
     if (presetId === "earth") {
       this.defaultEarthViewpoint = this.daylightEarthViewpoint();
       this.refreshDefaultEarthState();
-      this.flyToDefaultEarth(immediate);
+      this.flyToDefaultEarth(immediate || fromCelestial);
       return;
     }
+    const daylight = this.daylightEarthViewpoint();
     const destination = Cartesian3.fromDegrees(
-      preset.longitudeDegrees,
-      preset.latitudeDegrees,
+      daylight.longitudeDegrees,
+      daylight.latitudeDegrees,
       preset.heightMeters,
     );
     this.camera.flyTo({
       destination,
       duration:
-        immediate || this.reducedMotion ? 0 : preset.durationSeconds,
+        immediate || this.reducedMotion || fromCelestial ? 0 : preset.durationSeconds,
       easingFunction: EasingFunction.QUADRATIC_IN_OUT,
       orientation: {
         heading: CesiumMath.toRadians(preset.headingDegrees),
@@ -166,7 +165,8 @@ export class CesiumCameraController {
   ): void {
     this.cancelPendingReturn();
     this.objectFocusActive = true;
-    this.configureZoom(false);
+    this.celestialFrame.clear();
+    this.configureZoom(null);
     this.activePreset = "earth";
     this.onPresetChanged("earth");
     this.markInteraction();
@@ -181,7 +181,7 @@ export class CesiumCameraController {
     const range = options.offset.range * safeAreaScale;
     this.camera.flyToBoundingSphere(boundingSphere, {
       complete: () => {
-        this.alignFocusedTarget(range);
+        this.alignFocusedTarget();
         options.complete?.();
       },
       duration: this.reducedMotion ? 0 : options.duration,
@@ -195,7 +195,9 @@ export class CesiumCameraController {
   }
 
   returnToDefaultEarth(): boolean {
-    this.configureZoom(false);
+    const fromCelestial = this.isCelestialView();
+    this.celestialFrame.clear();
+    this.configureZoom(null);
     this.objectFocusActive = false;
     if (this.defaultEarthState === null) {
       this.defaultEarthViewpoint ??= this.daylightEarthViewpoint();
@@ -214,7 +216,7 @@ export class CesiumCameraController {
         this.returnFrame = null;
         this.refreshDefaultEarthState();
         this.camera.lookAtTransform(Matrix4.IDENTITY);
-        this.flyToDefaultEarth(this.reducedMotion);
+        this.flyToDefaultEarth(this.reducedMotion || fromCelestial);
       });
     });
     return true;
@@ -232,7 +234,8 @@ export class CesiumCameraController {
 
   /** Selection/follow owns the camera until an explicit preset or close. */
   beginObjectFocus(): void {
-    this.configureZoom(false);
+    this.celestialFrame.clear();
+    this.configureZoom(null);
     this.activePreset = "earth";
     this.onPresetChanged("earth");
     this.objectFocusActive = true;
@@ -247,22 +250,30 @@ export class CesiumCameraController {
   }
 
   /** Call after lookAt/focus, never after a free manual camera movement. */
-  alignFocusedTarget(range: number): void {
-    const fovy = (this.camera.frustum as { fovy?: number }).fovy ?? Math.PI / 3;
-    const metersPerPixel = 2 * range * Math.tan(fovy / 2) / Math.max(1, this.canvas.clientHeight);
+  alignFocusedTarget(): void {
+    const frustum = this.camera.frustum as { fovy?: number; near?: number; xOffset?: number; yOffset?: number };
+    const nearPerPixel = (frustum.near ?? 1) * Math.tan((frustum.fovy ?? Math.PI / 3) / 2)
+      / Math.max(1, this.canvas.clientHeight);
     const { left, right, top, bottom } = this.compositionInsets;
-    this.camera.moveRight((right - left) * metersPerPixel * 0.5);
-    this.camera.moveUp((top - bottom) * metersPerPixel * 0.5);
+    // Off-axis projection composes the HUD without moving the physical camera.
+    // A translated near-nadir pose loses its offset in Cesium's HPR conversion,
+    // causing a visible jump at the end of a default/focus flight.
+    frustum.xOffset = (right - left) * nearPerPixel;
+    frustum.yOffset = (top - bottom) * nearPerPixel;
     this.scene.requestRender();
   }
 
   setCompositionInsets(insets: CameraCompositionInsets): void {
     this.compositionInsets = normalizeInsets(insets);
+    this.alignFocusedTarget();
   }
 
   setDefaultCompositionInsets(insets: CameraCompositionInsets): void {
     this.defaultCompositionInsets = normalizeInsets(insets);
     if (this.defaultEarthViewpoint !== null) this.refreshDefaultEarthState();
+    if (this.isCelestialView() && this.celestialLayout !== this.celestialLayoutKey()) {
+      this.flyToCelestialBody(this.activePreset as CelestialBody);
+    }
   }
 
   setReducedMotion(reducedMotion: boolean): void {
@@ -270,6 +281,7 @@ export class CesiumCameraController {
   }
 
   tick(deltaSeconds: number): void {
+    if (this.isCelestialView()) this.celestialFrame.update(this.camera, this.clock.currentTime);
     this.zoomController.tick(deltaSeconds);
     if (!this.isAutoRotating()) return;
 
@@ -284,6 +296,8 @@ export class CesiumCameraController {
       this.activePreset !== "sun" && performance.now() - this.lastInteractionAt >= INTERACTION_PAUSE_MS &&
       this.camera.positionCartographic.height >= MINIMUM_ROTATION_HEIGHT_METERS;
   }
+
+  isCelestialView(): boolean { return this.activePreset === "moon" || this.activePreset === "sun"; }
 
   dispose(): void {
     this.zoomController.dispose();
@@ -323,10 +337,13 @@ export class CesiumCameraController {
   cancelZoom(): void { this.zoomController.cancel(); }
   isZooming(): boolean { return this.zoomController.moving; }
 
-  private configureZoom(celestial: boolean): void {
-    this.zoomController.setEnabled(!celestial);
-    this.scene.screenSpaceCameraController.maximumZoomDistance = celestial
-      ? 220_000_000_000 : EARTH_MAXIMUM_ZOOM_METERS;
+  private configureZoom(body: CelestialBody | null): void {
+    const radius = body === null ? null : celestialRadii[body];
+    this.zoomController.setCelestialRadius(radius);
+    const controls = this.scene.screenSpaceCameraController;
+    controls.enableCollisionDetection = body === null;
+    controls.minimumZoomDistance = radius === null ? 900 : radius * 1.12;
+    controls.maximumZoomDistance = radius === null ? EARTH_MAXIMUM_ZOOM_METERS : radius * 30;
   }
 
   private readonly handleKeyDown = (event: KeyboardEvent): void => {
@@ -409,14 +426,6 @@ export class CesiumCameraController {
       Cartesian3.cross(right, direction, earthUpScratch),
       earthUpScratch,
     );
-    // Translate the default camera in its image plane. This centers the globe
-    // in the measured free rectangle without changing a user's manual camera.
-    const metersPerPixel = 2 * range * Math.tan(verticalFov / 2) / Math.max(1, this.canvas.clientHeight);
-    const insets = this.defaultCompositionInsets;
-    Cartesian3.add(destination, Cartesian3.multiplyByScalar(right,
-      (insets.right - insets.left) * 0.5 * metersPerPixel, earthRightScratch), destination);
-    Cartesian3.add(destination, Cartesian3.multiplyByScalar(up,
-      (insets.top - insets.bottom) * 0.5 * metersPerPixel, celestialOffsetScratch), destination);
     this.defaultEarthState = {
       destination: Cartesian3.clone(destination),
       direction: Cartesian3.clone(direction),
@@ -442,90 +451,28 @@ export class CesiumCameraController {
     });
   }
 
-  private flyToCelestialBody(
-    body: "moon" | "sun",
-    immediate: boolean,
-  ): void {
-    const inertialPosition = body === "moon"
-      ? Simon1994PlanetaryPositions.computeMoonPositionInEarthInertialFrame(
-          this.clock.currentTime,
-          inertialPositionScratch,
-        )
-      : Simon1994PlanetaryPositions.computeSunPositionInEarthInertialFrame(
-          this.clock.currentTime,
-          inertialPositionScratch,
-        );
-    const inertialToFixed =
-      Transforms.computeIcrfToFixedMatrix(this.clock.currentTime, transformScratch)
-      ?? Transforms.computeTemeToPseudoFixedMatrix(
-        this.clock.currentTime,
-        transformScratch,
-      );
-    const bodyPosition = Matrix3.multiplyByVector(
-      inertialToFixed,
-      inertialPosition,
-      fixedPositionScratch,
+  private flyToCelestialBody(body: CelestialBody): void {
+    this.celestialLayout = this.celestialLayoutKey();
+    const range = earthRangeForComposition(
+      celestialRadii[body],
+      (this.camera.frustum as { fovy?: number }).fovy ?? Math.PI / 3,
+      this.canvas.clientHeight,
+      body === "moon" ? 0.8 : 0.68,
+      this.defaultCompositionInsets,
+      this.canvas.clientWidth,
     );
-    const outward = Cartesian3.normalize(
-      bodyPosition,
-      celestialDirectionScratch,
-    );
-    const viewDistance = body === "moon"
-      ? MOON_VIEW_DISTANCE_METERS
-      : SUN_VIEW_DISTANCE_METERS;
-    const destination = Cartesian3.add(
-      bodyPosition,
-      Cartesian3.multiplyByScalar(
-        outward,
-        viewDistance,
-        celestialDestinationScratch,
-      ),
-      celestialDestinationScratch,
-    );
-    const offsetReference = Math.abs(Cartesian3.dot(outward, Cartesian3.UNIT_Z)) > 0.92
-      ? Cartesian3.UNIT_Y
-      : Cartesian3.UNIT_Z;
-    const offset = Cartesian3.normalize(
-      Cartesian3.cross(outward, offsetReference, celestialOffsetScratch),
-      celestialOffsetScratch,
-    );
-    Cartesian3.add(
-      destination,
-      Cartesian3.multiplyByScalar(
-        offset,
-        viewDistance * (body === "moon" ? 0.44 : 0.22),
-        celestialOffsetScratch,
-      ),
-      destination,
-    );
-    const direction = Cartesian3.normalize(
-      Cartesian3.subtract(bodyPosition, destination, celestialDirectionScratch),
-      celestialDirectionScratch,
-    );
-    const upReference = Math.abs(Cartesian3.dot(direction, Cartesian3.UNIT_Z)) > 0.92
-      ? Cartesian3.UNIT_Y
-      : Cartesian3.UNIT_Z;
-    const right = Cartesian3.normalize(
-      Cartesian3.cross(direction, upReference, celestialRightScratch),
-      celestialRightScratch,
-    );
-    const up = Cartesian3.normalize(
-      Cartesian3.cross(right, direction, celestialUpScratch),
-      celestialUpScratch,
-    );
-
-    this.camera.flyTo({
-      destination: Cartesian3.clone(destination),
-      duration: immediate || this.reducedMotion
-        ? 0
-        : cameraPresets[body].durationSeconds,
-      easingFunction: EasingFunction.QUADRATIC_IN_OUT,
-      orientation: {
-        direction: Cartesian3.clone(direction),
-        up: Cartesian3.clone(up),
-      },
-    });
+    // A multi-million-kilometre Earth flyTo path crosses unrelated geometry and
+    // invalidates surface tiles. Bind directly to the real body's local frame.
+    this.celestialFrame.begin(body, this.camera, this.clock.currentTime, range);
+    this.alignFocusedTarget();
+    this.scene.requestRender();
   }
+
+  private celestialLayoutKey(): string {
+    const { top, bottom, left, right } = this.defaultCompositionInsets;
+    return `${this.canvas.clientWidth}:${this.canvas.clientHeight}:${top}:${bottom}:${left}:${right}`;
+  }
+
 }
 
 function normalizeInsets(insets: CameraCompositionInsets): CameraCompositionInsets {

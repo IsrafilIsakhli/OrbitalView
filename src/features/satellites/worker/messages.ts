@@ -12,11 +12,19 @@ export type OrbitWorkerRequest =
   | { type: "preview"; index: number | null }
   | { type: "showcase"; indices: number[]; sampleCount?: number }
   | { type: "set-active"; active: boolean }
-  | { type: "set-time-lens"; state: OrbitWorkerTimeLensState | null }
+  | { type: "set-time-lens"; state: OrbitWorkerTimeLensState | null; revision?: number }
   | { type: "dispose" };
 
-export type OrbitWorkerResponse =
+export type OrbitWorkerResponse = { revision?: number } & (
   | { type: "ready"; count: number }
+  | {
+      type: "selected-frame";
+      index: number;
+      positionMeters: [number, number, number] | null;
+      altitudeKm: number;
+      velocityKmPerSecond: number;
+      timestampUnixMs: number;
+    }
   | {
       type: "frame";
       errors: Int8Array;
@@ -46,4 +54,4 @@ export type OrbitWorkerResponse =
         referenceTimestampUnixMs: number;
       }>;
     }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string });

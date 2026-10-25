@@ -45,6 +45,7 @@ export class ScientificCloudLayer implements EarthEngineLayer {
   private presentation: CloudPresentation = "hidden";
   private quality: GraphicsQuality;
   private visible = true;
+  private shellEnabled = true;
 
   constructor(initialQuality: GraphicsQuality) {
     this.quality = initialQuality;
@@ -179,6 +180,12 @@ export class ScientificCloudLayer implements EarthEngineLayer {
     this.applyVisualState();
   }
 
+  setShellEnabled(enabled: boolean): void {
+    if (this.shellEnabled === enabled) return;
+    this.shellEnabled = enabled;
+    this.applyVisualState();
+  }
+
   tick(): void {
     if (!this.context || !this.layer) return;
     const ready = this.shell?.ready === true;
@@ -211,7 +218,7 @@ export class ScientificCloudLayer implements EarthEngineLayer {
 
   private applyVisualState(): void {
     if (!this.layer) return;
-    if (this.visible && qualityProfiles[this.quality].cloudShell) void this.createShell();
+    if (this.visible && this.shellEnabled && qualityProfiles[this.quality].cloudShell) void this.createShell();
     const alpha = CLOUD_ALPHA[this.quality];
     this.layer.dayAlpha = alpha.day;
     this.layer.nightAlpha = alpha.night;
@@ -230,7 +237,7 @@ export class ScientificCloudLayer implements EarthEngineLayer {
     return resolveCloudPresentation(
       this.presentation,
       this.visible,
-      shellReady && this.shellSupported && qualityProfiles[this.quality].cloudShell,
+      shellReady && this.shellSupported && this.shellEnabled && qualityProfiles[this.quality].cloudShell,
       this.context?.scene.camera.positionCartographic.height ?? Number.NaN,
     );
   }

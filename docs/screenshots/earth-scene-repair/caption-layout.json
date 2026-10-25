@@ -1,0 +1,14 @@
+[
+  {
+    "preset": "moon",
+    "captionBottom": 744,
+    "dockTop": 756,
+    "clear": true
+  },
+  {
+    "preset": "sun",
+    "captionBottom": 744,
+    "dockTop": 756,
+    "clear": true
+  }
+]

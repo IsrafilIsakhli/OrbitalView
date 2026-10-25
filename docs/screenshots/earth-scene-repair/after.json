@@ -1,0 +1,390 @@
+{
+  "stage": "after",
+  "environment": "Chromium with real cached CelesTrak; no native WebView FPS acceptance",
+  "errors": [],
+  "quality": [
+    {
+      "requested": "eco",
+      "quality": "eco",
+      "preset": "earth",
+      "resolution": 0.8,
+      "width": 1152,
+      "height": 720,
+      "signals": 4500,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": 4458246.618532648,
+        "y": -27260921.60759961,
+        "z": -4243590.615441669
+      },
+      "earthCenter": {
+        "x": 720.000051290382,
+        "y": 505.5276272107779
+      },
+      "fps": null,
+      "cpuRenderMs": 2.7999999998137355,
+      "renderMode": "on-demand"
+    },
+    {
+      "requested": "balanced",
+      "quality": "balanced",
+      "preset": "earth",
+      "resolution": 1,
+      "width": 1440,
+      "height": 900,
+      "signals": 8500,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": 4458246.618532648,
+        "y": -27260921.60759961,
+        "z": -4243590.615441669
+      },
+      "earthCenter": {
+        "x": 720.000051290382,
+        "y": 505.5276272107779
+      },
+      "fps": null,
+      "cpuRenderMs": 2,
+      "renderMode": "on-demand"
+    },
+    {
+      "requested": "high",
+      "quality": "high",
+      "preset": "earth",
+      "resolution": 1.2,
+      "width": 1728,
+      "height": 1080,
+      "signals": 11000,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": 4458246.618532648,
+        "y": -27260921.60759961,
+        "z": -4243590.615441669
+      },
+      "earthCenter": {
+        "x": 720.000051290382,
+        "y": 505.5276272107779
+      },
+      "fps": null,
+      "cpuRenderMs": 4.2999999998137355,
+      "renderMode": "on-demand"
+    }
+  ],
+  "presets": [
+    {
+      "quality": "high",
+      "preset": "earth",
+      "resolution": 1.2,
+      "width": 1728,
+      "height": 1080,
+      "signals": 11000,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": 4447414.93377715,
+        "y": -27262689.186135914,
+        "z": -4243601.037738598
+      },
+      "earthCenter": {
+        "x": 720.0000512757283,
+        "y": 505.52763327627906
+      },
+      "fps": 28.20306204671534,
+      "cpuRenderMs": 1.5,
+      "renderMode": "on-demand"
+    },
+    {
+      "quality": "high",
+      "preset": "moon",
+      "resolution": 1.2,
+      "width": 1728,
+      "height": 1080,
+      "signals": 11000,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": 202251785.00818416,
+        "y": 287308983.87081164,
+        "z": 91945362.23165153
+      },
+      "fps": 55.012224939000575,
+      "cpuRenderMs": 0.5,
+      "renderMode": "continuous"
+    },
+    {
+      "quality": "high",
+      "preset": "sun",
+      "resolution": 1.2,
+      "width": 1728,
+      "height": 1080,
+      "signals": 11000,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": -68291240975.57556,
+        "y": -124486114083.48947,
+        "z": -31130970024.97385
+      },
+      "fps": 50.722145804668635,
+      "cpuRenderMs": 0.20000000018626451,
+      "renderMode": "continuous"
+    },
+    {
+      "quality": "high",
+      "preset": "leo",
+      "resolution": 1.2,
+      "width": 1728,
+      "height": 1080,
+      "signals": 11000,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": 1314721.1091787836,
+        "y": -8072184.92213392,
+        "z": -899641.9405036748
+      },
+      "earthCenter": {
+        "x": 720.235031910337,
+        "y": 1357.4196606481453
+      },
+      "fps": null,
+      "cpuRenderMs": 2.099999999627471,
+      "renderMode": "on-demand"
+    },
+    {
+      "quality": "high",
+      "preset": "iss",
+      "resolution": 1.2,
+      "width": 1728,
+      "height": 1080,
+      "signals": 11000,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": 1085502.4167602353,
+        "y": -6669452.0558179505,
+        "z": -742479.7039251984
+      },
+      "earthCenter": {
+        "x": 720.5049972232091,
+        "y": 2301.644284893442
+      },
+      "fps": null,
+      "cpuRenderMs": 3.099999999627471,
+      "renderMode": "continuous"
+    },
+    {
+      "quality": "high",
+      "preset": "earth",
+      "resolution": 1.2,
+      "width": 1728,
+      "height": 1080,
+      "signals": 11000,
+      "phase": "degraded",
+      "imagery": "fallback",
+      "terrain": "fallback",
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (Intel)"
+      },
+      "worldPosition": {
+        "x": 4434752.295759943,
+        "y": -27264749.949561216,
+        "z": -4243613.22092382
+      },
+      "earthCenter": {
+        "x": 720.0000512585871,
+        "y": 505.5276403665601
+      },
+      "fps": 43.66812227091995,
+      "cpuRenderMs": 1.2999999998137355,
+      "renderMode": "continuous"
+    }
+  ],
+  "closed": {
+    "quality": "high",
+    "preset": "earth",
+    "resolution": 1.104,
+    "width": 1589,
+    "height": 993,
+    "signals": 11000,
+    "phase": "degraded",
+    "imagery": "fallback",
+    "terrain": "fallback",
+    "gpu": {
+      "antialias": true,
+      "api": "WebGL 2",
+      "maxMsaaSamples": 8,
+      "maxTextureSize": 16384,
+      "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "vendor": "Google Inc. (Intel)"
+    },
+    "worldPosition": {
+      "x": 4434752.295759943,
+      "y": -27264749.949561216,
+      "z": -4243613.22092382
+    },
+    "earthCenter": {
+      "x": 720.000051258587,
+      "y": 505.53463025079554
+    },
+    "fps": 26.1976047904009,
+    "cpuRenderMs": 1.7000000001862645,
+    "renderMode": "continuous"
+  },
+  "selectedCadence": {
+    "bulk": 1,
+    "selected": 8
+  },
+  "celestialWorkerPause": true,
+  "layouts": [
+    {
+      "preset": "Moon",
+      "width": 1440,
+      "overflow": false,
+      "phase": "degraded"
+    },
+    {
+      "preset": "Moon",
+      "width": 768,
+      "overflow": false,
+      "phase": "degraded"
+    },
+    {
+      "preset": "Moon",
+      "width": 390,
+      "overflow": false,
+      "phase": "degraded"
+    },
+    {
+      "preset": "Moon",
+      "width": 320,
+      "overflow": false,
+      "phase": "degraded"
+    },
+    {
+      "preset": "Sun",
+      "width": 1440,
+      "overflow": false,
+      "phase": "degraded"
+    },
+    {
+      "preset": "Sun",
+      "width": 768,
+      "overflow": false,
+      "phase": "degraded"
+    },
+    {
+      "preset": "Sun",
+      "width": 390,
+      "overflow": false,
+      "phase": "degraded"
+    },
+    {
+      "preset": "Sun",
+      "width": 320,
+      "overflow": false,
+      "phase": "degraded"
+    }
+  ],
+  "repeatedClose": {
+    "selected": null,
+    "follow": false,
+    "phase": "degraded"
+  },
+  "longTasks": {
+    "count": 20,
+    "maxMs": 700,
+    "over200ms": [
+      {
+        "duration": 700,
+        "start": 337.70000000018626,
+        "phase": "startup"
+      },
+      {
+        "duration": 202,
+        "start": 2426.4000000003725,
+        "phase": "startup"
+      }
+    ]
+  }
+}

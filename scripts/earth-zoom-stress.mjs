@@ -6,7 +6,7 @@ const { chromium } = await import(pathToFileURL(process.env.ORBITAL_PLAYWRIGHT_M
 const cache = process.env.ORBITAL_CATALOG_CACHE;
 if (!cache) throw new Error('Real CelesTrak cache required');
 const stage = process.argv[2] === 'before' ? 'before' : 'after';
-const output = resolve('docs/screenshots/earth-zoom-stability');
+const output = resolve(process.env.ORBITAL_SMOKE_OUTPUT ?? 'docs/screenshots/earth-zoom-stability');
 await mkdir(output, { recursive: true });
 const [orbital, recent, catalog, recentCatalog] = await Promise.all(['orbital.json','recent-orbital.json','catalog.json','recent-catalog.json'].map(async name => JSON.parse(await readFile(join(cache,name),'utf8'))));
 const unique = records => [...new Map(records.map(record => [String(record.NORAD_CAT_ID),record])).values()];
@@ -54,7 +54,14 @@ try {
   report.trackedProjection=[];
   for(let i=0;i<16;i++) {
     await page.waitForTimeout(160);
-    report.trackedProjection.push(await page.evaluate(()=>window.qa.projectSelected()));
+    // Inspect a presented frame. A worker can publish the next position between
+    // paints; projecting that raw position against the previous camera matrix
+    // measures an unrendered intermediate state rather than visible drift.
+    report.trackedProjection.push(await page.evaluate(()=>new Promise(resolve=>{
+      const scene=window.qa.engine.widget.scene;
+      const remove=scene.postRender.addEventListener(()=>{remove();resolve(window.qa.projectSelected());});
+      scene.requestRender();
+    })));
   }
   for(let i=0;i<12;i++){await page.mouse.wheel(0,700);await page.waitForTimeout(80);}
   await page.waitForTimeout(500);await sample('follow-far');

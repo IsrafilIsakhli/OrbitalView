@@ -75,7 +75,6 @@ export function EarthControls({
           const Icon = direction === "in" ? Add24Regular : Subtract24Regular;
           const label = t(direction === "in" ? "camera.zoomIn" : "camera.zoomOut");
           return <button key={direction} type="button" aria-label={label} title={label}
-            disabled={snapshot.activePreset === "moon" || snapshot.activePreset === "sun"}
             onClick={() => onZoom(direction)}><Icon aria-hidden /></button>;
         })}
       </div>
@@ -85,6 +84,7 @@ export function EarthControls({
         }
         aria-pressed={snapshot.autoRotation}
         className="earth-rotation-button"
+        disabled={snapshot.activePreset === "moon" || snapshot.activePreset === "sun"}
         onClick={onToggleRotation}
         title={snapshot.autoRotation ? t("rotation.pause") : t("rotation.resume")}
         type="button"

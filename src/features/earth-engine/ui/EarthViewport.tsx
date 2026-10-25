@@ -427,9 +427,13 @@ export function EarthViewport({
   }, [reduceMotion]);
 
   const flyTo = useCallback((preset: CameraPresetId) => {
-    satelliteLayerRef.current?.setFollowSelected(false);
+    if (focusTimerRef.current !== null) clearTimeout(focusTimerRef.current);
+    clearRequestedSatellite();
+    clearRequestedLaunch();
+    satelliteLayerRef.current?.selectSatellite(null, false);
+    launchLayerRef.current?.selectLaunch(null, false, false);
     engineRef.current?.flyTo(preset);
-  }, []);
+  }, [clearRequestedLaunch, clearRequestedSatellite]);
 
   const toggleRotation = useCallback(() => {
     engineRef.current?.setAutoRotation(!snapshot.autoRotation);
@@ -593,7 +597,9 @@ export function EarthViewport({
           overlays.push({ bounds: element.getBoundingClientRect(), edge, padding });
         }
       };
-      add(root.querySelector(".earth-overview"), "top");
+      // The compact desktop header sits beside the globe, not across it.
+      // Treating it as a full-width obstruction shrinks Earth unnecessarily.
+      if (bounds.width < 900) add(root.querySelector(".earth-overview"), "top");
       add(root.querySelector(".earth-mission-dock"), "bottom", 28);
       add(root.querySelector(".orbital-time-lens"), "bottom", 24);
       add(document.querySelector(".command-bar"), "top");
@@ -613,7 +619,7 @@ export function EarthViewport({
               launchLayerRef.current?.getSnapshot().selectedId ||
               launchLayerRef.current?.getSnapshot().selectedSiteId,
             );
-            if (!hasActiveFocus) engineRef.current?.returnToDefaultEarth();
+            if (!hasActiveFocus && engineRef.current?.getSnapshot().activePreset === "earth") engineRef.current?.returnToDefaultEarth();
           });
         }
       }
@@ -712,15 +718,15 @@ export function EarthViewport({
         <div className="earth-hud">
           <div className="earth-overview glass-surface">
             <div className="earth-identity__title-row">
-              <h1>{t("title")}</h1>
+              <h1>{snapshot.activePreset === "moon" || snapshot.activePreset === "sun" ? t(`camera.presets.${snapshot.activePreset}.label`) : t("title")}</h1>
               <div className="utc-clock">
                 <span>{t("utc")}</span>
                 <strong>{utc}</strong>
               </div>
             </div>
-            <p className="earth-catalog-count">{t("overview.catalog", {
+            <p className="earth-catalog-count">{snapshot.activePreset === "moon" || snapshot.activePreset === "sun" ? t(`camera.presets.${snapshot.activePreset}.detail`) : t("overview.catalog", {
               amount: formatNumber(satelliteSnapshot.totalCount, i18n.resolvedLanguage),
-            })}</p>
+            })}<span className="earth-quality-indicator" aria-label={t("telemetry.quality")}>{t(`quality.${snapshot.quality}`)}</span></p>
             <details className="earth-scene-details">
               <summary>{t("overview.sceneDetails")}</summary>
               <p>{t("surface.cloudCount")}</p>
@@ -774,7 +780,7 @@ export function EarthViewport({
             </details>
           </div>
 
-          {!selectedSatellite && !selectedLaunch && !isLoading && (
+          {!selectedSatellite && !selectedLaunch && !isLoading && snapshot.activePreset !== "moon" && snapshot.activePreset !== "sun" && (
             <EarthLayerPanel
               open={drawerOpen}
               onOpenChange={setDrawerOpen}

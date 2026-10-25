@@ -41,8 +41,8 @@
     "zoomOut": "Zoom out",
     "groupLabel": "Camera presets",
     "issNotice": "Camera preset — select the live ISS marker to inspect its current position.",
-    "moonNotice": "Real UTC lunar position and NASA LRO surface — camera distance is cinematic.",
-    "sunNotice": "Real UTC solar direction — Sun scale and camera distance are cinematic.",
+    "moonNotice": "NASA LRO surface at the current UTC lunar position, viewed from the sunlit side.",
+    "sunNotice": "Illustrative solar surface at the current UTC ephemeris position; not a live solar image.",
     "presets": {
       "earth": { "label": "Earth", "detail": "Global view" },
       "leo": { "label": "Low Earth Orbit", "detail": "1,850 km" },

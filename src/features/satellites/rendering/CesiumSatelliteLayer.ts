@@ -203,6 +203,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   private timeLensState: OrbitWorkerTimeLensState | null = null;
   private lastHoverAt = 0;
   private lastCameraChangeAt = Number.NEGATIVE_INFINITY;
+  private cameraInMotion = false;
   private hoverOrbitTimer: ReturnType<typeof setTimeout> | null = null;
   private followTarget: Cartesian3 | null = null;
   private readonly followFrame = new FollowCameraFrame();
@@ -210,6 +211,9 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   // Cesium getters expose internal storage. Mutating it before assigning the
   // position bypasses the setter's dirty check and leaves GPU markers frozen.
   private readonly positionScratch = new Cartesian3();
+  private selectedTimestampUnixMs = Number.NEGATIVE_INFINITY;
+  private selectedTimestampIso: string | null = null;
+  private propagationRevision = 0;
 
   getSnapshot = (): SatelliteLayerSnapshot => this.snapshot;
 
@@ -251,14 +255,25 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       (event: { endPosition: Cartesian2 }) => this.handleHover(event.endPosition),
       ScreenSpaceEventType.MOUSE_MOVE,
     );
-    this.cameraChangeListener = context.scene.camera.changed.addEventListener(
-      this.handleCameraChange,
-    );
+    const removers = [
+      context.scene.camera.changed.addEventListener(this.handleCameraChange),
+      context.scene.camera.moveStart.addEventListener(() => {
+        this.cameraInMotion = true;
+        this.clearHover();
+      }),
+      context.scene.camera.moveEnd.addEventListener(() => {
+        this.cameraInMotion = false;
+        this.lastCameraChangeAt = performance.now();
+      }),
+    ];
+    this.cameraChangeListener = () => removers.forEach((remove) => remove());
     this.rebuildSignals();
     if (this.catalog.length > 0) this.startWorker();
   }
 
   setCatalog(catalog: readonly SatelliteRecord[]): void {
+    this.selectedTimestampUnixMs = Number.NEGATIVE_INFINITY;
+    this.selectedTimestampIso = null;
     const previouslySelectedId = this.snapshot.selectedId;
     this.catalog = catalog;
     this.indexById = new Map(catalog.map((satellite, index) => [satellite.id, index]));
@@ -306,6 +321,10 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       ? -1
       : (this.indexById.get(id) ?? -1);
     const selectedId = index >= 0 ? id : null;
+    if (selectedId === this.snapshot.selectedId) return;
+    this.selectedTimestampUnixMs = Number.NEGATIVE_INFINITY;
+    this.selectedTimestampIso = null;
+    this.clearSelectedGeometry();
     if (selectedId !== this.snapshot.selectedId) this.setFollowSelected(false);
     if (selectedId === null) {
       this.setFollowSelected(false);
@@ -315,13 +334,13 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       this.context?.cameraController.beginObjectFocus();
     }
     this.update({ selectedId, selectedOccluded: false, selectedTelemetry: null });
+    if (this.showcaseLines) this.showcaseLines.show = this.visible && this.snapshot.orbitVisible && selectedId === null;
     this.worker?.postMessage({
       index: selectedId === null ? null : index,
       sampleCount: qualityProfiles[this.quality].orbitSampleCount,
       type: "select",
     } satisfies OrbitWorkerRequest);
     this.refreshSelectionVisuals();
-    this.updatePresentationStyles();
     if (selectedId === null && hadSelection && restoreCamera) {
       this.context?.cameraController.returnToDefaultEarth();
     }
@@ -381,7 +400,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   setOrbitVisible(visible: boolean): void {
     this.update({ orbitVisible: visible });
     if (this.orbitLines) this.orbitLines.show = this.visible && visible;
-    if (this.showcaseLines) this.showcaseLines.show = this.visible && visible;
+    if (this.showcaseLines) this.showcaseLines.show = this.visible && visible && this.snapshot.selectedId === null;
     if (this.hoverOrbitLines) this.hoverOrbitLines.show = this.visible && visible;
     if (this.trailLines) this.trailLines.show = this.visible && visible;
     if (this.directionLines) this.directionLines.show = this.visible && visible;
@@ -448,7 +467,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     }
     if (this.trailLines) this.trailLines.show = visible && this.snapshot.orbitVisible;
     if (this.directionLines) this.directionLines.show = visible && this.snapshot.orbitVisible;
-    if (this.showcaseLines) this.showcaseLines.show = visible && this.snapshot.orbitVisible;
+    if (this.showcaseLines) this.showcaseLines.show = visible && this.snapshot.orbitVisible && this.snapshot.selectedId === null;
     if (this.selectionPoints) this.selectionPoints.show = visible;
     this.context?.requestRender();
   }
@@ -460,9 +479,12 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   }
 
   setTimeLensState(state: OrbitWorkerTimeLensState | null): void {
+    this.propagationRevision += 1;
+    this.selectedTimestampUnixMs = Number.NEGATIVE_INFINITY;
+    this.selectedTimestampIso = null;
     this.timeLensState = state;
     this.clearHover();
-    this.worker?.postMessage({ state, type: "set-time-lens" } satisfies OrbitWorkerRequest);
+    this.worker?.postMessage({ state, revision: this.propagationRevision, type: "set-time-lens" } satisfies OrbitWorkerRequest);
     this.requestShowcaseOrbits();
   }
 
@@ -661,12 +683,11 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       active: this.workerActive,
       type: "set-active",
     } satisfies OrbitWorkerRequest);
-    if (this.timeLensState) {
-      worker.postMessage({
-        state: this.timeLensState,
-        type: "set-time-lens",
-      } satisfies OrbitWorkerRequest);
-    }
+    worker.postMessage({
+      state: this.timeLensState,
+      revision: this.propagationRevision,
+      type: "set-time-lens",
+    } satisfies OrbitWorkerRequest);
   }
 
   private stopWorker(): void {
@@ -677,6 +698,12 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   }
 
   private handleWorkerMessage(message: OrbitWorkerResponse): void {
+    if (message.type !== "ready" && message.type !== "error"
+      && (message.revision ?? 0) !== this.propagationRevision) return;
+    if (message.type === "selected-frame") {
+      this.applySelectedFrame(message);
+      return;
+    }
     if (message.type === "error") {
       this.update({ status: "error" });
       return;
@@ -712,6 +739,18 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       );
       return;
     }
+    // A bulk result must not rewind the more recent, independently tracked object.
+    const selectedIndex = this.snapshot.selectedId ? this.indexById.get(this.snapshot.selectedId) : undefined;
+    if (selectedIndex !== undefined && this.latestPositions && this.latestTelemetry && this.latestErrors
+      && message.timestampUnixMs < this.selectedTimestampUnixMs) {
+      const offset = selectedIndex * 3;
+      message.positionsMeters.set(this.latestPositions.subarray(offset, offset + 3), offset);
+      message.errors[selectedIndex] = this.latestErrors[selectedIndex]!;
+      message.telemetry.set(this.latestTelemetry.subarray(selectedIndex * 2, selectedIndex * 2 + 2), selectedIndex * 2);
+    } else if (selectedIndex !== undefined) {
+      this.selectedTimestampUnixMs = message.timestampUnixMs;
+      this.selectedTimestampIso = new Date(message.timestampUnixMs).toISOString();
+    }
     this.latestErrors = message.errors;
     this.latestPositions = message.positionsMeters;
     this.latestTelemetry = message.telemetry;
@@ -721,6 +760,36 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       validCount: message.validCount,
     });
     this.applyFrame();
+  }
+
+  private applySelectedFrame(message: Extract<OrbitWorkerResponse, { type: "selected-frame" }>): void {
+    if (!this.workerActive || this.catalog[message.index]?.id !== this.snapshot.selectedId
+      || !this.latestPositions || !this.latestErrors || !this.latestTelemetry
+      || message.timestampUnixMs < this.selectedTimestampUnixMs) return;
+    this.selectedTimestampUnixMs = message.timestampUnixMs;
+    this.selectedTimestampIso = new Date(message.timestampUnixMs).toISOString();
+    if (!message.positionMeters || !message.positionMeters.every(Number.isFinite)) {
+      this.latestErrors[message.index] = 1;
+      this.setFollowSelected(false);
+      this.update({ selectedTelemetry: null });
+      this.refreshSelectionVisuals();
+      this.context?.requestRender();
+      return;
+    }
+    this.latestPositions.set(message.positionMeters, message.index * 3);
+    this.latestErrors[message.index] = 0;
+    this.latestTelemetry.set([message.altitudeKm, message.velocityKmPerSecond], message.index * 2);
+    const signalIndex = this.renderedIndices.indexOf(message.index);
+    this.applyPositionToPoint(message.index, this.renderedPoints[signalIndex], true);
+    const semanticIndex = this.semanticIndices.indexOf(message.index);
+    this.applyPositionToPoint(message.index, this.semanticPrimitives[semanticIndex], true);
+    const symbol = this.symbolLabels[this.symbolIndices.indexOf(message.index)];
+    if (symbol) symbol.position = Cartesian3.fromArray(message.positionMeters, 0, this.positionScratch);
+    this.refreshSelectionVisuals();
+    if (this.snapshot.followSelected) {
+      this.followTarget = Cartesian3.fromArray(message.positionMeters, 0, this.followTarget ?? new Cartesian3());
+    }
+    this.context?.requestRender();
   }
 
   private applyFrame(): void {
@@ -799,7 +868,14 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     const index = this.indexById.get(selectedId) ?? -1;
     const satellite = this.catalog[index];
     const position = index >= 0 ? this.positionForIndex(index) : null;
-    if (!satellite || !position) return;
+    if (!satellite || !position) {
+      this.labels.show = false;
+      this.selectionPoints.show = false;
+      this.update({ selectedTelemetry: null });
+      return;
+    }
+    this.labels.show = this.visible;
+    this.selectionPoints.show = this.visible;
     if (this.selectionVisualId !== selectedId) {
       this.labels.removeAll();
       this.selectionPoints.removeAll();
@@ -1068,7 +1144,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       });
       rendered += 1;
     }
-    this.showcaseLines.show = this.visible && this.snapshot.orbitVisible;
+    this.showcaseLines.show = this.visible && this.snapshot.orbitVisible && this.snapshot.selectedId === null;
     this.update({ showcaseOrbitCount: rendered });
     this.updateRenderTelemetry();
     this.context?.requestRender();
@@ -1104,6 +1180,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   }
 
   private handleHover(position: Cartesian2): void {
+    if (!this.visible || !this.workerActive || this.cameraInMotion || this.snapshot.selectedId) return;
     const now = performance.now();
     if (now - this.lastCameraChangeAt < HOVER_AFTER_CAMERA_SETTLE_MS) {
       if (this.snapshot.hoveredId !== null) this.clearHover();
@@ -1196,7 +1273,8 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       altitudeKm: this.latestTelemetry[telemetryOffset] ?? Number.NaN,
       latitudeDegrees: cartographic ? cartographic.latitude * (180 / Math.PI) : null,
       longitudeDegrees: cartographic ? cartographic.longitude * (180 / Math.PI) : null,
-      timestampIso: this.snapshot.lastUpdatedAt ?? new Date().toISOString(),
+      timestampIso: this.catalog[index]?.id === this.snapshot.selectedId && this.selectedTimestampIso
+        ? this.selectedTimestampIso : this.snapshot.lastUpdatedAt ?? new Date().toISOString(),
       velocityKmPerSecond: this.latestTelemetry[telemetryOffset + 1] ?? Number.NaN,
     };
   }

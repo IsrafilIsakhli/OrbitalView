@@ -4,7 +4,8 @@ import { EciBaseCalculator } from "@satellite/eci-calculator";
 import { GeodeticPositionCalculator } from "@satellite/geodetic-calculator";
 import { GmstCalculator } from "@satellite/gmst-calculator";
 import { json2satrec } from "@satellite/io";
-import { propagate } from "@satellite/propagation";
+import { gstime, propagate } from "@satellite/propagation";
+import { eciToEcf, eciToGeodetic } from "@satellite/transforms";
 import { createSingleThreadRuntimeFromModule } from "@satellite/runtime";
 import createWasmModule from "@satellite/wasm-module";
 
@@ -36,6 +37,9 @@ type PropagationRuntime = Awaited<ReturnType<typeof createPropagationRuntime>>;
 
 let runtime: PropagationRuntime | null = null;
 let frameTimer: number | null = null;
+let selectedTimer: number | null = null;
+let lastSelectedTimestamp = Number.NEGATIVE_INFINITY;
+let propagationRevision = 0;
 let lastOrbitAt = 0;
 let selectedIndex: number | null = null;
 let selectedOrbitSampleCount = ORBIT_SAMPLE_COUNT;
@@ -53,7 +57,7 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
     if (request.type === "initialize") {
       disposeRuntime();
       runtime = await createPropagationRuntime(request.records);
-      scope.postMessage({ type: "ready", count: request.records.length });
+      publish({ type: "ready", count: request.records.length });
       if (active) scheduleFrame();
       return;
     }
@@ -68,6 +72,8 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
         timeLensAnchorRealMs = Date.now();
       }
       active = request.active;
+      if (!active) cancelSelectedFrame();
+      else scheduleSelectedFrame();
       if (!active && frameTimer !== null) {
         self.clearTimeout(frameTimer);
         frameTimer = null;
@@ -77,6 +83,9 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
       return;
     }
     if (request.type === "set-time-lens") {
+      propagationRevision = request.revision ?? propagationRevision + 1;
+      cancelSelectedFrame();
+      lastSelectedTimestamp = Number.NEGATIVE_INFINITY;
       lastOrbitAt = 0;
       timeLensState = normalizeTimeLensState(request.state);
       timeLensAnchorRealMs = Date.now();
@@ -89,9 +98,12 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
         lastOrbitAt = Date.now();
       }
       if (runtime && active) scheduleFrame();
+      scheduleSelectedFrame();
       return;
     }
     if (request.type === "select") {
+      cancelSelectedFrame();
+      lastSelectedTimestamp = Number.NEGATIVE_INFINITY;
       selectedIndex = request.index;
       selectedOrbitSampleCount = normalizeSampleCount(request.sampleCount);
       lastOrbitAt = 0;
@@ -99,6 +111,7 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
         calculateOrbit(runtime, request.index, selectedOrbitSampleCount);
         lastOrbitAt = Date.now();
       }
+      scheduleSelectedFrame();
       return;
     }
     if (request.type === "preview") {
@@ -122,7 +135,7 @@ async function handleRequest(request: OrbitWorkerRequest): Promise<void> {
     disposeRuntime();
     close();
   } catch (error) {
-    scope.postMessage({
+    publish({
       type: "error",
       message: error instanceof Error ? error.message : String(error),
     });
@@ -153,6 +166,39 @@ async function createPropagationRuntime(records: Parameters<typeof json2satrec>[
 function scheduleFrame(): void {
   // Yield to pending pause/time/selection messages instead of propagating once per resume.
   if (frameTimer === null) frameTimer = self.setTimeout(runFrame, 16);
+}
+
+function cancelSelectedFrame(): void {
+  if (selectedTimer !== null) self.clearTimeout(selectedTimer);
+  selectedTimer = null;
+}
+
+function scheduleSelectedFrame(): void {
+  if (active && runtime && selectedIndex !== null && selectedTimer === null) {
+    selectedTimer = self.setTimeout(runSelectedFrame, 200);
+  }
+}
+
+/** Track one object at 5 Hz without propagating/re-uploading the whole catalog. */
+function runSelectedFrame(): void {
+  selectedTimer = null;
+  const satrec = selectedIndex === null ? null : runtime?.satRecs[selectedIndex];
+  if (!active || !satrec || selectedIndex === null) return;
+  const timestampUnixMs = currentPropagationTime();
+  if (timestampUnixMs !== lastSelectedTimestamp) {
+    lastSelectedTimestamp = timestampUnixMs;
+    const date = new Date(timestampUnixMs);
+    const state = propagate(satrec, date, { communityDecayCheckEnabled: true });
+    const gmst = gstime(date);
+    const fixed = state ? eciToEcf(state.position, gmst) : null;
+    publish({
+      type: "selected-frame", index: selectedIndex, timestampUnixMs,
+      positionMeters: fixed ? [fixed.x * 1_000, fixed.y * 1_000, fixed.z * 1_000] : null,
+      altitudeKm: state ? eciToGeodetic(state.position, gmst).height : Number.NaN,
+      velocityKmPerSecond: state ? Math.hypot(state.velocity.x, state.velocity.y, state.velocity.z) : Number.NaN,
+    });
+  }
+  scheduleSelectedFrame();
 }
 
 function runFrame(): void {
@@ -195,7 +241,7 @@ function runFrame(): void {
     );
   }
 
-  scope.postMessage(
+  publish(
     {
       errors,
       positionsMeters,
@@ -221,7 +267,7 @@ function calculateOrbit(
 ): void {
   const geometry = propagateOrbit(current, index, sampleCount);
   if (!geometry) return;
-  scope.postMessage(
+  publish(
     {
       groundTrackPositionsMeters: geometry.groundTrackPositionsMeters,
       index,
@@ -251,7 +297,7 @@ function calculateShowcaseOrbits(
         }]
       : [];
   });
-  scope.postMessage(
+  publish(
     { orbits, type: "showcase-orbits" },
     orbits.map((orbit) => orbit.orbitPositionsMeters.buffer),
   );
@@ -265,7 +311,7 @@ function calculatePreviewOrbit(current: PropagationRuntime, index: number): void
     PREVIEW_ORBIT_FRACTION,
   );
   if (!geometry) return;
-  scope.postMessage(
+  publish(
     {
       index,
       orbitPositionsMeters: geometry.orbitPositionsMeters,
@@ -336,6 +382,7 @@ function currentPropagationTime(): number {
 }
 
 function disposeRuntime(): void {
+  cancelSelectedFrame();
   pendingShowcase = null;
   if (frameTimer !== null) {
     self.clearTimeout(frameTimer);
@@ -344,4 +391,8 @@ function disposeRuntime(): void {
   runtime?.propagator.dispose();
   runtime?.wasmRuntime.dispose();
   runtime = null;
+}
+
+function publish(message: OrbitWorkerResponse, transfer?: Transferable[]): void {
+  scope.postMessage({ ...message, revision: propagationRevision }, transfer);
 }

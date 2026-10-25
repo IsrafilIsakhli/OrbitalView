@@ -93,7 +93,7 @@ describe("Earth 0.2 runtime contracts", () => {
     expect(sample).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
-  it("lets Eco recover at its own 45 FPS ceiling", () => {
+  it("supports recovery and hysteresis at a caller-supplied non-60 FPS ceiling", () => {
     const controller = new AdaptiveQualityController("eco", "high");
     for (let i = 0; i < 19; i++) expect(controller.sample(45, false, 45, i * 1000)).toBeNull();
     expect(controller.sample(45, false, 45, 20_000)).toBe("balanced");
@@ -112,7 +112,9 @@ describe("Earth 0.2 runtime contracts", () => {
   });
   it("retains detailed tiles across zoom with polar hysteresis and bounded retries", () => {
     expect(shouldUseDetailedTerrain(false, 8_100_000, 40)).toBe(false);
-    expect(shouldUseDetailedTerrain(false, 6_400_000, 40)).toBe(true);
+    expect(shouldUseDetailedTerrain(false, 6_400_000, 40)).toBe(false);
+    expect(shouldUseDetailedTerrain(false, 420_000, 40)).toBe(false);
+    expect(shouldUseDetailedTerrain(false, 100_000, 40)).toBe(true);
     expect(shouldUseDetailedTerrain(true, 6_900_000, 40)).toBe(true);
     expect(shouldUseDetailedTerrain(true, 8_100_000, 40)).toBe(true);
     expect(shouldUseDetailedTerrain(true, 100_000_000, 40)).toBe(true);

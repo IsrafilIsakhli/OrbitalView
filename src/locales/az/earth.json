@@ -41,8 +41,8 @@
     "zoomOut": "Uzaqlaşdır",
     "groupLabel": "Kamera görünüşləri",
     "issNotice": "Kamera görünüşü — cari mövqeni yoxlamaq üçün canlı ISS markerini seçin.",
-    "moonNotice": "Real UTC Ay mövqeyi və NASA LRO səthi — kamera məsafəsi kinematikdir.",
-    "sunNotice": "Real UTC Günəş istiqaməti — Günəş miqyası və kamera məsafəsi kinematikdir.",
+    "moonNotice": "Cari UTC Ay mövqeyində NASA LRO səthi, işıqlı tərəfdən görünüş.",
+    "sunNotice": "Cari UTC mövqeyində Günəş səthinin illüstrativ modeli; canlı Günəş görüntüsü deyil.",
     "presets": {
       "earth": { "label": "Yer", "detail": "Qlobal görünüş" },
       "leo": { "label": "Aşağı Yer orbiti", "detail": "1 850 km" },

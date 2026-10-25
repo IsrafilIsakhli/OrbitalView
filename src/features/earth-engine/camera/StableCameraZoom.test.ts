@@ -20,6 +20,20 @@ function setup(tracked = false) {
 }
 
 describe("Bounded Earth zoom",()=>{
+  it("zooms around a celestial body's own surface and reverses at both bounds", () => {
+    const { camera, zoom, settle } = setup(true);
+    const radius = 1_737_400;
+    Cartesian3.normalize(camera.position, camera.position);
+    Cartesian3.multiplyByScalar(camera.position, radius * 3, camera.position);
+    zoom.setCelestialRadius(radius);
+    for (let i = 0; i < 30; i++) { zoom.zoom("in"); settle(); }
+    expect(Cartesian3.magnitude(camera.position)).toBeGreaterThanOrEqual(radius * 1.12 - 0.01);
+    zoom.zoom("out"); settle();
+    expect(Cartesian3.magnitude(camera.position)).toBeGreaterThan(radius * 1.12);
+    for (let i = 0; i < 30; i++) { zoom.zoom("out"); settle(); }
+    expect(Cartesian3.magnitude(camera.position)).toBeLessThanOrEqual(radius * 30 + 0.01);
+    zoom.dispose();
+  });
   it("normalizes wheel units and caps both directions symmetrically",()=>{
     expect(wheelZoomImpulse(1,1,900)).toBe(wheelZoomImpulse(16,0,900));
     for(const delta of [120,1200,1e9])expect(wheelZoomImpulse(delta,0,900)).toBe(-wheelZoomImpulse(-delta,0,900));

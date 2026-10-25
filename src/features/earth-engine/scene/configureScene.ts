@@ -1,8 +1,9 @@
 import { Color, SunLight, type CesiumWidget } from "cesium";
+import { createStarSkyBox } from "./starSkyBox";
 
 const NASA_LROC_MOON_TEXTURE = "/assets/celestial/nasa-lroc-moon-2k.jpg";
 
-export function configureScene(widget: CesiumWidget): void {
+export function configureScene(widget: CesiumWidget, starCount = 128): void {
   const { scene } = widget;
   const { globe } = scene;
 
@@ -18,9 +19,8 @@ export function configureScene(widget: CesiumWidget): void {
   scene.light = new SunLight({ intensity: 1.05 });
   globe.show = true;
 
-  if (scene.skyBox) {
-    scene.skyBox.show = true;
-  }
+  scene.skyBox?.destroy();
+  scene.skyBox = createStarSkyBox(starCount);
   if (scene.skyAtmosphere) {
     scene.skyAtmosphere.show = true;
     scene.skyAtmosphere.atmosphereLightIntensity = 8.5;
@@ -31,7 +31,7 @@ export function configureScene(widget: CesiumWidget): void {
   }
   if (scene.sun) {
     scene.sun.show = true;
-    scene.sun.glowFactor = 0.72;
+    scene.sun.glowFactor = 0.12;
   }
   if (scene.moon) {
     scene.moon.show = true;

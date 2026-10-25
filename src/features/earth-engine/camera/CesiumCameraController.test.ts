@@ -54,6 +54,19 @@ function createController() {
 }
 
 describe("Earth camera composition", () => {
+  it("composes overlays with the frustum while keeping the camera pointed at Earth's centre", () => {
+    const { controller, cameraMocks } = createController();
+    controller.setCompositionInsets({ left: 12, right: 420, top: 12, bottom: 118 });
+    controller.setDefaultCompositionInsets({ left: 12, right: 12, top: 12, bottom: 118 });
+    controller.flyTo("earth", true);
+    const flight = cameraMocks.flyTo.mock.calls[0]![0];
+    const direction = (flight.orientation as { direction: Cartesian3 }).direction;
+    const toCenter = Cartesian3.normalize(Cartesian3.negate(flight.destination as Cartesian3, new Cartesian3()), new Cartesian3());
+    expect(Cartesian3.dot(direction, toCenter)).toBeCloseTo(1, 12);
+    expect(cameraMocks.moveUp).not.toHaveBeenCalled();
+    expect(cameraMocks.moveRight).not.toHaveBeenCalled();
+    controller.dispose();
+  });
   it("keeps a finite cinematic range across target viewport sizes", () => {
     for (const height of [568, 680, 900, 1_080, 1_440, 2_160]) {
       const range = earthRangeForComposition(

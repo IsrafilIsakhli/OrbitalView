@@ -15,6 +15,7 @@ export function wheelZoomImpulse(delta: number, mode: number, height: number): n
 export class StableCameraZoom {
   private remaining = 0;
   private enabled = true;
+  private celestialBounds: { minimum: number; maximum: number } | null = null;
   private readonly anchor = new Cartesian3();
   private readonly candidate = new Cartesian3();
   private readonly start = new Cartesian3();
@@ -37,6 +38,11 @@ export class StableCameraZoom {
   get moving(): boolean { return this.remaining !== 0; }
   cancel(): void { this.remaining = 0; }
 
+  setCelestialRadius(radius: number | null): void {
+    this.cancel();
+    this.celestialBounds = radius === null ? null : { minimum: radius * 1.12, maximum: radius * 30 };
+  }
+
   zoom(direction: "in" | "out"): void {
     if (!this.enabled) return;
     this.queue(direction === "in" ? -0.3 : 0.3, this.canvas.clientWidth / 2, this.canvas.clientHeight / 2);
@@ -52,6 +58,10 @@ export class StableCameraZoom {
     Cartesian3.clone(this.camera.position, this.start);
     Cartesian3.lerp(anchor, this.start, Math.exp(impulse), this.candidate);
     const valid = (position: Cartesian3): boolean => {
+      if (this.celestialBounds) {
+        const range = Cartesian3.magnitude(position);
+        return Number.isFinite(range) && range >= this.celestialBounds.minimum && range <= this.celestialBounds.maximum;
+      }
       const world = tracked ? Matrix4.multiplyByPoint(this.camera.transform, position, this.world) : position;
       const surface = Ellipsoid.WGS84.cartesianToCartographic(world, this.surface);
       if (!surface || !Number.isFinite(surface.height)) return false;

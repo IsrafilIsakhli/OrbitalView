@@ -16,6 +16,28 @@ function createLayer(id: string, slot: EarthEngineLayer["slot"] = "satellite") {
 }
 
 describe("EarthLayerRegistry", () => {
+  it("suspends Earth layers for celestial views and restores each user's visibility", async () => {
+    const registry = new EarthLayerRegistry({ requestRender: vi.fn() } as unknown as EarthLayerContext);
+    const satellites = { ...createLayer("satellites"), setActive: vi.fn() };
+    const launches = { ...createLayer("launches", "launch"), setActive: vi.fn() };
+    await registry.register(satellites);
+    await registry.register(launches);
+    await registry.mount();
+    registry.setSlotVisible("launch", false);
+    registry.setSceneVisible(false);
+    registry.tick(0.016);
+    expect(satellites.setActive).toHaveBeenLastCalledWith(false);
+    expect(satellites.tick).not.toHaveBeenCalled();
+    registry.setActive(false);
+    registry.setSceneVisible(true);
+    expect(satellites.setActive).toHaveBeenLastCalledWith(false);
+    expect(satellites.setVisible).toHaveBeenLastCalledWith(true);
+    expect(launches.setVisible).toHaveBeenLastCalledWith(false);
+    registry.setActive(true);
+    registry.tick(0.016);
+    expect(satellites.tick).toHaveBeenCalledOnce();
+    registry.dispose();
+  });
   it("mounts registered layers and releases them deterministically", async () => {
     const context = {
       requestRender: vi.fn(),

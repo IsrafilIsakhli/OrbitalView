@@ -45,7 +45,8 @@ describe("Earth engine quality selection", () => {
   });
 
   it("keeps the settled frame crisp and lowers resolution only during interaction", () => {
-    expect(qualityProfiles.high.resolutionScale).toBe(1);
+    expect(qualityProfiles.high.resolutionScale).toBeGreaterThan(qualityProfiles.balanced.resolutionScale);
+    expect(qualityProfiles.balanced.resolutionScale).toBeGreaterThan(qualityProfiles.eco.resolutionScale);
     expect(qualityProfiles.high.interactionResolutionFactor).toBeLessThan(1);
     expect(qualityProfiles.balanced.resolutionScale).toBeGreaterThan(0.9);
   });

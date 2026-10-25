@@ -23,7 +23,7 @@ export const cameraPresets: Record<CameraPresetId, CameraPresetDefinition> = {
   leo: {
     durationSeconds: 2.35,
     headingDegrees: 12,
-    heightMeters: 1_450_000,
+    heightMeters: 1_850_000,
     latitudeDegrees: 20,
     longitudeDegrees: 12,
     pitchDegrees: -54,
@@ -31,7 +31,7 @@ export const cameraPresets: Record<CameraPresetId, CameraPresetDefinition> = {
   iss: {
     durationSeconds: 2.5,
     headingDegrees: 18,
-    heightMeters: 360_000,
+    heightMeters: 420_000,
     latitudeDegrees: 12,
     longitudeDegrees: -12,
     pitchDegrees: -34,

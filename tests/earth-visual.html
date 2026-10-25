@@ -22,14 +22,11 @@ const catalog = createSatelliteCatalog(raw.orbital, raw.catalog, raw.metadata);
 const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 client.setQueryData(['satellites', 'celestrak', 'active'], catalog);
 await i18n.changeLanguage(params.get('locale') || 'en');
-usePreferencesStore.setState({ reduceMotion: true, graphicsQuality: 'high', earthLayerDrawerOpen: false });
+usePreferencesStore.setState({ reduceMotion: params.get('motion') !== 'on', graphicsQuality: params.get('quality') || 'high', earthLayerDrawerOpen: false });
 const initialize = CesiumEarthEngine.prototype.initialize;
 CesiumEarthEngine.prototype.initialize = async function () {
   await initialize.call(this);
   window.qa.engine = this;
-  // Exercise the high-profile shader even on CI software renderers. GPU identity
-  // is retained in the report; this is not an assertion about native FPS.
-  if (params.get('quality') === 'high') this.applyQuality('high');
 };
 const root = createRoot(document.getElementById('root'));
 const render = (active) => root.render(React.createElement(QueryClientProvider, { client }, React.createElement(EarthViewport, { active })));

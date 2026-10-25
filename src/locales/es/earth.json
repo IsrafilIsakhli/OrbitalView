@@ -41,8 +41,8 @@
     "zoomOut": "Alejar",
     "groupLabel": "Vistas de cámara",
     "issNotice": "Vista de cámara — selecciona el marcador de la EEI para ver su posición actual.",
-    "moonNotice": "Posición lunar UTC real y superficie NASA LRO — la distancia de cámara es cinematográfica.",
-    "sunNotice": "Dirección solar UTC real — la escala y distancia de cámara son cinematográficas.",
+    "moonNotice": "Superficie NASA LRO en la posición lunar UTC actual, vista desde el lado iluminado.",
+    "sunNotice": "Modelo ilustrativo de la superficie solar en su posición UTC actual; no es una imagen en directo.",
     "presets": {
       "earth": { "label": "Tierra", "detail": "Vista global" },
       "leo": { "label": "Órbita terrestre baja", "detail": "1.850 km" },
