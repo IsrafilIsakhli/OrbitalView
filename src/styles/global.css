@@ -3607,13 +3607,13 @@ dialog::backdrop {
 .launch-detail-visual > div > span { color: var(--color-success); font-size: 9px; font-weight: 700; letter-spacing: .16em; }
 .launch-detail-visual h1 { margin: 8px 0; font-size: 34px; line-height: 1.08; }
 .launch-detail-visual p { max-width: 760px; margin: 0; color: rgba(224,235,247,.74); line-height: 1.55; }
-.launch-detail-facts { grid-row: span 2; padding: 20px; }
+.launch-detail-facts { align-self: start; padding: 20px; }
 .launch-detail-facts h3,
 .launch-detail-payloads h3 { margin: 0 0 16px; font-size: 15px; }
 .launch-detail-facts dl { display: grid; gap: 12px; margin: 0; }
 .launch-detail-facts dl div { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 11px; border-bottom: 1px solid rgba(164,201,238,.08); }
 .launch-detail-facts dt { color: var(--color-text-tertiary); font-size: 10px; }
-.launch-detail-facts dd { margin: 0; color: var(--color-text-secondary); font-size: 11px; text-align: right; }
+.launch-detail-facts dd { max-width: 68%; margin: 0; color: var(--color-text-secondary); font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; text-align: right; }
 .launch-detail-time,
 .launch-detail-payloads { padding: 18px 20px; }
 .launch-detail-time { display: grid; gap: 7px; }

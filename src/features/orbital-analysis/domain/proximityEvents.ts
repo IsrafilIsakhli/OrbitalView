@@ -14,3 +14,32 @@ export function deduplicateProximityEvents(events: readonly ProximityEvent[], pr
   }
   return result.sort((a, b) => a.missDistanceKm - b.missDistanceKm || a.tcaUnixMs - b.tcaUnixMs);
 }
+
+export interface ProximityEventSummary {
+  event: ProximityEvent;
+  occurrenceCount: number;
+}
+
+/**
+ * Keep the complete scientific result in the envelope/export while presenting
+ * one nearest approach per secondary object in the operator queue.
+ */
+export function nearestEventPerSecondary(
+  events: readonly ProximityEvent[],
+): ProximityEventSummary[] {
+  const summaries = new Map<string, ProximityEventSummary>();
+  for (const event of events) {
+    const current = summaries.get(event.secondaryId);
+    if (!current) {
+      summaries.set(event.secondaryId, { event, occurrenceCount: 1 });
+      continue;
+    }
+    current.occurrenceCount += 1;
+    if (
+      event.missDistanceKm < current.event.missDistanceKm ||
+      (event.missDistanceKm === current.event.missDistanceKm &&
+        event.tcaUnixMs < current.event.tcaUnixMs)
+    ) current.event = event;
+  }
+  return [...summaries.values()];
+}

@@ -57,7 +57,8 @@
     "current": "Catálogo actual",
     "noResult": "Ejecuta el análisis para generar resultados",
     "cancelled": "Análisis cancelado",
-    "saved": "Exportación guardada"
+    "saved": "Exportación guardada",
+    "exportCancelled": "Exportación cancelada"
   },
   "progress": {
     "passDetection": "Detectando ventanas de acceso",
@@ -108,7 +109,9 @@
     "orbitalElementsDescription": "Los elementos del proveedor permanecen separados de la geometría derivada",
     "timeline": "Telemetría orbital sincronizada",
     "timelineDescription": "Recorre cualquier gráfico para inspeccionar el mismo instante en todas las salidas",
-    "sampleTable": "Datos de muestra accesibles"
+    "sampleTable": "Datos de muestra accesibles",
+    "earthRadius": "Radio terrestre",
+    "radiusDescription": "Esquema del plano orbital. La línea discontinua mide la distancia al centro terrestre; la altitud se mide desde la superficie."
   },
   "station": {
     "profiles": "Estaciones locales",
@@ -132,6 +135,7 @@
     "tca": "TCA",
     "duration": "Duración",
     "maximumElevation": "Elevación máxima",
+    "elevation": "Elevación",
     "range": "Distancia mínima",
     "radialVelocity": "Velocidad radial",
     "doppler": "Corrección Doppler",
@@ -175,6 +179,7 @@
     "maximum": "Máximo",
     "points": "Objetos mostrados",
     "scatter": "Distribución altitud–inclinación",
+    "logScale": "El eje de altitud es logarítmico para conservar todo el rango orbital.",
     "raan": "Distribución de planos RAAN",
     "composition": "Composición del catálogo",
     "outputTitle": "Resultado geométrico",

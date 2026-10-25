@@ -36,6 +36,9 @@
   "orbitLegend": { "eyebrow": "SSA QAT İDARƏSİ", "title": "CANLI ORBİT QATLARI", "subtitle": "Real kataloq obyektlərini koordinatlarını dəyişmədən araşdırın.", "overview": "Ümumi görünüş", "signals": "siqnal", "semantic": "marker", "satellites": "Peyklər", "launchSites": "Buraxılış məntəqələri", "visible": "{{count}} görünür · kataloqda {{total}}", "orbits": "{{count}} real orbit yolu", "rockets": "{{count}} yeni raket gövdəsi", "renderDetails": "Göstərilən detallar", "openLayers": "Qatlar", "closeLayers": "Qatları bağla", "sceneOverlays": "Səhnə qatları", "groups": { "orbitalNetworks": "Orbital şəbəkələr", "scienceObservation": "Elm və müşahidə", "vehiclesEnvironment": "Aparatlar və mühit" }, "visibilityState": { "visible": "görünür", "hidden": "gizlidir" }, "focusCategory": "{{category}} fokusla, {{count}} real obyekt", "categoryVisibility": "{{category}}, {{count}} obyekt, hazırda {{visibility}}" },
   "context": { "title": "Prioritet canlı obyektlər", "station": "CANLI STANSİYA", "nextLaunch": "NÖVBƏTİ BURAXILIŞ", "norad": "NORAD {{id}}" },
   "camera": {
+    "zoomLabel": "Zoom idarəsi",
+    "zoomIn": "Yaxınlaşdır",
+    "zoomOut": "Uzaqlaşdır",
     "groupLabel": "Kamera görünüşləri",
     "issNotice": "Kamera görünüşü — cari mövqeni yoxlamaq üçün canlı ISS markerini seçin.",
     "moonNotice": "Real UTC Ay mövqeyi və NASA LRO səthi — kamera məsafəsi kinematikdir.",

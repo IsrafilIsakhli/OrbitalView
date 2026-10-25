@@ -1,3 +1,5 @@
+import "@/styles/workspaces/missions.css";
+
 import {
   CalendarClock24Regular,
   Globe24Regular,

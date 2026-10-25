@@ -11,7 +11,7 @@ use crate::{
     services::analysis_service::AnalysisService,
 };
 
-const MAX_EXPORT_BYTES: usize = 16 * 1024 * 1024;
+const MAX_EXPORT_BYTES: usize = 64 * 1024 * 1024;
 
 #[tauri::command]
 pub async fn analysis_ground_stations(
@@ -63,7 +63,7 @@ pub async fn export_orbital_analysis(
     if request.content.len() > MAX_EXPORT_BYTES {
         return Err(AnalysisError::new(
             "analysis_export_too_large",
-            "Analysis export exceeds the 16 MB limit",
+            "Analysis export exceeds the 64 MB limit",
         ));
     }
     if matches!(
@@ -98,7 +98,12 @@ pub async fn export_orbital_analysis(
         let path = selected.into_path().map_err(|_| {
             AnalysisError::new("invalid_export_path", "The selected export path is invalid")
         })?;
-        write_export(&path, content.as_bytes())?;
+        let path = ensure_export_extension(path, extension);
+        let bytes = match extension {
+            "csv" => format!("\u{feff}{content}").into_bytes(),
+            _ => content.into_bytes(),
+        };
+        write_export(&path, &bytes)?;
         Ok(AnalysisExportResult {
             saved: true,
             path: Some(path.to_string_lossy().into_owned()),
@@ -106,6 +111,17 @@ pub async fn export_orbital_analysis(
     })
     .await
     .map_err(|_| AnalysisError::new("analysis_task_failed", "Analysis export task failed"))?
+}
+
+fn ensure_export_extension(mut path: PathBuf, extension: &str) -> PathBuf {
+    if path
+        .extension()
+        .and_then(|value| value.to_str())
+        .is_none_or(|value| !value.eq_ignore_ascii_case(extension))
+    {
+        path.set_extension(extension);
+    }
+    path
 }
 
 fn sanitize_file_name(value: &str, extension: &str) -> String {
@@ -150,7 +166,9 @@ fn write_export(path: &PathBuf, content: &[u8]) -> Result<(), AnalysisError> {
 
 #[cfg(test)]
 mod tests {
-    use super::sanitize_file_name;
+    use std::path::PathBuf;
+
+    use super::{ensure_export_extension, sanitize_file_name};
 
     #[test]
     fn export_file_name_is_sanitized_and_extended() {
@@ -159,5 +177,17 @@ mod tests {
             "ISS dynamics.csv"
         );
         assert_eq!(sanitize_file_name("", "json"), "orbital-analysis.json");
+    }
+
+    #[test]
+    fn export_path_always_uses_the_requested_format() {
+        assert_eq!(
+            ensure_export_extension(PathBuf::from("analysis"), "csv"),
+            PathBuf::from("analysis.csv")
+        );
+        assert_eq!(
+            ensure_export_extension(PathBuf::from("analysis.txt"), "json"),
+            PathBuf::from("analysis.json")
+        );
     }
 }

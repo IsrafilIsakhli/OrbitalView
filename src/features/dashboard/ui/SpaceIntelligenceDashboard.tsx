@@ -1,3 +1,5 @@
+import "@/styles/workspaces/dashboard.css";
+
 import {
   ArrowRight20Regular,
   CloudArrowDown24Regular,
@@ -22,6 +24,8 @@ import { RemoteMediaImage } from "@/shared/ui/RemoteMediaImage";
 
 import { useDashboardComposition } from "../api/useDashboardComposition";
 import {
+  dashboardLaunchSupportingLabel,
+  dashboardMissionName,
   displayableNoaaText,
   recentOperationalAlerts,
   summarizeDashboardCatalog,
@@ -78,6 +82,9 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
   const latestItems = data.news.data?.items ?? [];
   const newsItems = relatedItems.length > 0 ? relatedItems : latestItems;
   const missionFocus = activeLaunch ?? nextLaunch;
+  const launchSupportingLabel = nextLaunch
+    ? dashboardLaunchSupportingLabel(nextLaunch)
+    : null;
 
   const weatherTemperature = forecast?.temperatureCelsius === null || forecast?.temperatureCelsius === undefined
     ? t("dashboard:states.unknown")
@@ -136,7 +143,7 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
               <div className="command-module__hero-copy">
                 <span>{t(`launches:status.${launchStatusKey(nextLaunch.statusId)}`)}</span>
                 <h2>{nextLaunch.name}</h2>
-                <p>{nextLaunch.missionName ?? nextLaunch.rocketName ?? t("dashboard:states.unknown")}</p>
+                {launchSupportingLabel && <p>{launchSupportingLabel}</p>}
               </div>
               {countdown && (
                 <div className="command-countdown" data-phase={countdown.phase}>
@@ -194,7 +201,7 @@ export function SpaceIntelligenceDashboard(props: SpaceIntelligenceDashboardProp
           {missionFocus ? (
             <div className="mission-focus">
               <small>{activeLaunch ? t("dashboard:labels.activeMission") : t("dashboard:labels.nextMission")}</small>
-              <strong>{missionFocus.missionName ?? missionFocus.name}</strong>
+              <strong>{dashboardMissionName(missionFocus)}</strong>
               <span>{missionFocus.rocketName ?? missionFocus.agencyName ?? t("dashboard:states.unknown")}</span>
               {!activeLaunch && <time>{operationalDate(missionFocus.net, locale)}</time>}
             </div>

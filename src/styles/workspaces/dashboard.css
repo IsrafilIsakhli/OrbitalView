@@ -5,6 +5,7 @@
   padding: 82px clamp(18px, 2vw, 34px) 34px;
   overflow-x: hidden;
   overflow-y: auto;
+  scroll-padding-top: 76px;
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
@@ -40,7 +41,7 @@
 .command-dashboard__header {
   display: flex;
   max-width: 1720px;
-  margin: 0 auto 22px;
+  margin: 0 auto 20px;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
@@ -110,6 +111,16 @@
     var(--surface-mica);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(24px) saturate(1.08);
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.command-module:hover {
+  border-color: rgba(139, 197, 239, 0.18);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.24);
+}
+
+.command-module:focus-within {
+  border-color: rgba(121, 230, 255, 0.22);
 }
 
 .command-module::after {
@@ -123,15 +134,15 @@
 
 .command-module--launch {
   grid-area: launch;
-  min-height: 500px;
+  min-height: 470px;
   background:
     radial-gradient(circle at 82% 18%, rgba(255, 184, 92, 0.13), transparent 34%),
     radial-gradient(circle at 13% 86%, rgba(46, 158, 255, 0.08), transparent 34%),
     linear-gradient(145deg, rgba(17, 29, 45, 0.97), rgba(8, 14, 23, 0.91));
 }
 
-.command-module--mission { grid-area: mission; }
-.command-module--weather { grid-area: weather; }
+.command-module--mission { grid-area: mission; min-height: 218px; }
+.command-module--weather { grid-area: weather; min-height: 272px; }
 .command-module--satellites { grid-area: satellites; }
 .command-module--news { grid-area: news; }
 
@@ -249,6 +260,7 @@
   font-size: clamp(28px, 2.5vw, 46px);
   line-height: 1.04;
   letter-spacing: -0.035em;
+  text-wrap: balance;
 }
 
 .command-module__hero-copy p,
@@ -371,6 +383,7 @@
   overflow: hidden;
   font-size: 11px;
   text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
 .module-link,
@@ -511,7 +524,7 @@
 .space-weather-scales > span {
   display: grid;
   min-width: 0;
-  min-height: 62px;
+  min-height: 56px;
   padding: 8px;
   place-items: center;
   align-content: center;
@@ -543,6 +556,23 @@
   margin-top: 8px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+}
+
+.command-module--weather .command-module__header,
+.command-module--mission .command-module__header {
+  margin-bottom: 14px;
+}
+
+.command-module--weather .command-module__body {
+  display: -webkit-box;
+  margin: 10px 0 5px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.command-module--weather > time {
+  line-height: 1.4;
 }
 
 .dashboard-news-rows {
@@ -596,7 +626,19 @@
       "satellites news";
   }
 
-  .command-module--launch { min-height: 480px; }
+  .command-module--launch { min-height: 450px; }
+}
+
+@media (min-width: 1440px) and (max-height: 900px) {
+  .command-dashboard { padding-top: 76px; }
+  .command-dashboard__header { margin-bottom: 14px; }
+  .command-dashboard__header h1 { margin-block: 2px 5px; font-size: 34px; }
+  .command-module { padding: 17px; }
+  .command-module--launch { min-height: 430px; }
+  .command-module__hero-copy { margin-block: 8px 14px; }
+  .command-module__hero-copy h2 { font-size: clamp(27px, 2.15vw, 39px); }
+  .command-countdown__cells > span { min-height: 58px; }
+  .command-module__facts { margin-block: 10px; }
 }
 
 @media (max-width: 900px) {

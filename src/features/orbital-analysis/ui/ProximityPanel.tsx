@@ -6,6 +6,7 @@ import { usePreferencesStore } from "@/features/settings/model/preferences";
 import { formatDateTime, formatNumber } from "@/shared/i18n/formatters";
 
 import type { AnalysisEnvelope, ProximityResult } from "../domain/analysis";
+import { nearestEventPerSecondary } from "../domain/proximityEvents";
 import { AnalysisMetric, AnalysisRunSummary, AnalysisSectionHeading } from "./AnalysisOutput";
 import { AnalysisWarnings } from "./AnalysisWarnings";
 
@@ -25,12 +26,16 @@ export function ProximityPanel({ envelope, onRun, onSelect, onShowEarthAtTime, r
   const [threshold, setThreshold] = useState(25);
   const [selectedEventKey, setSelectedEventKey] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<"distance" | "time">("distance");
-  const events = useMemo(() => {
-    const values = [...(envelope?.result.events ?? [])];
+  const eventSummaries = useMemo(() => {
+    const values = nearestEventPerSecondary(envelope?.result.events ?? []);
     return values.sort((left, right) => sortMode === "time"
-      ? left.tcaUnixMs - right.tcaUnixMs
-      : left.missDistanceKm - right.missDistanceKm);
+      ? left.event.tcaUnixMs - right.event.tcaUnixMs
+      : left.event.missDistanceKm - right.event.missDistanceKm);
   }, [envelope, sortMode]);
+  const events = eventSummaries.map(({ event }) => event);
+  const occurrenceBySecondary = new Map(
+    eventSummaries.map(({ event, occurrenceCount }) => [event.secondaryId, occurrenceCount]),
+  );
   const selectedEvent = events.find((event) => `${event.secondaryId}:${event.tcaUnixMs}` === selectedEventKey) ?? events[0] ?? null;
   const selectedSecondary = selectedEvent ? satellitesById.get(selectedEvent.secondaryId) : null;
   return (
@@ -58,7 +63,7 @@ export function ProximityPanel({ envelope, onRun, onSelect, onShowEarthAtTime, r
             </div>
             <footer><button className="primary-button" onClick={() => onShowEarthAtTime(selectedEvent.tcaUnixMs)} type="button">{t("actions.openTcaOnEarth")}</button><button className="secondary-button" onClick={() => onSelect(selectedEvent.secondaryId)} type="button">{t("proximity.analyzeSecondary")}</button><span>{t("proximity.bandNotice")}</span></footer>
           </section>}
-          {events.length ? <><div className="analysis-table-toolbar"><strong>{t("proximity.eventQueue")}</strong><label><span>{t("proximity.sort")}</span><select onChange={(event) => setSortMode(event.target.value as typeof sortMode)} value={sortMode}><option value="distance">{t("proximity.sortDistance")}</option><option value="time">{t("proximity.sortTime")}</option></select></label></div><div className="analysis-table-scroll"><table><thead><tr><th>{t("proximity.secondary")}</th><th>{t("proximity.tca")}</th><th>{t("proximity.missDistance")}</th><th>{t("proximity.relativeVelocity")}</th><th>{t("proximity.radial")}</th><th>{t("proximity.alongTrack")}</th><th>{t("proximity.crossTrack")}</th><th>{t("proximity.inspect")}</th></tr></thead><tbody>{events.map((event) => { const secondary = satellitesById.get(event.secondaryId); const key = `${event.secondaryId}:${event.tcaUnixMs}`; return <tr data-selected={key === `${selectedEvent?.secondaryId}:${selectedEvent?.tcaUnixMs}`} key={key}><td><button className="analysis-table-link" onClick={() => setSelectedEventKey(key)} type="button">{secondary?.name ?? event.secondaryId}<small>NORAD {secondary?.noradId ?? "—"}</small></button></td><td>{formatDateTime(event.tcaUnixMs, locale, "utc-only").primary}</td><td>{`${formatNumber(event.missDistanceKm, locale, { maximumFractionDigits: 3 })} ${t("units.km")}`}</td><td>{`${formatNumber(event.relativeVelocityKmPerSecond, locale, { maximumFractionDigits: 4 })} ${t("units.kmPerSecond")}`}</td><td>{`${formatNumber(event.radialSeparationKm, locale, { maximumFractionDigits: 3 })} ${t("units.km")}`}</td><td>{`${formatNumber(event.alongTrackSeparationKm, locale, { maximumFractionDigits: 3 })} ${t("units.km")}`}</td><td>{`${formatNumber(event.crossTrackSeparationKm, locale, { maximumFractionDigits: 3 })} ${t("units.km")}`}</td><td><button className="analysis-inline-action" onClick={() => onShowEarthAtTime(event.tcaUnixMs)} type="button">{t("actions.openTcaOnEarth")}</button></td></tr>; })}</tbody></table></div></> : <div className="analysis-empty-state">{t("proximity.noEvents")}</div>}
+          {events.length ? <><div className="analysis-table-toolbar"><strong>{t("proximity.eventQueue")}<small>{`${events.length} / ${envelope.result.events.length}`}</small></strong><label><span>{t("proximity.sort")}</span><select onChange={(event) => setSortMode(event.target.value as typeof sortMode)} value={sortMode}><option value="distance">{t("proximity.sortDistance")}</option><option value="time">{t("proximity.sortTime")}</option></select></label></div><div className="analysis-table-scroll"><table><thead><tr><th>{t("proximity.secondary")}</th><th>{t("proximity.tca")}</th><th>{t("proximity.missDistance")}</th><th>{t("proximity.relativeVelocity")}</th><th>{t("proximity.radial")}</th><th>{t("proximity.alongTrack")}</th><th>{t("proximity.crossTrack")}</th><th>{t("proximity.inspect")}</th></tr></thead><tbody>{events.map((event) => { const secondary = satellitesById.get(event.secondaryId); const key = `${event.secondaryId}:${event.tcaUnixMs}`; const occurrenceCount = occurrenceBySecondary.get(event.secondaryId) ?? 1; return <tr data-selected={key === `${selectedEvent?.secondaryId}:${selectedEvent?.tcaUnixMs}`} key={key}><td><button className="analysis-table-link" onClick={() => setSelectedEventKey(key)} type="button">{secondary?.name ?? event.secondaryId}<small>NORAD {secondary?.noradId ?? "—"}{occurrenceCount > 1 ? ` · ${occurrenceCount}×` : ""}</small></button></td><td>{formatDateTime(event.tcaUnixMs, locale, "utc-only").primary}</td><td>{`${formatNumber(event.missDistanceKm, locale, { maximumFractionDigits: 3 })} ${t("units.km")}`}</td><td>{`${formatNumber(event.relativeVelocityKmPerSecond, locale, { maximumFractionDigits: 4 })} ${t("units.kmPerSecond")}`}</td><td>{`${formatNumber(event.radialSeparationKm, locale, { maximumFractionDigits: 3 })} ${t("units.km")}`}</td><td>{`${formatNumber(event.alongTrackSeparationKm, locale, { maximumFractionDigits: 3 })} ${t("units.km")}`}</td><td>{`${formatNumber(event.crossTrackSeparationKm, locale, { maximumFractionDigits: 3 })} ${t("units.km")}`}</td><td><button className="analysis-inline-action" onClick={() => onShowEarthAtTime(event.tcaUnixMs)} type="button">{t("actions.openTcaOnEarth")}</button></td></tr>; })}</tbody></table></div></> : <div className="analysis-empty-state">{t("proximity.noEvents")}</div>}
         </>
       ) : <div className="analysis-empty-state">{t("status.noResult")}</div>}
     </section>

@@ -67,4 +67,19 @@ describe("analysis worker lifecycle", () => {
     act(() => worker.emit({ type: "result", kind: "dynamics", requestId: id, analysis: result(id) }));
     act(() => hook.result.current.invalidate("dynamics")); expect(hook.result.current.results.dynamics).toBeNull();
   });
+  it("marks a crashed worker unavailable and replaces it once", () => {
+    const hook = renderHook(() => useAnalysisWorker(catalog, true));
+    const failedWorker = FakeWorker.instances[0]!;
+    act(() => failedWorker.emit({ type: "ready", count: 0 }));
+    act(() => { failedWorker.onerror?.(); });
+
+    expect(failedWorker.terminate).toHaveBeenCalledOnce();
+    expect(FakeWorker.instances).toHaveLength(2);
+    expect(hook.result.current.ready).toBe(false);
+
+    const replacement = FakeWorker.instances[1]!;
+    act(() => replacement.emit({ type: "ready", count: 0 }));
+    expect(hook.result.current.ready).toBe(true);
+    expect(hook.result.current.error).toBeNull();
+  });
 });

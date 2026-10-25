@@ -88,14 +88,19 @@ function drawScatter(
 ) {
   const padding = 34;
   const maxAltitude = Math.max(2_000, ...points.map((point) => point.altitudeKm));
-  for (let tick = 0; tick <= 4; tick += 1) {
-    const y = padding + (height - padding * 2) * tick / 4;
+  const scaleMaximum = Math.log1p(maxAltitude);
+  const tickValues = [...new Set([0, 500, 2_000, 10_000, Math.round(maxAltitude)])]
+    .filter((value) => value <= maxAltitude)
+    .sort((left, right) => right - left);
+  for (const value of tickValues) {
+    const y = height - padding - (height - padding * 2) * Math.log1p(value) / scaleMaximum;
     context.beginPath(); context.moveTo(padding, y); context.lineTo(width - padding, y); context.stroke();
-    context.fillText(`${Math.round(maxAltitude * (1 - tick / 4))} km`, 4, y + 3);
+    context.fillText(`${value} km`, 4, y + 3);
   }
   for (const point of points) {
     const x = padding + (width - padding * 2) * Math.min(180, Math.abs(point.inclinationDegrees)) / 180;
-    const y = height - padding - (height - padding * 2) * Math.min(maxAltitude, point.altitudeKm) / maxAltitude;
+    const y = height - padding - (height - padding * 2) *
+      Math.log1p(Math.max(0, Math.min(maxAltitude, point.altitudeKm))) / scaleMaximum;
     plotted.push({ id: point.id, x, y });
     context.fillStyle = categoryColors[point.category] ?? "#75869c";
     context.globalAlpha = point.id === selectedId ? 1 : 0.44;

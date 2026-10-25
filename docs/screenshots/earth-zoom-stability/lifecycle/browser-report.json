@@ -1,0 +1,745 @@
+{
+  "environment": "Isolated Chromium; real cached CelesTrak; current UTC; not native WebView/installer or FPS acceptance",
+  "hash": "a08559a22b787031dcf6bdbd63ddec04ca687c7bed7f7869821c52e2d4355178",
+  "fetchedAt": "2026-09-04T22:30:24.682Z",
+  "cases": [
+    {
+      "width": 320,
+      "height": 568,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 159.99999623549425,
+        "y": 309.50060914433027
+      },
+      "insets": {
+        "bottom": 156,
+        "left": 12,
+        "right": 12,
+        "top": 207
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 194.99999331392274,
+        "y": 447.5007188916331
+      },
+      "insets": {
+        "bottom": 156,
+        "left": 12,
+        "right": 12,
+        "top": 207
+      }
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 383.99998749657794,
+        "y": 571.0026078553154
+      },
+      "insets": {
+        "bottom": 102,
+        "left": 12,
+        "right": 12,
+        "top": 220
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 719.9999894103588,
+        "y": 509.00155897342586
+      },
+      "insets": {
+        "bottom": 102,
+        "left": 12,
+        "right": 12,
+        "top": 220
+      }
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 959.9999861557222,
+        "y": 597.5014741833133
+      },
+      "insets": {
+        "bottom": 105,
+        "left": 12,
+        "right": 12,
+        "top": 220
+      }
+    },
+    {
+      "width": 3840,
+      "height": 2160,
+      "overflow": false,
+      "phase": "degraded",
+      "center": {
+        "x": 1919.99996657304,
+        "y": 1137.501710658104
+      },
+      "insets": {
+        "bottom": 105,
+        "left": 12,
+        "right": 12,
+        "top": 220
+      }
+    }
+  ],
+  "errors": [],
+  "samples": [
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.651070677053504,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 21,
+      "lateFrameRatio": 0,
+      "cpuRenderMs": 1,
+      "gpuTimeMs": null,
+      "presentedFrames": 661,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 302.7,
+        "usedHeapMb": 237.9
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:21:53.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.304287690179805,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 21.899999999906868,
+      "lateFrameRatio": 0,
+      "cpuRenderMs": 0.6999999999534339,
+      "gpuTimeMs": null,
+      "presentedFrames": 721,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 303.3,
+        "usedHeapMb": 244.5
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:21:54.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.193759794840574,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.300000000046566,
+      "lateFrameRatio": 0,
+      "cpuRenderMs": 0.8000000000465661,
+      "gpuTimeMs": null,
+      "presentedFrames": 781,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 304.2,
+        "usedHeapMb": 251
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:21:55.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.13023842033179,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.100000000093132,
+      "lateFrameRatio": 0,
+      "cpuRenderMs": 1.4000000001396984,
+      "gpuTimeMs": null,
+      "presentedFrames": 841,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 305.1,
+        "usedHeapMb": 257.5
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:21:56.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.11065352136054,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.300000000046566,
+      "lateFrameRatio": 0.0034602076124567475,
+      "cpuRenderMs": 0.8999999999068677,
+      "gpuTimeMs": null,
+      "presentedFrames": 901,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 166.6,
+        "usedHeapMb": 131.9
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:21:57.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.09367036297169,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.299999999813735,
+      "lateFrameRatio": 0.0057306590257879654,
+      "cpuRenderMs": 0.8000000000465661,
+      "gpuTimeMs": null,
+      "presentedFrames": 961,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 138.2,
+        "usedHeapMb": 132.4
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:21:58.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.07902815928857,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.199999999953434,
+      "lateFrameRatio": 0.004889975550122249,
+      "cpuRenderMs": 0.8000000000465661,
+      "gpuTimeMs": null,
+      "presentedFrames": 1021,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 139.9,
+        "usedHeapMb": 134.9
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:21:59.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.06198294188387,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.100000000093132,
+      "lateFrameRatio": 0.0042643923240938165,
+      "cpuRenderMs": 1.5,
+      "gpuTimeMs": null,
+      "presentedFrames": 1081,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 141.5,
+        "usedHeapMb": 136.9
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:22:00.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.06312873265568,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.199999999953434,
+      "lateFrameRatio": 0.005671077504725898,
+      "cpuRenderMs": 0.6999999999534339,
+      "gpuTimeMs": null,
+      "presentedFrames": 1141,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 145.9,
+        "usedHeapMb": 137.9
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:22:01.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 60.054854858936224,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.100000000093132,
+      "lateFrameRatio": 0.0050933786078098476,
+      "cpuRenderMs": 0.9000000001396984,
+      "gpuTimeMs": null,
+      "presentedFrames": 1201,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 147,
+        "usedHeapMb": 139.2
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:22:02.294Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 59.96342231239028,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.100000000093132,
+      "lateFrameRatio": 0.006666666666666667,
+      "cpuRenderMs": 1.2999999998137355,
+      "gpuTimeMs": null,
+      "presentedFrames": 1261,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 148.7,
+        "usedHeapMb": 140.6
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:22:03.300Z"
+    },
+    {
+      "activePreset": "earth",
+      "autoRotation": true,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": 59.9982000539981,
+      "frameTimeMs": 16.699999999953434,
+      "p95FrameTimeMs": 22.100000000093132,
+      "lateFrameRatio": 0.006666666666666667,
+      "cpuRenderMs": 1,
+      "gpuTimeMs": null,
+      "presentedFrames": 1321,
+      "renderMode": "continuous",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 146.2,
+        "usedHeapMb": 135.7
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:22:04.294Z"
+    }
+  ],
+  "initial": {
+    "snapshot": {
+      "activePreset": "earth",
+      "autoRotation": false,
+      "cloudCount": 1,
+      "cloudsVisible": true,
+      "errorDetail": null,
+      "fps": null,
+      "frameTimeMs": null,
+      "p95FrameTimeMs": null,
+      "lateFrameRatio": null,
+      "cpuRenderMs": 1.6999999999534339,
+      "gpuTimeMs": null,
+      "presentedFrames": 17,
+      "renderMode": "on-demand",
+      "renderWidth": 1440,
+      "renderHeight": 900,
+      "effectiveFrameRateTarget": 60,
+      "gpu": {
+        "antialias": true,
+        "api": "WebGL 2",
+        "maxMsaaSamples": 8,
+        "maxTextureSize": 16384,
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "vendor": "Google Inc. (NVIDIA)"
+      },
+      "imagery": "fallback",
+      "memory": {
+        "heapLimitMb": 4192,
+        "totalHeapMb": 205.9,
+        "usedHeapMb": 129.6
+      },
+      "nightLightsVisible": true,
+      "phase": "degraded",
+      "quality": "high",
+      "terrain": "fallback",
+      "timeLensActive": false,
+      "timeLensPlaying": false,
+      "timeLensRate": 60,
+      "utcIso": "2026-09-06T00:21:31.260Z"
+    },
+    "count": 16531,
+    "shell": true,
+    "shellVisible": true,
+    "imageryVisible": false
+  },
+  "drawerRestored": "true",
+  "focusRestored": true,
+  "primitivesBefore": {
+    "scene": 14,
+    "satellite": 11204
+  },
+  "primitivesAfter": {
+    "scene": 14,
+    "satellite": 11204
+  },
+  "locales": [
+    {
+      "locale": "az",
+      "overflow": false
+    },
+    {
+      "locale": "tr",
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "overflow": false
+    },
+    {
+      "locale": "ru",
+      "overflow": false
+    },
+    {
+      "locale": "es",
+      "overflow": false
+    }
+  ],
+  "timeLensPlayback": "continuous",
+  "forecastResumeDeltaMs": 2406,
+  "timeLensReturn": {
+    "active": false,
+    "deltaMs": 353
+  },
+  "suspension": {
+    "before": 589,
+    "after": 589,
+    "workerBefore": {
+      "created": 1,
+      "live": 1,
+      "frames": 24
+    },
+    "workerAfter": {
+      "created": 1,
+      "live": 1,
+      "frames": 24
+    },
+    "mode": "suspended",
+    "defaultLoop": false
+  },
+  "resumeMs": 19.699999999953434,
+  "updateVeto": "suspended",
+  "highDpi": {
+    "dpr": 2,
+    "scale": 1.5,
+    "width": 2161,
+    "height": 1350
+  },
+  "cloudFallback": {
+    "shell": false,
+    "imageryVisible": true,
+    "phase": "degraded"
+  },
+  "final": {
+    "activePreset": "earth",
+    "autoRotation": false,
+    "cloudCount": 1,
+    "cloudsVisible": true,
+    "errorDetail": null,
+    "fps": 59.467887340836505,
+    "frameTimeMs": 16.699999999953434,
+    "p95FrameTimeMs": 22.100000000093132,
+    "lateFrameRatio": 0.011764705882352941,
+    "cpuRenderMs": 0.6999999999534339,
+    "gpuTimeMs": null,
+    "presentedFrames": 1376,
+    "renderMode": "continuous",
+    "renderWidth": 1441,
+    "renderHeight": 900,
+    "effectiveFrameRateTarget": 60,
+    "gpu": {
+      "antialias": true,
+      "api": "WebGL 2",
+      "maxMsaaSamples": 8,
+      "maxTextureSize": 16384,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "vendor": "Google Inc. (NVIDIA)"
+    },
+    "imagery": "fallback",
+    "memory": {
+      "heapLimitMb": 4192,
+      "totalHeapMb": 146,
+      "usedHeapMb": 135.1
+    },
+    "nightLightsVisible": true,
+    "phase": "degraded",
+    "quality": "high",
+    "terrain": "fallback",
+    "timeLensActive": false,
+    "timeLensPlaying": false,
+    "timeLensRate": 60,
+    "utcIso": "2026-09-06T00:22:05.298Z"
+  },
+  "fatalErrorPause": {
+    "phase": "error",
+    "mode": "suspended"
+  },
+  "disposedCanvases": 0,
+  "disposedWorkers": 0
+}

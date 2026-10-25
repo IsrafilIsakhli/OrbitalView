@@ -1,3 +1,5 @@
+import "@/styles/workspaces/space-news.css";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -75,7 +77,6 @@ export function SpaceNewsDashboard({ onOpenEvent, onOpenLaunch }: SpaceNewsDashb
       <SpaceNewsHeader
         itemCount={data?.totalCount ?? 0}
         loadedCount={data?.items.length ?? 0}
-        source={data?.source ?? "Spaceflight News API v4"}
       />
       <SpaceNewsFilters
         activeSource={activeSource}

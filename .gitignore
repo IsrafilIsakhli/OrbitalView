@@ -12,6 +12,7 @@ node_modules
 .tools
 .release-baselines/
 test-results/
+.qa-temp/
 playwright-report/
 dist
 dist-ssr

@@ -57,7 +57,8 @@
     "current": "Current catalog",
     "noResult": "Run the analysis to generate results",
     "cancelled": "Analysis cancelled",
-    "saved": "Export saved"
+    "saved": "Export saved",
+    "exportCancelled": "Export cancelled"
   },
   "progress": {
     "passDetection": "Detecting access windows",
@@ -108,7 +109,9 @@
     "orbitalElementsDescription": "Provider elements remain distinct from derived geometry",
     "timeline": "Synchronized orbital telemetry",
     "timelineDescription": "Move across any chart to inspect the same instant in every output",
-    "sampleTable": "Accessible sample data"
+    "sampleTable": "Accessible sample data",
+    "earthRadius": "Earth radius",
+    "radiusDescription": "Orbital-plane schematic. The dashed line measures distance from Earth’s center; altitude is measured above the surface."
   },
   "station": {
     "profiles": "Local stations",
@@ -132,6 +135,7 @@
     "tca": "TCA",
     "duration": "Duration",
     "maximumElevation": "Maximum elevation",
+    "elevation": "Elevation",
     "range": "Minimum range",
     "radialVelocity": "Radial velocity",
     "doppler": "Doppler correction",
@@ -175,6 +179,7 @@
     "maximum": "Maximum",
     "points": "Rendered objects",
     "scatter": "Altitude–inclination distribution",
+    "logScale": "The altitude axis is logarithmic to preserve the full orbital range.",
     "raan": "RAAN plane distribution",
     "composition": "Catalog composition",
     "outputTitle": "Geometry output",

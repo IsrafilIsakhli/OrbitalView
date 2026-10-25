@@ -10,6 +10,10 @@ export function configureScene(widget: CesiumWidget): void {
   scene.highDynamicRange = scene.highDynamicRangeSupported;
   scene.gamma = 1.01;
   scene.logarithmicDepthBuffer = true;
+  // Camera navigation must pick the globe, not a satellite's depth-buffer
+  // position. ID-based scene.pick for satellite/launch selection is unchanged.
+  // This also avoids synchronous depth readback during tilt/right-drag zoom.
+  scene.useDepthPicking = false;
   scene.sunBloom = false;
   scene.light = new SunLight({ intensity: 1.05 });
   globe.show = true;

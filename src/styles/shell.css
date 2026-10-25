@@ -50,6 +50,15 @@
   visibility: visible;
 }
 
+/* Data workspaces scroll below the persistent command bar. The opaque edge
+   prevents headings and cards from visually colliding with search/actions. */
+.app-layout:not([data-earth-active="true"]) .command-bar {
+  border-bottom: 1px solid rgba(139, 197, 239, 0.08);
+  background: linear-gradient(180deg, rgba(5, 10, 17, 0.98) 0%, rgba(5, 10, 17, 0.93) 72%, rgba(5, 10, 17, 0.82) 100%);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+
 .setting-row--credential {
   align-items: flex-start;
 }

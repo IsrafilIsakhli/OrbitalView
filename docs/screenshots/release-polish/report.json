@@ -1,0 +1,25 @@
+{
+  "environment": "Chromium with real cached CelesTrak; not native FPS acceptance",
+  "errors": [],
+  "layouts": [
+    {
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "overflow": false
+    }
+  ],
+  "sliderChangedTime": true,
+  "newsProviderLabelRemoved": true,
+  "nasaKeyRemoved": true
+}

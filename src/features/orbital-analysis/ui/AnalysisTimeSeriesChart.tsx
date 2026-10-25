@@ -15,6 +15,7 @@ interface AnalysisTimeSeriesChartProps {
   ariaLabel: string;
   locale: string;
   onCursorIndexChange?: (index: number) => void;
+  selectedIndex?: number;
   series: AnalysisSeries[];
   timestampsUnixMs: number[];
   unit: string;
@@ -24,11 +25,23 @@ export function AnalysisTimeSeriesChart({
   ariaLabel,
   locale,
   onCursorIndexChange,
+  selectedIndex = 0,
   series,
   timestampsUnixMs,
   unit,
 }: AnalysisTimeSeriesChartProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const plotRef = useRef<UPlotInstance | null>(null);
+  const selectedIndexRef = useRef(selectedIndex);
+
+  useEffect(() => {
+    selectedIndexRef.current = selectedIndex;
+    const plot = plotRef.current;
+    const timestamp = timestampsUnixMs[selectedIndex];
+    if (plot && timestamp !== undefined) {
+      plot.setCursor({ left: plot.valToPos(timestamp / 1_000, "x"), top: 100 }, false);
+    }
+  }, [selectedIndex, timestampsUnixMs]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -36,6 +49,7 @@ export function AnalysisTimeSeriesChart({
     let disposed = false;
     let plot: UPlotInstance | null = null;
     let observer: ResizeObserver | null = null;
+    let resizing = false;
     void Promise.all([import("uplot"), import("uplot/dist/uPlot.min.css")]).then(
       ([module]) => {
         if (disposed || !hostRef.current) return;
@@ -50,13 +64,19 @@ export function AnalysisTimeSeriesChart({
               { grid: { stroke: "rgba(151,190,224,.08)" }, stroke: "#70849a" },
               { grid: { stroke: "rgba(151,190,224,.08)" }, stroke: "#70849a" },
             ],
-            cursor: { sync: { key: "orbital-analysis-time" } },
             height: 250,
-            ...(onCursorIndexChange ? { hooks: {
-              setCursor: [(self) => {
-                if (typeof self.cursor.idx === "number") onCursorIndexChange(self.cursor.idx);
+            hooks: {
+              ready: [(self) => {
+                const index = Math.min(timestampsUnixMs.length - 1, Math.max(0, selectedIndexRef.current));
+                self.setCursor({
+                  left: self.valToPos(timestampsUnixMs[index]! / 1_000, "x"),
+                  top: 100,
+                }, false);
               }],
-            } } : {}),
+              ...(onCursorIndexChange ? { setCursor: [(self) => {
+                if (!resizing && typeof self.cursor.idx === "number") onCursorIndexChange(self.cursor.idx);
+              }] } : {}),
+            },
             legend: { show: true },
             scales: { x: { time: true } },
             series: [
@@ -78,13 +98,16 @@ export function AnalysisTimeSeriesChart({
           data,
           host,
         );
+        plotRef.current = plot;
         observer = new ResizeObserver((entries) => {
           const entry = entries[0];
           if (!plot || !entry) return;
+          resizing = true;
           plot.setSize({
             height: entry.contentRect.width < 520 ? 220 : 250,
             width: Math.max(1, Math.floor(entry.contentRect.width)),
           });
+          resizing = false;
         });
         observer.observe(host);
       },
@@ -93,6 +116,7 @@ export function AnalysisTimeSeriesChart({
       disposed = true;
       observer?.disconnect();
       plot?.destroy();
+      if (plotRef.current === plot) plotRef.current = null;
       host.replaceChildren();
     };
   }, [locale, onCursorIndexChange, series, timestampsUnixMs, unit]);

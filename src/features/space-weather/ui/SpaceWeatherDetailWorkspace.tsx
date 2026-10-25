@@ -1,3 +1,5 @@
+import "@/styles/workspaces/space-weather.css";
+
 import { ArrowLeft24Regular, WeatherMoon24Regular } from "@fluentui/react-icons";
 import { useTranslation } from "react-i18next";
 

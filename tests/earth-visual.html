@@ -42,6 +42,10 @@ window.qa = {
   motion: (enabled) => usePreferencesStore.getState().setReduceMotion(!enabled),
   clockTime: () => JulianDate.toDate(window.qa.engine.widget.clock.currentTime).getTime(),
   project: () => SceneTransforms.worldToWindowCoordinates(window.qa.engine.widget.scene, new Cartesian3(1, 1, 1)),
+  projectSelected: () => {
+    const position = window.qa.satelliteLayer()?.selectedPosition();
+    return position ? SceneTransforms.worldToWindowCoordinates(window.qa.engine.widget.scene, position) : null;
+  },
 };
 render(true);
 </script>

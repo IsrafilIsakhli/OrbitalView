@@ -17,19 +17,23 @@ interface SpaceNewsCardProps {
 
 export function SpaceNewsCard({ item, onOpen, prominent = false }: SpaceNewsCardProps) {
   const { i18n, t } = useTranslation("news");
+  const hasImage = Boolean(item.imageCachePath || item.imageUrlAvailable);
+  const hasSummary = item.summary.trim().length > 0;
   return (
-    <article className="space-news-card glass-surface" data-featured={prominent} data-provider-featured={item.featured}>
-      <button aria-label={t("actions.openStory", { title: item.title })} className="space-news-card__visual" onClick={() => onOpen(item.id)} type="button">
-        <NewsImage
-          alt={item.title}
-          cachedPath={item.imageCachePath}
-          eager={prominent}
-          imageAvailable={item.imageUrlAvailable}
-          newsId={item.id}
-        />
-        <span className="space-news-card__type">{t(`types.${item.contentType}`)}</span>
-        {item.featured && <span className="space-news-card__featured">{t("badges.featured")}</span>}
-      </button>
+    <article className="space-news-card glass-surface" data-featured={prominent} data-has-image={hasImage} data-provider-featured={item.featured}>
+      {hasImage && (
+        <button aria-label={t("actions.openStory", { title: item.title })} className="space-news-card__visual" onClick={() => onOpen(item.id)} type="button">
+          <NewsImage
+            alt={item.title}
+            cachedPath={item.imageCachePath}
+            eager={prominent}
+            imageAvailable={item.imageUrlAvailable}
+            newsId={item.id}
+          />
+          <span className="space-news-card__type">{t(`types.${item.contentType}`)}</span>
+          {item.featured && <span className="space-news-card__featured">{t("badges.featured")}</span>}
+        </button>
+      )}
       <div className="space-news-card__body">
         <div className="space-news-card__meta">
           <NewsSourceBadge source={item.source} />
@@ -37,9 +41,13 @@ export function SpaceNewsCard({ item, onOpen, prominent = false }: SpaceNewsCard
             {formatCompactDate(item.publishedAtUnixMs, i18n.resolvedLanguage)}
           </time>
         </div>
-        {prominent && <span className="space-news-card__eyebrow">{t("briefing.latest")}</span>}
+        <div className="space-news-card__labels">
+          {!hasImage && <span className="space-news-card__type">{t(`types.${item.contentType}`)}</span>}
+          {prominent && <span className="space-news-card__eyebrow">{t("briefing.latest")}</span>}
+          {!hasImage && item.featured && <span className="space-news-card__featured">{t("badges.featured")}</span>}
+        </div>
         <h2><button onClick={() => onOpen(item.id)} type="button">{item.title}</button></h2>
-        <p>{item.summary}</p>
+        {hasSummary && <p>{item.summary}</p>}
         <NewsMissionRelations compact relations={item.relations} />
         <footer>
           <NewsTranslationStatus state={item.translationState} />

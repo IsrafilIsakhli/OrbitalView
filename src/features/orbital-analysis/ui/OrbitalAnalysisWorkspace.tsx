@@ -135,7 +135,7 @@ export function OrbitalAnalysisWorkspace({ active = true, onShowEarth }: Orbital
         format,
         suggestedName: analysisExportName(currentEnvelope),
       });
-      if (result.saved) setExportNotice(t("status.saved"));
+      setExportNotice(result.saved ? t("status.saved") : t("status.exportCancelled"));
     } catch {
       setExportNotice(t("errors.export"));
     } finally {

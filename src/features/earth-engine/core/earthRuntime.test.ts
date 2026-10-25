@@ -110,11 +110,13 @@ describe("Earth 0.2 runtime contracts", () => {
     for (let i = 0; i < 20; i++) controller.sample(60, false, 60, 10_000 + i * 1000, false);
     expect(controller.getCurrent()).toBe("high");
   });
-  it("uses terrain hysteresis and bounded per-tile retries", () => {
+  it("retains detailed tiles across zoom with polar hysteresis and bounded retries", () => {
     expect(shouldUseDetailedTerrain(false, 8_100_000, 40)).toBe(false);
     expect(shouldUseDetailedTerrain(false, 6_400_000, 40)).toBe(true);
     expect(shouldUseDetailedTerrain(true, 6_900_000, 40)).toBe(true);
-    expect(shouldUseDetailedTerrain(true, 8_100_000, 40)).toBe(false);
+    expect(shouldUseDetailedTerrain(true, 8_100_000, 40)).toBe(true);
+    expect(shouldUseDetailedTerrain(true, 100_000_000, 40)).toBe(true);
+    expect(shouldUseDetailedTerrain(true, 4_000_000, 76)).toBe(false);
     expect(shouldUseDetailedTerrain(false, 4_000_000, 80)).toBe(false);
     expect([0, 1, 2, 3].map(retryTile)).toEqual([true, true, false, false]);
   });
@@ -123,6 +125,11 @@ describe("Earth 0.2 runtime contracts", () => {
       { bounds: { left: 1100, top: 100, right: 1430, bottom: 800 }, edge: "right" },
       { bounds: { left: 0, top: 0, right: 240, bottom: 900 }, edge: "left" },
     ])).toEqual({ left: 12, top: 12, right: 352, bottom: 12 });
+  });
+  it("keeps overlay-specific visual breathing room in the camera composition", () => {
+    expect(measureOverlayInsets({ left: 0, top: 0, right: 1200, bottom: 800 }, [
+      { bounds: { left: 200, top: 720, right: 1000, bottom: 784 }, edge: "bottom", padding: 28 },
+    ])).toEqual({ left: 12, top: 12, right: 12, bottom: 108 });
   });
   it("migrates v3 settings with closed drawer and 60 FPS, preserving prior choices", () => {
     expect(migratePreferences({ locale: "ru", graphicsQuality: "eco", units: "imperial", reduceMotion: true }))

@@ -1,3 +1,5 @@
+import "@/styles/workspaces/launches.css";
+
 import {
   CalendarClock24Regular,
   Globe24Regular,
@@ -409,7 +411,7 @@ function LaunchIntelligencePanel({
               <span className="launch-card-icon"><Rocket24Regular aria-hidden /></span>
               <div><small>{t("fields.rocket")}</small><strong>{launch.rocket?.fullName ?? launch.rocketName ?? t("common.unavailable")}</strong></div>
             </div>
-            {launch.rocket ? (
+            {launch.rocket && hasPublishedRocketFacts(launch.rocket) ? (
               <dl className="launch-intelligence__facts">
                 <Detail label={t("rocket.manufacturer")} value={launch.rocket.manufacturerName} />
                 <Detail label={t("rocket.family")} value={launch.rocket.familyName} />
@@ -541,8 +543,24 @@ function StatusBadge({ launch }: { launch: LaunchRecord }) {
 }
 
 function Detail({ label, value }: { label: string; value: string | null }) {
-  const { t } = useTranslation("launches");
-  return <div><dt>{label}</dt><dd>{value ?? t("common.unavailable")}</dd></div>;
+  if (!hasPublishedText(value)) return null;
+  return <div><dt>{label}</dt><dd>{value}</dd></div>;
+}
+
+function hasPublishedRocketFacts(rocket: LaunchRecord["rocket"]): boolean {
+  if (!rocket) return false;
+  return [
+    rocket.manufacturerName,
+    rocket.familyName,
+    rocket.totalLaunchCount,
+    rocket.successfulLaunches,
+    rocket.lengthMeters,
+    rocket.thrustKilonewtons,
+  ].some((value) => value !== null && value !== "");
+}
+
+function hasPublishedText(value: string | null): value is string {
+  return value !== null && value.trim().length > 0;
 }
 
 function WeatherMetric({ label, value }: { label: string; value: string }) {

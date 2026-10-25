@@ -111,7 +111,7 @@ pnpm tauri:dev
 
 Use `pnpm tauri:dev` for the complete desktop app. `pnpm dev` starts only the frontend, so features that depend on native commands will be unavailable.
 
-For NASA features, save your API key in **Settings**. During development, the native process can also read `NASA_API_KEY` from its environment or an ignored `.env.local` file. Keep credentials out of frontend variables and source control.
+The native process can read `NASA_API_KEY` from its environment or an ignored `.env.local` file during development. Previously saved credentials remain in the operating system's credential store; key management is no longer shown in Settings. Keep credentials out of frontend variables and source control.
 
 News works in English without additional setup. To enable translations, configure the [translation gateway](services/translation-gateway/README.md).
 

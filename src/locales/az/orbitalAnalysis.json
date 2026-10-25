@@ -57,7 +57,8 @@
     "current": "Aktual kataloq",
     "noResult": "Nəticə yaratmaq üçün analizi başladın",
     "cancelled": "Analiz dayandırıldı",
-    "saved": "İxrac saxlanıldı"
+    "saved": "İxrac saxlanıldı",
+    "exportCancelled": "İxrac ləğv edildi"
   },
   "progress": {
     "passDetection": "Əlaqə pəncərələri aşkarlanır",
@@ -108,7 +109,9 @@
     "orbitalElementsDescription": "Provider elementləri hesablanmış geometriyadan ayrı saxlanılır",
     "timeline": "Sinxron orbital telemetriya",
     "timelineDescription": "Bütün nəticələrdə eyni anı araşdırmaq üçün istənilən qrafik üzərində hərəkət edin",
-    "sampleTable": "Əlçatan nümunə məlumatı"
+    "sampleTable": "Əlçatan nümunə məlumatı",
+    "earthRadius": "Yerin radiusu",
+    "radiusDescription": "Orbit müstəvisinin sxemi. Kəsik xətt Yerin mərkəzindən məsafəni göstərir; hündürlük səthdən ölçülür."
   },
   "station": {
     "profiles": "Lokal stansiyalar",
@@ -132,6 +135,7 @@
     "tca": "TCA",
     "duration": "Müddət",
     "maximumElevation": "Maksimum yüksəklik",
+    "elevation": "Yüksəklik bucağı",
     "range": "Minimum məsafə",
     "radialVelocity": "Radial sürət",
     "doppler": "Doppler düzəlişi",
@@ -175,6 +179,7 @@
     "maximum": "Maksimum",
     "points": "Göstərilən obyektlər",
     "scatter": "Hündürlük–meyillik paylanması",
+    "logScale": "Hündürlük oxu geniş orbital diapazonu qorumaq üçün loqarifmikdir.",
     "raan": "RAAN müstəvi paylanması",
     "composition": "Kataloq tərkibi",
     "outputTitle": "Geometriya nəticəsi",

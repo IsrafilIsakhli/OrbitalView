@@ -48,6 +48,8 @@ export function useAnalysisWorker(catalog: SatelliteCatalog | undefined, active:
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<WorkerResults>(emptyResults);
   const [runningRequestId, setRunningRequestId] = useState<string | null>(null);
+  const [workerRevision, setWorkerRevision] = useState(0);
+  const restartedAfterFailureRef = useRef(false);
 
   useEffect(() => registerUpdatePause(() => {
     workerRef.current?.terminate();
@@ -111,7 +113,12 @@ export function useAnalysisWorker(catalog: SatelliteCatalog | undefined, active:
     worker.onerror = () => {
       if (workerRef.current !== worker) return;
       setError("worker-failed");
+      setReady(false);
       finishRequest();
+      if (!restartedAfterFailureRef.current) {
+        restartedAfterFailureRef.current = true;
+        setWorkerRevision((revision) => revision + 1);
+      }
     };
     worker.postMessage({
       metadata: {
@@ -130,7 +137,11 @@ export function useAnalysisWorker(catalog: SatelliteCatalog | undefined, active:
       setReady(false);
       setRunningRequestId(null);
     };
-  }, [active, catalog, finishRequest, updatePaused]);
+  }, [active, catalog, finishRequest, updatePaused, workerRevision]);
+
+  useEffect(() => {
+    restartedAfterFailureRef.current = false;
+  }, [catalog]);
 
   const cancel = useCallback(() => {
     const requestId = runningRequestRef.current;

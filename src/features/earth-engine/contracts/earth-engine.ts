@@ -88,6 +88,7 @@ export interface EarthEngineOptions {
 export interface EarthEngine {
   dispose: () => void;
   flyTo: (preset: CameraPresetId) => void;
+  zoom: (direction: "in" | "out") => void;
   getSnapshot: () => EarthEngineSnapshot;
   initialize: () => Promise<void>;
   registerLayer: (layer: EarthEngineLayer) => Promise<() => void>;
@@ -99,6 +100,7 @@ export interface EarthEngine {
   setFrameRateMode: (mode: EarthFrameRateMode) => void;
   setCameraCompositionInsets: (insets: CameraCompositionInsets) => void;
   setDefaultCameraCompositionInsets: (insets: CameraCompositionInsets) => void;
+  setDefaultEarthRequestHandler: (handler: (() => boolean) | null) => void;
   setAutoRotation: (enabled: boolean) => void;
   setCloudsVisible: (visible: boolean) => void;
   setLayerSlotVisible: (slot: EarthLayerSlot, visible: boolean) => void;

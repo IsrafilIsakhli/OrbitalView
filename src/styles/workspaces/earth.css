@@ -63,6 +63,10 @@
   white-space: nowrap;
 }
 
+.earth-layer-panel__header h2:focus {
+  outline: none;
+}
+
 .earth-layer-panel__header small {
   color: #7f9bae;
   font-size: 12px;
@@ -356,8 +360,8 @@
   bottom: 16px;
   left: 50%;
   display: grid;
-  width: min(1090px, calc(100% - 40px));
-  grid-template-columns: minmax(310px, 0.8fr) minmax(540px, 1.3fr);
+  width: min(1380px, calc(100% - 48px));
+  grid-template-columns: minmax(390px, 0.78fr) minmax(820px, 1.55fr);
   align-items: stretch;
   gap: 6px;
   padding: 6px;
@@ -386,7 +390,7 @@
   grid-template-rows: 1fr auto;
   align-items: center;
   gap: 2px 8px;
-  padding: 9px 11px;
+  padding: 9px 10px;
 }
 .earth-mission-dock .camera-preset > svg { width: 20px; height: 20px; }
 .earth-mission-dock .camera-preset span { font-size: 12px; line-height: 1.3; }
@@ -395,6 +399,30 @@
 .earth-mission-dock .earth-context-cards em { font-size: 11px; }
 .earth-mission-dock .earth-context-cards strong { font-size: 13px; }
 
+.earth-zoom-controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  border-inline-start: 1px solid var(--color-border-subtle, #243442);
+  padding-inline-start: 4px;
+}
+.earth-zoom-controls button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #d3e8f2;
+  cursor: pointer;
+}
+.earth-zoom-controls button:hover { background: #182c3d; }
+.earth-zoom-controls button:focus-visible { outline: 2px solid #83d5f0; outline-offset: -2px; }
+.earth-zoom-controls button:disabled { opacity: 0.4; cursor: default; }
+.earth-zoom-controls svg { width: 22px; height: 22px; }
 .earth-time-lens-button {
   display: grid;
   min-width: 76px;
@@ -672,6 +700,18 @@
   padding: 6px 8px;
 }
 
+.earth-mission-dock .earth-context-cards > button > span:last-child {
+  min-width: 0;
+}
+
+.earth-mission-dock .earth-context-cards strong,
+.earth-mission-dock .earth-context-cards em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .earth-mission-dock .earth-context-cards__icon {
   width: 34px;
   height: 34px;
@@ -691,7 +731,7 @@
 @media (max-width: 1600px) {
   .earth-mission-dock {
     left: 50%;
-    width: min(840px, calc(100% - 48px));
+    width: min(900px, calc(100% - 48px));
     grid-template-columns: minmax(0, 1fr);
   }
 

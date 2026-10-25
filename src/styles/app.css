@@ -5,9 +5,3 @@
 @import "./global.css";
 @import "./shell.css";
 @import "./updater.css";
-@import "./workspaces/dashboard.css";
-@import "./workspaces/earth.css";
-@import "./workspaces/launches.css";
-@import "./workspaces/missions.css";
-@import "./workspaces/space-news.css";
-@import "./workspaces/space-weather.css";

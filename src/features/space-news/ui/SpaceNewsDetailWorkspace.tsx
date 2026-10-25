@@ -75,11 +75,13 @@ export function SpaceNewsDetailWorkspace({ newsId, onBack, onOpenEvent, onOpenLa
           <h1>{title}</h1>
           <p>{summary}</p>
           {articleUrl && (
-            <button className="primary-button" onClick={() => void openExternalUrl(articleUrl).catch(() => undefined)} type="button">
-              {t("actions.readFull")}<ArrowUpRight24Regular aria-hidden />
-            </button>
+            <>
+              <button className="primary-button" onClick={() => void openExternalUrl(articleUrl).catch(() => undefined)} type="button">
+                {t("actions.readFull")}<ArrowUpRight24Regular aria-hidden />
+              </button>
+              <small className="space-news-detail__external-note">{t("detail.externalNotice")}</small>
+            </>
           )}
-          <small className="space-news-detail__external-note">{t("detail.externalNotice")}</small>
         </div>
       </div>
 

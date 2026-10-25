@@ -1,4 +1,6 @@
 import {
+  Add24Regular,
+  Subtract24Regular,
   ArrowRotateClockwise24Regular,
   BuildingMultiple24Regular,
   Clock24Regular,
@@ -29,6 +31,7 @@ interface EarthControlsProps {
   onFlyTo: (preset: CameraPresetId) => void;
   onToggleRotation: () => void;
   onToggleTimeLens: () => void;
+  onZoom: (direction: "in" | "out") => void;
   snapshot: EarthEngineSnapshot;
 }
 
@@ -36,6 +39,7 @@ export function EarthControls({
   onFlyTo,
   onToggleRotation,
   onToggleTimeLens,
+  onZoom,
   snapshot,
 }: EarthControlsProps) {
   const { t } = useTranslation("earth");
@@ -64,6 +68,15 @@ export function EarthControls({
             <small>{detail}</small>
           </button>
           );
+        })}
+      </div>
+      <div className="earth-zoom-controls" role="group" aria-label={t("camera.zoomLabel")}>
+        {(["in", "out"] as const).map(direction => {
+          const Icon = direction === "in" ? Add24Regular : Subtract24Regular;
+          const label = t(direction === "in" ? "camera.zoomIn" : "camera.zoomOut");
+          return <button key={direction} type="button" aria-label={label} title={label}
+            disabled={snapshot.activePreset === "moon" || snapshot.activePreset === "sun"}
+            onClick={() => onZoom(direction)}><Icon aria-hidden /></button>;
         })}
       </div>
       <button

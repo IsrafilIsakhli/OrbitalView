@@ -204,10 +204,12 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   private lastHoverAt = 0;
   private lastCameraChangeAt = Number.NEGATIVE_INFINITY;
   private hoverOrbitTimer: ReturnType<typeof setTimeout> | null = null;
-  private followPosition: Cartesian3 | null = null;
   private followTarget: Cartesian3 | null = null;
   private readonly followFrame = new FollowCameraFrame();
   private selectionPulseBase = 26;
+  // Cesium getters expose internal storage. Mutating it before assigning the
+  // position bypasses the setter's dirty check and leaves GPU markers frozen.
+  private readonly positionScratch = new Cartesian3();
 
   getSnapshot = (): SatelliteLayerSnapshot => this.snapshot;
 
@@ -365,13 +367,11 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     if (this.snapshot.followSelected === next) return;
     if (!next && this.context) {
       this.followTarget = null;
-      this.followPosition = null;
       this.followFrame.clear();
       this.context.scene.camera.lookAtTransform(Matrix4.IDENTITY);
     } else if (next && selected && this.context) {
       this.context.cameraController.beginObjectFocus();
       this.followTarget = Cartesian3.clone(selected);
-      this.followPosition = Cartesian3.clone(selected);
       this.followFrame.begin(this.context.scene.camera, selected);
     }
     this.update({ followSelected: next });
@@ -466,15 +466,15 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     this.requestShowcaseOrbits();
   }
 
-  tick(deltaSeconds: number): void {
+  tick(): void {
     if (!this.snapshot.followSelected || !this.followTarget || !this.context) return;
-    if (!this.followPosition) this.followPosition = Cartesian3.clone(this.followTarget);
-    const blend = 1 - Math.exp(-Math.max(0, deltaSeconds) * 5.5);
-    Cartesian3.lerp(this.followPosition, this.followTarget, blend, this.followPosition);
+    // The marker displays the current worker frame. Following a separately
+    // smoothed (older) position makes a close target jump out of view on every
+    // 1 Hz update. Bind to the very same displayed frame, without changing SGP4.
     const { camera, globe } = this.context.scene;
     const position = camera.positionCartographic;
     const terrainHeight = position.height < 12_000 ? globe.getHeight(position) ?? 0 : 0;
-    this.followFrame.update(camera, this.followPosition, Math.max(900, terrainHeight + 900));
+    this.followFrame.update(camera, this.followTarget, Math.max(900, terrainHeight + 900));
   }
 
   unmount(): void {
@@ -715,12 +715,12 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     this.latestErrors = message.errors;
     this.latestPositions = message.positionsMeters;
     this.latestTelemetry = message.telemetry;
-    this.applyFrame();
     this.update({
       lastUpdatedAt: new Date(message.timestampUnixMs).toISOString(),
       status: "ready",
       validCount: message.validCount,
     });
+    this.applyFrame();
   }
 
   private applyFrame(): void {
@@ -743,7 +743,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       const catalogIndex = this.symbolIndices[index];
       const label = this.symbolLabels[index];
       if (catalogIndex === undefined || !label) continue;
-      const position = this.updatePosition(catalogIndex, label.position);
+      const position = this.updatePosition(catalogIndex, this.positionScratch);
       const satellite = this.catalog[catalogIndex];
       label.show = Boolean(
         position && satellite && this.visible &&
@@ -775,7 +775,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
   ): void {
     if (catalogIndex === undefined || !point) return;
     const satellite = this.catalog[catalogIndex];
-    const position = this.updatePosition(catalogIndex, point.position);
+    const position = this.updatePosition(catalogIndex, this.positionScratch);
     point.show = Boolean(
       position && satellite && tierVisible && this.visible &&
       this.snapshot.categoryVisibility[satellite.category],
@@ -837,9 +837,9 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
       this.selectionVisualId = selectedId;
       this.updateRenderTelemetry();
     }
-    if (this.selectedRing) this.selectedRing.position = Cartesian3.clone(position, this.selectedRing.position);
-    if (this.selectedCore) this.selectedCore.position = Cartesian3.clone(position, this.selectedCore.position);
-    if (this.selectedLabel) this.selectedLabel.position = Cartesian3.clone(position, this.selectedLabel.position);
+    if (this.selectedRing) this.selectedRing.position = position;
+    if (this.selectedCore) this.selectedCore.position = position;
+    if (this.selectedLabel) this.selectedLabel.position = position;
     this.updateSelectedTelemetry(index);
     this.updateSelectedOcclusion(position);
   }
@@ -879,7 +879,7 @@ export class CesiumSatelliteLayer implements EarthEngineLayer {
     } else {
       for (let pointIndex = 0; pointIndex < this.hoverPoints.length; pointIndex += 1) {
         const point = this.hoverPoints.get(pointIndex);
-        point.position = Cartesian3.clone(position, point.position);
+        point.position = position;
       }
     }
   }

@@ -38,6 +38,7 @@ export class SurfaceProviderCoordinator {
   private nightLightsVisible = true;
   private imageryAttempts = 0;
   private imageryRetry: ReturnType<typeof setTimeout> | null = null;
+  private terrainSettleTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly widget: CesiumWidget,
@@ -62,6 +63,7 @@ export class SurfaceProviderCoordinator {
   dispose(): void {
     this.disposed = true;
     if (this.imageryRetry !== null) clearTimeout(this.imageryRetry);
+    if (this.terrainSettleTimer !== null) clearTimeout(this.terrainSettleTimer);
     this.removeImageryErrorListener?.();
     this.removeTerrainErrorListener?.();
     this.removeCameraListener?.();
@@ -181,9 +183,20 @@ export class SurfaceProviderCoordinator {
           this.publishTerrainStatus("fallback");
         },
       );
-      this.removeCameraListener = this.widget.camera.changed.addEventListener(
-        this.updateTerrainForCamera,
-      );
+      // Changing terrain providers invalidates the globe quadtree. Never do
+      // that midway through wheel zoom, a focus flight, or continuous follow.
+      const settled = this.widget.camera.moveEnd.addEventListener(() => {
+        if (this.terrainSettleTimer !== null) clearTimeout(this.terrainSettleTimer);
+        this.terrainSettleTimer = setTimeout(() => {
+          this.terrainSettleTimer = null;
+          this.updateTerrainForCamera();
+        }, 400);
+      });
+      const moving = this.widget.camera.moveStart.addEventListener(() => {
+        if (this.terrainSettleTimer !== null) clearTimeout(this.terrainSettleTimer);
+        this.terrainSettleTimer = null;
+      });
+      this.removeCameraListener = () => { settled(); moving(); };
       this.updateTerrainForCamera();
       this.widget.scene.requestRender();
     } catch {
@@ -205,6 +218,7 @@ export class SurfaceProviderCoordinator {
     const nextTerrain = useHighResolution ? terrain : this.fallbackTerrain;
     if (this.widget.terrainProvider !== nextTerrain) {
       this.widget.terrainProvider = nextTerrain;
+      this.widget.scene.requestRender();
     }
     this.widget.scene.globe.showWaterEffect = nextTerrain.hasWaterMask;
     this.publishTerrainStatus(

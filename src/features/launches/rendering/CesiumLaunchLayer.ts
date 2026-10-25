@@ -324,6 +324,8 @@ export class CesiumLaunchLayer implements EarthEngineLayer {
   }
 
   private update(patch: Partial<LaunchLayerSnapshot>): void {
+    const keys = Object.keys(patch) as Array<keyof LaunchLayerSnapshot>;
+    if (keys.every((key) => Object.is(this.snapshot[key], patch[key]))) return;
     this.snapshot = { ...this.snapshot, ...patch };
     for (const listener of this.listeners) listener();
   }

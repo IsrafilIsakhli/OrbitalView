@@ -53,8 +53,10 @@ export function SpaceNewsFilters({
         <Search20Regular aria-hidden />
         <span className="sr-only">{t("filters.search")}</span>
         <input
+          autoComplete="off"
           onChange={(event) => onSearchChange(event.currentTarget.value)}
           placeholder={t("filters.search")}
+          type="search"
           value={search}
         />
       </label>

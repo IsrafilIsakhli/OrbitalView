@@ -1,3 +1,5 @@
+import "@/styles/workspaces/earth.css";
+
 import { registerUpdatePause } from "@/features/updater/domain/updateBarrier";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { measureOverlayInsets, type MeasuredOverlay } from "../camera/overlayInsets";
@@ -91,6 +93,7 @@ export function EarthViewport({
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLElement>(null);
   const engineRef = useRef<EarthEngine | null>(null);
+  const initialCompositionAppliedRef = useRef(false);
   const satelliteLayerRef = useRef<CesiumSatelliteLayer | null>(null);
   const launchLayerRef = useRef<CesiumLaunchLayer | null>(null);
   const engineOptionsRef = useRef({
@@ -219,11 +222,21 @@ export function EarthViewport({
         }
         satelliteLayer = new SatelliteLayer();
         satelliteLayerRef.current = satelliteLayer;
+        engine.setDefaultEarthRequestHandler(() => {
+          const closed = closeEarthFocusSession({
+            launchLayer: launchLayerRef.current,
+            returnToDefaultEarth: () => engine?.returnToDefaultEarth() ?? false,
+            satelliteLayer: satelliteLayerRef.current,
+          }, "all");
+          clearRequestedSatellite();
+          clearRequestedLaunch();
+          return closed;
+        });
         unsubscribeSatellite = satelliteLayer.subscribe(() => {
           if (!cancelled && satelliteLayer) {
             const nextSatelliteSnapshot = satelliteLayer.getSnapshot();
             engine?.setFollowActive(nextSatelliteSnapshot.followSelected);
-            if (nextSatelliteSnapshot.selectedId) {
+            if (nextSatelliteSnapshot.selectedId && launchLayer?.getSnapshot().selectedId) {
               launchLayer?.selectLaunch(null, false, false);
             }
             setSatelliteSnapshot(nextSatelliteSnapshot);
@@ -238,7 +251,7 @@ export function EarthViewport({
         unsubscribeLaunch = launchLayer.subscribe(() => {
           if (!cancelled && launchLayer) {
             const nextLaunchSnapshot = launchLayer.getSnapshot();
-            if (nextLaunchSnapshot.selectedId) {
+            if (nextLaunchSnapshot.selectedId && satelliteLayer?.getSnapshot().selectedId) {
               satelliteLayer?.selectSatellite(null, false);
             }
             setLaunchSnapshot(nextLaunchSnapshot);
@@ -265,6 +278,7 @@ export function EarthViewport({
 
     return () => {
       cancelled = true;
+      engine?.setDefaultEarthRequestHandler(null);
       if (focusTimerRef.current !== null) clearTimeout(focusTimerRef.current);
       unregisterLaunch?.();
       unsubscribeLaunch?.();
@@ -282,7 +296,7 @@ export function EarthViewport({
         engineRef.current = null;
       }
     };
-  }, [attempt]);
+  }, [attempt, clearRequestedLaunch, clearRequestedSatellite]);
 
   useEffect(() => {
     engineRef.current?.setActive(active);
@@ -570,20 +584,38 @@ export function EarthViewport({
       if (!root) return;
       const bounds = container.getBoundingClientRect();
       const overlays: MeasuredOverlay[] = [];
-      const add = (element: HTMLElement | null, edge: MeasuredOverlay["edge"]) => {
+      const add = (
+        element: HTMLElement | null,
+        edge: MeasuredOverlay["edge"],
+        padding = 12,
+      ) => {
         if (element && element.getClientRects().length && !element.hidden) {
-          overlays.push({ bounds: element.getBoundingClientRect(), edge });
+          overlays.push({ bounds: element.getBoundingClientRect(), edge, padding });
         }
       };
       add(root.querySelector(".earth-overview"), "top");
-      add(root.querySelector(".earth-mission-dock"), "bottom");
-      add(root.querySelector(".orbital-time-lens"), "bottom");
+      add(root.querySelector(".earth-mission-dock"), "bottom", 28);
+      add(root.querySelector(".orbital-time-lens"), "bottom", 24);
       add(document.querySelector(".command-bar"), "top");
       const panel = root.querySelector<HTMLElement>(".earth-layer-panel");
       const inspector = root.querySelector<HTMLElement>(".object-inspector");
       add(panel, bounds.width < 768 ? "bottom" : "right");
       if (!selectedSatellite && !selectedLaunch) {
         engineRef.current?.setDefaultCameraCompositionInsets(measureOverlayInsets(bounds, overlays));
+        if (
+          !initialCompositionAppliedRef.current &&
+          (snapshot.phase === "ready" || snapshot.phase === "degraded")
+        ) {
+          initialCompositionAppliedRef.current = true;
+          requestAnimationFrame(() => {
+            const hasActiveFocus = Boolean(
+              satelliteLayerRef.current?.getSnapshot().selectedId ||
+              launchLayerRef.current?.getSnapshot().selectedId ||
+              launchLayerRef.current?.getSnapshot().selectedSiteId,
+            );
+            if (!hasActiveFocus) engineRef.current?.returnToDefaultEarth();
+          });
+        }
       }
       add(inspector, bounds.width < 768 ? "bottom" : "right");
       engineRef.current?.setCameraCompositionInsets(measureOverlayInsets(bounds, overlays));
@@ -809,6 +841,7 @@ export function EarthViewport({
                 />
               )}
               <EarthControls
+                onZoom={(direction) => engineRef.current?.zoom(direction)}
                 onFlyTo={flyTo}
                 onToggleRotation={toggleRotation}
                 onToggleTimeLens={toggleTimeLens}

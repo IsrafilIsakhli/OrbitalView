@@ -115,18 +115,18 @@ export function DynamicsPanel({ envelope, onRun, onShowEarthAtTime, running, sat
           <AnalysisSectionHeading description={t("dynamics.timelineDescription")} title={t("dynamics.timeline")} />
           <div className="analysis-chart-grid">
             <ChartCard title={t("dynamics.altitude")}>
-              <AnalysisTimeSeriesChart ariaLabel={t("dynamics.altitude")} locale={locale} onCursorIndexChange={setSelectedSampleIndex} series={chartSeries.altitude} timestampsUnixMs={timestamps} unit="km" />
+              <AnalysisTimeSeriesChart ariaLabel={t("dynamics.altitude")} locale={locale} onCursorIndexChange={setSelectedSampleIndex} selectedIndex={selectedSampleIndex} series={chartSeries.altitude} timestampsUnixMs={timestamps} unit="km" />
             </ChartCard>
             <ChartCard title={t("dynamics.velocity")}>
-              <AnalysisTimeSeriesChart ariaLabel={t("dynamics.velocity")} locale={locale} onCursorIndexChange={setSelectedSampleIndex} series={chartSeries.velocity} timestampsUnixMs={timestamps} unit="km/s" />
+              <AnalysisTimeSeriesChart ariaLabel={t("dynamics.velocity")} locale={locale} onCursorIndexChange={setSelectedSampleIndex} selectedIndex={selectedSampleIndex} series={chartSeries.velocity} timestampsUnixMs={timestamps} unit="km/s" />
             </ChartCard>
             <ChartCard title={`${t("dynamics.latitude")} / ${t("dynamics.longitude")}`}>
-              <AnalysisTimeSeriesChart ariaLabel={`${t("dynamics.latitude")} / ${t("dynamics.longitude")}`} locale={locale} onCursorIndexChange={setSelectedSampleIndex} series={chartSeries.position} timestampsUnixMs={timestamps} unit="°" />
+              <AnalysisTimeSeriesChart ariaLabel={`${t("dynamics.latitude")} / ${t("dynamics.longitude")}`} locale={locale} onCursorIndexChange={setSelectedSampleIndex} selectedIndex={selectedSampleIndex} series={chartSeries.position} timestampsUnixMs={timestamps} unit="°" />
             </ChartCard>
             <ChartCard title={t("dynamics.energy")}>
-              <AnalysisTimeSeriesChart ariaLabel={t("dynamics.energy")} locale={locale} onCursorIndexChange={setSelectedSampleIndex} series={chartSeries.energy} timestampsUnixMs={timestamps} unit="km²/s²" />
+              <AnalysisTimeSeriesChart ariaLabel={t("dynamics.energy")} locale={locale} onCursorIndexChange={setSelectedSampleIndex} selectedIndex={selectedSampleIndex} series={chartSeries.energy} timestampsUnixMs={timestamps} unit="km²/s²" />
             </ChartCard>
-            <ChartCard title={t("dynamics.radius")}><OrbitSchematicCanvas ariaLabel={t("dynamics.radius")} samples={envelope.result.samples} selectedIndex={selectedSampleIndex} /></ChartCard>
+            <ChartCard title={t("dynamics.radius")}><OrbitSchematicCanvas ariaLabel={t("dynamics.radius")} samples={envelope.result.samples} selectedIndex={selectedSampleIndex} onSelectIndex={setSelectedSampleIndex} /></ChartCard>
           </div>
           <p className="analysis-provenance-line">{t("technical.provenance", { time: formatDateTime(envelope.generatedAtUnixMs, locale, "utc-only").primary })}</p>
         </>

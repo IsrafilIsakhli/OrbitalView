@@ -19,6 +19,7 @@ import type {
   CameraPresetId,
 } from "../contracts/earth-engine";
 import { cameraPresets } from "./cameraPresets";
+import { EARTH_MAXIMUM_ZOOM_METERS, StableCameraZoom } from "./StableCameraZoom";
 
 const INTERACTION_PAUSE_MS = 10_000;
 const CINEMATIC_ROTATION_RADIANS_PER_SECOND = 0.00062;
@@ -62,6 +63,7 @@ export interface FocusBoundingSphereOptions {
 }
 
 export class CesiumCameraController {
+  private readonly zoomController: StableCameraZoom;
   private autoRotation = true;
   private objectFocusActive = false;
   private activePreset: CameraPresetId = "earth";
@@ -70,6 +72,7 @@ export class CesiumCameraController {
   private defaultEarthState: DefaultEarthCameraState | null = null;
   private defaultEarthViewpoint: EarthViewpoint | null = null;
   private returnFrame: number | null = null;
+  private defaultEarthRequestHandler: (() => boolean) | null = null;
   private defaultCompositionInsets: CameraCompositionInsets = {
     bottom: 0,
     left: 0,
@@ -95,14 +98,16 @@ export class CesiumCameraController {
     controller.enableRotate = true;
     controller.enableTilt = true;
     controller.enableZoom = true;
-    controller.enableLook = true;
-    controller.inertiaSpin = 0.88;
-    controller.inertiaTranslate = 0.82;
-    controller.inertiaZoom = 0.78;
-    controller.maximumMovementRatio = 0.12;
+    controller.enableLook = false;
+    controller.maximumTiltAngle = Math.PI / 2;
+    controller.enableCollisionDetection = true;
+    controller.inertiaSpin = 0.7;
+    controller.inertiaTranslate = 0.65;
+    controller.inertiaZoom = 0.35;
+    controller.maximumMovementRatio = 0.08;
     controller.minimumZoomDistance = 900;
-    controller.maximumZoomDistance = 220_000_000_000;
-    controller.zoomFactor = 4.25;
+    controller.maximumZoomDistance = EARTH_MAXIMUM_ZOOM_METERS;
+    controller.zoomFactor = 2.5;
 
     canvas.addEventListener("pointerdown", this.handleManualInput, {
       passive: true,
@@ -111,6 +116,8 @@ export class CesiumCameraController {
       passive: true,
     });
     canvas.addEventListener("wheel", this.handleManualInput, { passive: true });
+    canvas.addEventListener("keydown", this.handleKeyDown);
+    this.zoomController = new StableCameraZoom(scene, camera, canvas);
   }
 
   flyTo(presetId: CameraPresetId, immediate = false): void {
@@ -119,6 +126,7 @@ export class CesiumCameraController {
     const preset = cameraPresets[presetId];
     this.markInteraction();
     this.activePreset = presetId;
+    this.configureZoom(presetId === "moon" || presetId === "sun");
     this.onPresetChanged(presetId);
     this.camera.cancelFlight();
     this.camera.lookAtTransform(Matrix4.IDENTITY);
@@ -158,6 +166,9 @@ export class CesiumCameraController {
   ): void {
     this.cancelPendingReturn();
     this.objectFocusActive = true;
+    this.configureZoom(false);
+    this.activePreset = "earth";
+    this.onPresetChanged("earth");
     this.markInteraction();
     this.camera.cancelFlight();
     this.camera.lookAtTransform(Matrix4.IDENTITY);
@@ -184,6 +195,7 @@ export class CesiumCameraController {
   }
 
   returnToDefaultEarth(): boolean {
+    this.configureZoom(false);
     this.objectFocusActive = false;
     if (this.defaultEarthState === null) {
       this.defaultEarthViewpoint ??= this.daylightEarthViewpoint();
@@ -208,6 +220,10 @@ export class CesiumCameraController {
     return true;
   }
 
+  setDefaultEarthRequestHandler(handler: (() => boolean) | null): void {
+    this.defaultEarthRequestHandler = handler;
+  }
+
   /** Pause cinematic auto-rotation after UI-driven focus/follow actions that
    *  do not originate on the canvas (toolbar buttons, inspector toggles). */
   noteUserActivity(): void {
@@ -216,6 +232,9 @@ export class CesiumCameraController {
 
   /** Selection/follow owns the camera until an explicit preset or close. */
   beginObjectFocus(): void {
+    this.configureZoom(false);
+    this.activePreset = "earth";
+    this.onPresetChanged("earth");
     this.objectFocusActive = true;
     this.cancelPendingReturn();
     this.camera.cancelFlight();
@@ -251,6 +270,7 @@ export class CesiumCameraController {
   }
 
   tick(deltaSeconds: number): void {
+    this.zoomController.tick(deltaSeconds);
     if (!this.isAutoRotating()) return;
 
     this.camera.rotate(
@@ -266,12 +286,14 @@ export class CesiumCameraController {
   }
 
   dispose(): void {
+    this.zoomController.dispose();
     this.cancelPendingReturn();
     this.camera.cancelFlight();
     this.defaultEarthState = null;
     this.canvas.removeEventListener("pointerdown", this.handleManualInput);
     this.canvas.removeEventListener("touchstart", this.handleManualInput);
     this.canvas.removeEventListener("wheel", this.handleManualInput);
+    this.canvas.removeEventListener("keydown", this.handleKeyDown);
   }
 
   private cancelPendingReturn(): void {
@@ -283,11 +305,39 @@ export class CesiumCameraController {
     this.lastInteractionAt = performance.now();
   };
 
-  private readonly handleManualInput = (): void => {
+  private readonly handleManualInput = (event: Event): void => {
+    if (event.type !== "wheel") this.zoomController.cancel();
     this.cancelPendingReturn();
     this.camera.cancelFlight();
     this.markInteraction();
     this.scene.requestRender();
+  };
+
+  zoom(direction: "in" | "out"): void {
+    this.cancelPendingReturn();
+    this.camera.cancelFlight();
+    this.markInteraction();
+    this.zoomController.zoom(direction);
+  }
+
+  cancelZoom(): void { this.zoomController.cancel(); }
+  isZooming(): boolean { return this.zoomController.moving; }
+
+  private configureZoom(celestial: boolean): void {
+    this.zoomController.setEnabled(!celestial);
+    this.scene.screenSpaceCameraController.maximumZoomDistance = celestial
+      ? 220_000_000_000 : EARTH_MAXIMUM_ZOOM_METERS;
+  }
+
+  private readonly handleKeyDown = (event: KeyboardEvent): void => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.key === "+" || event.key === "=" || event.key === "-") {
+      event.preventDefault();
+      this.zoom(event.key === "-" ? "out" : "in");
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      if (!this.defaultEarthRequestHandler?.()) this.returnToDefaultEarth();
+    }
   };
 
   private daylightEarthViewpoint(): EarthViewpoint {

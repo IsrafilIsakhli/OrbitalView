@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Release UI QA</title></head><body><div id="root"></div>
+<script type="module">
+// Development-only real-cache visual regression entry; excluded from production.
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { OrbitalAnalysisWorkspace } from '/src/features/orbital-analysis/ui/OrbitalAnalysisWorkspace.tsx';
+import { SpaceNewsHeader } from '/src/features/space-news/ui/SpaceNewsHeader.tsx';
+import { SettingsPanel } from '/src/features/settings/ui/SettingsPanel.tsx';
+import { createSatelliteCatalog } from '/src/features/satellites/domain/satellite.ts';
+import { usePreferencesStore } from '/src/features/settings/model/preferences.ts';
+import { i18n } from '/src/shared/i18n/i18n.ts';
+import '/src/styles/app.css';
+import '/src/styles/workspaces/space-news.css';
+const params = new URLSearchParams(location.search);
+const raw = await fetch('/__earth_qa_catalog.json').then(response => response.json());
+const catalog = createSatelliteCatalog(raw.orbital, raw.catalog, raw.metadata);
+const client = new QueryClient({defaultOptions:{queries:{retry:false}}});
+client.setQueryData(['satellites','celestrak','active'],catalog);
+usePreferencesStore.setState({locale:params.get('locale')||'en',reduceMotion:true});
+await i18n.changeLanguage(params.get('locale')||'en');
+const mode = params.get('mode');
+const content = mode === 'news' ? React.createElement(SpaceNewsHeader,{itemCount:766,loadedCount:30}) : mode === 'settings' ? React.createElement(SettingsPanel,{open:true,onClose:()=>{},onOpenLanguage:()=>{}}) : React.createElement(OrbitalAnalysisWorkspace,{active:true,onShowEarth:()=>{}});
+createRoot(document.getElementById('root')).render(React.createElement(QueryClientProvider,{client},content));
+</script><style>body{margin:0;background:#050b12;color:#edf5ff}#root{padding:24px;max-width:1600px;margin:auto}.orbital-analysis-page{height:auto;overflow:visible}@media(max-width:500px){#root{padding:10px}}</style></body></html>

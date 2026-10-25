@@ -1,0 +1,142 @@
+{
+  "stage": "before",
+  "environment": "Isolated Chromium, local NASA fallback; not native WebView or FPS acceptance",
+  "errors": [],
+  "cases": [
+    {
+      "name": "initial",
+      "height": 30434764.482661456,
+      "range": 36811431.61785802,
+      "worldRange": 36811431.61785802,
+      "center": {
+        "x": 719.9999928904173,
+        "y": 509.00155990359036
+      },
+      "phase": "degraded",
+      "follow": false,
+      "frame": 16
+    },
+    {
+      "name": "far-out",
+      "height": 219999999999.96967,
+      "range": 220006376954.29703,
+      "worldRange": 220006376954.29703,
+      "center": {
+        "x": 720.0000000004937,
+        "y": 509.2061458624737
+      },
+      "phase": "degraded",
+      "follow": false,
+      "frame": 74
+    },
+    {
+      "name": "zoom-back",
+      "height": 899.9979832876529,
+      "range": 6372672.120385842,
+      "worldRange": 6372672.120385842,
+      "center": {
+        "x": 719.9999338339009,
+        "y": 507.2923122704002
+      },
+      "phase": "degraded",
+      "follow": false,
+      "frame": 238
+    },
+    {
+      "name": "near-surface",
+      "height": 899.9977381001818,
+      "range": 6374248.2100060135,
+      "worldRange": 6374248.2100060135,
+      "center": {
+        "x": 719.9999567796272,
+        "y": 796.4202933682125
+      },
+      "phase": "degraded",
+      "follow": false,
+      "frame": 298
+    },
+    {
+      "name": "off-center-return",
+      "height": 41608950.72109454,
+      "range": 47985712.39916204,
+      "worldRange": 47985712.39916204,
+      "center": {
+        "x": 719.9999944647267,
+        "y": 494.3663770919852
+      },
+      "phase": "degraded",
+      "follow": false,
+      "frame": 418
+    },
+    {
+      "name": "follow-start",
+      "height": 958731.5462634924,
+      "range": 1062212.5981070371,
+      "worldRange": 7323730.440702336,
+      "center": {
+        "x": 718.3140057663494,
+        "y": 2589.189498813913
+      },
+      "phase": "degraded",
+      "follow": true,
+      "frame": 459
+    },
+    {
+      "name": "follow-near",
+      "height": 437291.13715565106,
+      "range": 1759.5184514225118,
+      "worldRange": 6805023.329505611,
+      "center": null,
+      "phase": "degraded",
+      "follow": true,
+      "frame": 504
+    },
+    {
+      "name": "follow-far",
+      "height": 1890739144.5226943,
+      "range": 1899470317.7934775,
+      "worldRange": 1897100046.3513722,
+      "center": {
+        "x": 720.001830088456,
+        "y": 454.19100408568397
+      },
+      "phase": "degraded",
+      "follow": true,
+      "frame": 618
+    },
+    {
+      "name": "closed",
+      "height": 30434764.48172547,
+      "range": 36811431.622549854,
+      "worldRange": 36811431.622549854,
+      "center": {
+        "x": 719.9999928665213,
+        "y": 509.0015598970156
+      },
+      "phase": "degraded",
+      "follow": false,
+      "frame": 674
+    },
+    {
+      "name": "alternating",
+      "height": 27778656.046369985,
+      "range": 34155017.1276181,
+      "worldRange": 34155017.1276181,
+      "center": {
+        "x": 719.9999908888985,
+        "y": 508.80860880436165
+      },
+      "phase": "degraded",
+      "follow": false,
+      "frame": 1094
+    }
+  ],
+  "count": 16531,
+  "interaction": {
+    "resizes": 60,
+    "frames": 459,
+    "medianMs": 16.600000000093132,
+    "p95Ms": 25.300000000046566,
+    "maxMs": 37.39999999990687
+  }
+}

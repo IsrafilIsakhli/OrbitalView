@@ -4,6 +4,8 @@ import type { LaunchRecord } from "@/features/launches/domain/launch";
 import type { NoaaSpaceWeather } from "@/features/space-weather/domain/spaceWeather";
 
 import {
+  dashboardLaunchSupportingLabel,
+  dashboardMissionName,
   displayableNoaaText,
   recentOperationalAlerts,
   selectDashboardLaunches,
@@ -40,6 +42,28 @@ describe("dashboard real-data selection", () => {
       ],
     } as NoaaSpaceWeather;
     expect(recentOperationalAlerts(data, now).map((item) => item.productId)).toEqual(["recent"]);
+  });
+
+  it("does not promote provider placeholder text as mission intelligence", () => {
+    const record = {
+      ...launch("unknown", "2026-09-09T09:00:00Z", 1),
+      missionName: "Unknown Payload",
+      name: "Long March 2D/YZ-3 | Unknown Payload",
+      rocketName: "Long March 2D/YZ-3",
+    };
+    expect(dashboardMissionName(record)).toBe(record.name);
+    expect(dashboardLaunchSupportingLabel(record)).toBeNull();
+  });
+
+  it("keeps distinct real mission metadata supplied by the provider", () => {
+    const record = {
+      ...launch("real", "2026-09-09T09:00:00Z", 1),
+      missionName: "Earth observation deployment",
+      name: "Long March 2D",
+      rocketName: "Long March 2D",
+    };
+    expect(dashboardMissionName(record)).toBe("Earth observation deployment");
+    expect(dashboardLaunchSupportingLabel(record)).toBe("Earth observation deployment");
   });
 });
 

@@ -57,7 +57,8 @@
     "current": "Güncel katalog",
     "noResult": "Sonuç üretmek için analizi çalıştırın",
     "cancelled": "Analiz iptal edildi",
-    "saved": "Dışa aktarım kaydedildi"
+    "saved": "Dışa aktarım kaydedildi",
+    "exportCancelled": "Dışa aktarma iptal edildi"
   },
   "progress": {
     "passDetection": "Erişim pencereleri belirleniyor",
@@ -108,7 +109,9 @@
     "orbitalElementsDescription": "Sağlayıcı elemanları türetilmiş geometriden ayrı tutulur",
     "timeline": "Senkron yörünge telemetrisi",
     "timelineDescription": "Tüm çıktılarda aynı anı incelemek için herhangi bir grafik üzerinde ilerleyin",
-    "sampleTable": "Erişilebilir örnek verisi"
+    "sampleTable": "Erişilebilir örnek verisi",
+    "earthRadius": "Dünya yarıçapı",
+    "radiusDescription": "Yörünge düzlemi şeması. Kesikli çizgi Dünya merkezinden uzaklığı gösterir; irtifa yüzeyden ölçülür."
   },
   "station": {
     "profiles": "Yerel istasyonlar",
@@ -132,6 +135,7 @@
     "tca": "TCA",
     "duration": "Süre",
     "maximumElevation": "Maksimum yükseliş",
+    "elevation": "Yükseliş açısı",
     "range": "Minimum mesafe",
     "radialVelocity": "Radyal hız",
     "doppler": "Doppler düzeltmesi",
@@ -175,6 +179,7 @@
     "maximum": "Maksimum",
     "points": "Gösterilen nesneler",
     "scatter": "İrtifa–eğiklik dağılımı",
+    "logScale": "İrtifa ekseni tüm yörünge aralığını korumak için logaritmiktir.",
     "raan": "RAAN düzlem dağılımı",
     "composition": "Katalog bileşimi",
     "outputTitle": "Geometri çıktısı",

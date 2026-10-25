@@ -44,7 +44,8 @@ import { boundedResolutionScale, resolveRenderMode } from "./renderPolicy";
 import { EarthLayerRegistry } from "./EarthLayerRegistry";
 
 const ADAPTATION_WARMUP_MS = 8_000;
-const INTERACTION_RESOLUTION_RESTORE_MS = 160;
+// Keep one render target throughout a wheel/trackpad burst, including inertia.
+const INTERACTION_RESOLUTION_RESTORE_MS = 650;
 const SURFACE_BUSY_TILE_THRESHOLD = 12;
 const OCEAN_BASE_DATA_URI =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXY+BKmPEfAAN8AgIO8u8MAAAAAElFTkSuQmCC";
@@ -278,6 +279,11 @@ export class CesiumEarthEngine implements EarthEngine {
     this.cameraController?.flyTo(preset);
   }
 
+  zoom(direction: "in" | "out"): void {
+    this.cameraController?.zoom(direction);
+    this.handleTransientInteraction();
+  }
+
   setCameraCompositionInsets(insets: CameraCompositionInsets): void {
     this.cameraController?.setCompositionInsets(insets);
   }
@@ -301,6 +307,10 @@ export class CesiumEarthEngine implements EarthEngine {
     return this.cameraController?.returnToDefaultEarth() ?? false;
   }
 
+  setDefaultEarthRequestHandler(handler: (() => boolean) | null): void {
+    this.cameraController?.setDefaultEarthRequestHandler(handler);
+  }
+
   setActive(active: boolean): void {
     this.workspaceActive = active;
     this.syncRenderPolicy();
@@ -317,6 +327,7 @@ export class CesiumEarthEngine implements EarthEngine {
   }
 
   setFollowActive(active: boolean): void {
+    if (this.followActive === active) return;
     this.followActive = active;
     this.syncRenderPolicy();
   }
@@ -527,6 +538,7 @@ export class CesiumEarthEngine implements EarthEngine {
       }),
       this.widget.camera.moveEnd.addEventListener(() => {
         this.cameraMoving = false;
+        this.handleInteractionEnd();
         this.syncRenderPolicy();
       }),
     ];
@@ -625,6 +637,10 @@ export class CesiumEarthEngine implements EarthEngine {
     }
     this.interactionRestoreTimer = setTimeout(() => {
       this.interactionRestoreTimer = null;
+      if (this.cameraController?.isZooming() || (this.cameraMoving && !this.followActive)) {
+        this.handleInteractionEnd();
+        return;
+      }
       this.interactionResolutionActive = false;
       this.applyResolutionScale();
       this.syncRenderPolicy();
@@ -683,14 +699,14 @@ export class CesiumEarthEngine implements EarthEngine {
     // quality while the user is simply idle, so adaptation is paused until
     // continuous rendering resumes.
     const statistics = sample.statistics;
-    if (!statistics || this.snapshot.renderMode !== "continuous" || this.surfaceBusy) {
+    if (!statistics || this.snapshot.renderMode !== "continuous") {
       this.weakWindows = 0;
       this.strongWindows = 0;
       return;
     }
     const target = this.snapshot.effectiveFrameRateTarget;
     this.weakWindows = statistics.fps < target * 0.9 ? this.weakWindows + 1 : 0;
-    this.strongWindows = statistics.fps >= target * (59 / 60) ? this.strongWindows + 1 : 0;
+    this.strongWindows = !this.surfaceBusy && statistics.fps >= target * (59 / 60) ? this.strongWindows + 1 : 0;
     if (this.weakWindows >= 3 && this.enhancementLevel < 2) {
       this.enhancementLevel += 1;
       this.enhancementsBlockedUntil = performance.now() + 30_000;
@@ -724,11 +740,18 @@ export class CesiumEarthEngine implements EarthEngine {
       workspace: this.workspaceActive,
       document: !document.hidden && this.windowVisible,
       update: this.updatePaused || this.contextLost || this.renderFailed,
-      motion: this.cameraMoving || this.interactionResolutionActive || this.followActive ||
+      motion: this.cameraMoving || this.interactionResolutionActive || this.followActive || Boolean(this.cameraController?.isZooming()) ||
         Boolean(this.timeLensState?.playing) || Boolean(this.cameraController?.isAutoRotating()),
     });
     const active = mode !== "suspended";
     const resumed = active && !this.active;
+    if (!active) {
+      this.cameraController?.cancelZoom();
+      if (this.interactionRestoreTimer !== null) clearTimeout(this.interactionRestoreTimer);
+      this.interactionRestoreTimer = null;
+      this.interactionResolutionActive = false;
+      this.cameraMoving = false;
+    }
     if (this.active !== active) this.layerRegistry?.setActive(active);
     this.active = active;
     this.widget.useDefaultRenderLoop = active;
@@ -742,6 +765,7 @@ export class CesiumEarthEngine implements EarthEngine {
     if (active) {
       this.performanceMonitor?.start();
       if (resumed) {
+        this.applyResolutionScale();
         this.widget.resize();
         this.measureDisplayCadence();
       }

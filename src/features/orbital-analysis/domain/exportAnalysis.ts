@@ -19,7 +19,9 @@ type ExportableResult =
 export function analysisToJson(
   envelope: AnalysisEnvelope<ExportableResult>,
 ): string {
-  return JSON.stringify(envelope, null, 2);
+  // Catalog-wide exports can contain 16K+ real objects. Keep the complete
+  // contract without whitespace that needlessly inflates the native payload.
+  return JSON.stringify(envelope);
 }
 
 export function analysisToCsv(

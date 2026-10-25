@@ -179,4 +179,17 @@ describe("Default Earth camera lifecycle", () => {
       cameraMocks.flyTo.mock.calls.length - 1
     ]?.[0].duration).toBe(0);
   });
+
+  it("routes Home through the shared focus-close lifecycle", () => {
+    const { addEventListener, cameraMocks, controller } = createController();
+    const closeFocus = vi.fn(() => true);
+    controller.setDefaultEarthRequestHandler(closeFocus);
+    const handler = addEventListener.mock.calls.find(([type]) => type === "keydown")?.[1] as EventListener;
+
+    handler(new KeyboardEvent("keydown", { key: "Home" }));
+
+    expect(closeFocus).toHaveBeenCalledOnce();
+    expect(cameraMocks.flyTo).not.toHaveBeenCalled();
+    controller.dispose();
+  });
 });

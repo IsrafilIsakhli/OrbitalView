@@ -11,27 +11,31 @@ export class FollowCameraFrame {
   private readonly right = new Cartesian3();
   private readonly surface = new Cartographic();
   private readonly worldPosition = new Cartesian3();
+  private readonly boundTarget = new Cartesian3();
   private bound = false;
 
   begin(camera: Camera, target: Cartesian3): void {
     // Without an offset, the public API preserves the world pose on binding.
     camera.lookAtTransform(Transforms.eastNorthUpToFixedFrame(target, undefined, this.transform));
+    Cartesian3.clone(target, this.boundTarget);
     this.bound = true;
   }
 
   update(camera: Camera, target: Cartesian3, minimumHeightMeters = 900): void {
     if (!this.bound) { this.begin(camera, target); return; }
-    Cartesian3.clone(camera.position, this.position);
-    Cartesian3.clone(camera.direction, this.direction);
-    Cartesian3.clone(camera.up, this.up);
-    Cartesian3.clone(camera.right, this.right);
-    camera.lookAtTransform(Transforms.eastNorthUpToFixedFrame(target, undefined, this.transform));
-    // lookAtTransform preserves WORLD pose; restore LOCAL pose so the target
-    // carries the camera without undoing any user input since the last frame.
-    Cartesian3.clone(this.position, camera.position);
-    Cartesian3.clone(this.direction, camera.direction);
-    Cartesian3.clone(this.up, camera.up);
-    Cartesian3.clone(this.right, camera.right);
+    if (!Cartesian3.equals(target, this.boundTarget)) {
+      Cartesian3.clone(camera.position, this.position);
+      Cartesian3.clone(camera.direction, this.direction);
+      Cartesian3.clone(camera.up, this.up);
+      Cartesian3.clone(camera.right, this.right);
+      camera.lookAtTransform(Transforms.eastNorthUpToFixedFrame(target, undefined, this.transform));
+      // Preserve local user input while the target carries the camera.
+      Cartesian3.clone(this.position, camera.position);
+      Cartesian3.clone(this.direction, camera.direction);
+      Cartesian3.clone(this.up, camera.up);
+      Cartesian3.clone(this.right, camera.right);
+      Cartesian3.clone(target, this.boundTarget);
+    }
     // Cesium's tracked-frame controls orbit a local unit sphere; its ordinary
     // globe collision constraint no longer protects the physical Earth. Clamp
     // only the camera clearance, never the propagated satellite coordinates.

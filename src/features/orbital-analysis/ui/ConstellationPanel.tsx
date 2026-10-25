@@ -69,7 +69,7 @@ export function ConstellationPanel({ envelope, onRun, onSelect, running, selecte
             {topCategories.slice(0, 4).map(([label, value]) => <AnalysisMetric key={label} label={t(`satellites:category.${label as SatelliteCategory}` as const)} value={formatNumber(value, locale)} />)}
           </div>
           <div className="analysis-chart-grid">
-            <article className="analysis-chart-card"><h3>{t("constellation.scatter")}</h3><ConstellationCanvas ariaLabel={t("constellation.scatter")} mode="scatter" onSelect={onSelect} points={points} selectedId={selectedId} /></article>
+            <article className="analysis-chart-card"><h3>{t("constellation.scatter")}</h3><p className="analysis-chart-note">{t("constellation.logScale")}</p><ConstellationCanvas ariaLabel={`${t("constellation.scatter")}. ${t("constellation.logScale")}`} mode="scatter" onSelect={onSelect} points={points} selectedId={selectedId} /></article>
             <article className="analysis-chart-card"><h3>{t("constellation.raan")}</h3><ConstellationCanvas ariaLabel={t("constellation.raan")} mode="polar" onSelect={onSelect} points={points} selectedId={selectedId} /></article>
           </div>
           <details className="analysis-chart-table">

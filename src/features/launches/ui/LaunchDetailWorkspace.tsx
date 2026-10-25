@@ -53,7 +53,7 @@ export function LaunchDetailWorkspace({
   return (
     <section className="launch-detail-workspace">
       <header className="launch-detail-header">
-        <button className="icon-button" onClick={onBack} type="button"><ArrowLeft24Regular aria-hidden /></button>
+        <button aria-label={t("missions:detail.back")} className="icon-button" onClick={onBack} type="button"><ArrowLeft24Regular aria-hidden /></button>
         <div>
           <p className="eyebrow">{t("missions:detail.overview")}</p>
           <h2>{launch.missionName ?? launch.name}</h2>
@@ -64,7 +64,11 @@ export function LaunchDetailWorkspace({
       <div className="launch-detail-grid-layout">
         <article className="launch-detail-visual glass-surface">
           <RemoteMediaImage alt={launch.name} fallback={<Rocket24Regular aria-hidden />} provider="launchLibrary" url={launch.image?.url ?? launch.image?.thumbnailUrl} />
-          <div><span>{t(`launches:status.${launchStatusTranslationKey(launch.statusId)}`)}</span><h1>{launch.name}</h1><p>{launch.missionDescription ?? t("launches:missions.noDescription")}</p></div>
+          <div>
+            <span>{t(`launches:status.${launchStatusTranslationKey(launch.statusId)}`)}</span>
+            <h1>{launch.name}</h1>
+            {hasPublishedText(launch.missionDescription) && <p>{launch.missionDescription}</p>}
+          </div>
         </article>
 
         <article className="launch-detail-facts glass-surface">
@@ -86,12 +90,12 @@ export function LaunchDetailWorkspace({
           <p><Location24Regular aria-hidden />{launch.countryName ?? launch.countryCode ?? t("launches:common.unavailable")}</p>
         </article>
 
-        <article className="launch-detail-payloads glass-surface">
-          <h3>{t("missions:detail.payloads")}</h3>
-          {launch.payloadNames.length > 0
-            ? <ul>{launch.payloadNames.map((payload) => <li key={payload}>{payload}</li>)}</ul>
-            : <p>{t("missions:detail.notPublished")}</p>}
-        </article>
+        {launch.payloadNames.length > 0 && (
+          <article className="launch-detail-payloads glass-surface">
+            <h3>{t("missions:detail.payloads")}</h3>
+            <ul>{launch.payloadNames.map((payload) => <li key={payload}>{payload}</li>)}</ul>
+          </article>
+        )}
 
         <article className="launch-detail-related-news glass-surface">
           <h3>{t("news:detail.related")}</h3>
@@ -119,6 +123,10 @@ export function LaunchDetailWorkspace({
 }
 
 function Fact({ label, value }: { label: string; value: string | null }) {
-  const { t } = useTranslation("missions");
-  return <div><dt>{label}</dt><dd>{value ?? t("detail.notPublished")}</dd></div>;
+  if (!hasPublishedText(value)) return null;
+  return <div><dt>{label}</dt><dd>{value}</dd></div>;
+}
+
+function hasPublishedText(value: string | null): value is string {
+  return value !== null && value.trim().length > 0;
 }

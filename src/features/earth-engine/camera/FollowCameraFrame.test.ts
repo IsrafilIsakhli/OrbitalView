@@ -1,5 +1,5 @@
 import { Camera, Cartesian3, Ellipsoid, GeographicProjection, HeadingPitchRange, Matrix4, type Scene } from "cesium";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { FollowCameraFrame } from "./FollowCameraFrame";
 
 function setup() {
@@ -15,6 +15,15 @@ function setup() {
 }
 
 describe("Follow camera reference frame", () => {
+  it("does not rebind an unchanged worker frame on every display refresh", () => {
+    const { camera, target, frame } = setup();
+    frame.begin(camera, target);
+    const transform = vi.spyOn(camera, "lookAtTransform");
+    for (let index = 0; index < 120; index++) frame.update(camera, target);
+    expect(transform).not.toHaveBeenCalled();
+    frame.update(camera, Cartesian3.fromDegrees(30.01, 40, 420_000));
+    expect(transform).toHaveBeenCalledTimes(1);
+  });
   it("binds without a visible camera jump", () => {
     const {camera,target,frame}=setup();
     const position=Cartesian3.clone(camera.positionWC), direction=Cartesian3.clone(camera.directionWC);

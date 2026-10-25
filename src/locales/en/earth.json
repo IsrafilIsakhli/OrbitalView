@@ -36,6 +36,9 @@
   "orbitLegend": { "eyebrow": "SSA LAYER CONTROL", "title": "LIVE ORBITAL LAYERS", "subtitle": "Explore real catalog objects without changing their coordinates.", "overview": "Overview", "signals": "signals", "semantic": "markers", "satellites": "Satellites", "launchSites": "Launch sites", "visible": "{{count}} visible · {{total}} catalogued", "orbits": "{{count}} real orbit paths", "rockets": "{{count}} recent rocket bodies", "renderDetails": "Render details", "openLayers": "Layers", "closeLayers": "Close layers", "sceneOverlays": "Scene overlays", "groups": { "orbitalNetworks": "Orbital networks", "scienceObservation": "Science and observation", "vehiclesEnvironment": "Vehicles and environment" }, "visibilityState": { "visible": "visible", "hidden": "hidden" }, "focusCategory": "Focus {{category}}, {{count}} real objects", "categoryVisibility": "{{category}}, {{count}} objects, currently {{visibility}}" },
   "context": { "title": "Priority live objects", "station": "LIVE STATION", "nextLaunch": "NEXT LAUNCH", "norad": "NORAD {{id}}" },
   "camera": {
+    "zoomLabel": "Zoom controls",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
     "groupLabel": "Camera presets",
     "issNotice": "Camera preset — select the live ISS marker to inspect its current position.",
     "moonNotice": "Real UTC lunar position and NASA LRO surface — camera distance is cinematic.",

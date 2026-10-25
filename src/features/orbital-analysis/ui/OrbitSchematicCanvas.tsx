@@ -1,79 +1,71 @@
-import { useEffect, useRef } from "react";
-
+import { useId, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { usePreferencesStore } from "@/features/settings/model/preferences";
+import { formatDistanceFromKm } from "@/shared/formatting/units";
+import { formatDateTime } from "@/shared/i18n/formatters";
 import type { DynamicsSample } from "../domain/analysis";
+import { SGP4_EARTH_RADIUS_KM } from "../domain/orbitalMath";
+import { radiusSchematic } from "../domain/radiusSchematic";
 
-export function OrbitSchematicCanvas({
-  ariaLabel,
-  samples,
-  selectedIndex,
-}: {
+export function OrbitSchematicCanvas({ ariaLabel, samples, selectedIndex, onSelectIndex }: {
   ariaLabel: string;
   samples: DynamicsSample[];
   selectedIndex: number;
+  onSelectIndex?: (index: number) => void;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || samples.length < 2) return;
-    const render = () => {
-      const rect = canvas.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.floor(rect.width * ratio));
-      canvas.height = Math.max(1, Math.floor(rect.height * ratio));
-      const context = canvas.getContext("2d");
-      if (!context) return;
-      context.scale(ratio, ratio);
-      context.clearRect(0, 0, rect.width, rect.height);
-      context.fillStyle = "rgba(4,10,17,.88)";
-      context.fillRect(0, 0, rect.width, rect.height);
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const maxRadius = Math.max(...samples.map((sample) => sample.radiusKm));
-      const drawableRadius = Math.max(1, Math.min(rect.width, rect.height) * 0.42);
-      const scale = drawableRadius / Math.max(1, maxRadius);
-      const earthRadius = 6_378.135 * scale;
-      const atmosphere = context.createRadialGradient(centerX, centerY, earthRadius * 0.82, centerX, centerY, earthRadius * 1.08);
-      atmosphere.addColorStop(0, "rgba(15, 94, 139, .98)");
-      atmosphere.addColorStop(0.78, "rgba(8, 64, 101, .98)");
-      atmosphere.addColorStop(0.92, "rgba(89, 196, 240, .42)");
-      atmosphere.addColorStop(1, "rgba(89, 196, 240, 0)");
-      context.fillStyle = atmosphere;
-      context.beginPath();
-      context.arc(centerX, centerY, earthRadius * 1.08, 0, Math.PI * 2);
-      context.fill();
-      context.strokeStyle = "rgba(145, 211, 240, .2)";
-      context.lineWidth = 1;
-      for (const fraction of [0.35, 0.68, 1]) {
-        context.beginPath();
-        context.arc(centerX, centerY, drawableRadius * fraction, 0, Math.PI * 2);
-        context.stroke();
-      }
-      context.strokeStyle = "#79e6ff";
-      context.lineWidth = 1.6;
-      context.shadowColor = "rgba(121, 230, 255, .4)";
-      context.shadowBlur = 7;
-      context.beginPath();
-      samples.forEach((sample, index) => {
-        const angle = index / Math.max(1, samples.length - 1) * Math.PI * 2 - Math.PI / 2;
-        const x = centerX + Math.cos(angle) * sample.radiusKm * scale;
-        const y = centerY + Math.sin(angle) * sample.radiusKm * scale;
-        if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
-      });
-      context.stroke();
-      context.shadowBlur = 0;
-      const selected = samples[Math.min(samples.length - 1, Math.max(0, selectedIndex))];
-      if (selected) {
-        const angle = Math.min(samples.length - 1, Math.max(0, selectedIndex)) / Math.max(1, samples.length - 1) * Math.PI * 2 - Math.PI / 2;
-        context.fillStyle = "#ffca70";
-        context.beginPath();
-        context.arc(centerX + Math.cos(angle) * selected.radiusKm * scale, centerY + Math.sin(angle) * selected.radiusKm * scale, 4, 0, Math.PI * 2);
-        context.fill();
-      }
+  const { t } = useTranslation("orbitalAnalysis");
+  const locale = usePreferencesStore((state) => state.locale);
+  const units = usePreferencesStore((state) => state.units);
+  const gradientId = useId();
+  const geometry = useMemo(() => {
+    const { points, maxRadiusKm } = radiusSchematic(samples);
+    const scale = 148 / maxRadiusKm;
+    const scaled = points.map((point) => ({ x: 190 + point.x * scale, y: 180 + point.y * scale }));
+    return {
+      points: scaled,
+      earthRadius: SGP4_EARTH_RADIUS_KM * scale,
+      path: scaled.map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" "),
     };
-    const observer = new ResizeObserver(render);
-    observer.observe(canvas);
-    render();
-    return () => observer.disconnect();
-  }, [samples, selectedIndex]);
-  return <canvas aria-label={ariaLabel} className="analysis-constellation-canvas" ref={canvasRef} role="img" />;
+  }, [samples]);
+  const index = Math.min(samples.length - 1, Math.max(0, selectedIndex));
+  const selected = samples[index];
+  const point = geometry.points[index];
+  if (!selected || !point) return null;
+  return (
+    <div className="analysis-radius">
+      <div className="analysis-radius__diagram">
+        <svg aria-label={ariaLabel} role="img" viewBox="0 0 380 360">
+          <defs>
+            <radialGradient id={gradientId} cx="32%" cy="28%" r="75%">
+              <stop offset="0" stopColor="#246b96" />
+              <stop offset=".68" stopColor="#0b304b" />
+              <stop offset="1" stopColor="#061322" />
+            </radialGradient>
+          </defs>
+          <circle cx="190" cy="180" r={geometry.earthRadius} fill={`url(#${gradientId})`} stroke="#4d97b1" strokeWidth="1" />
+          <ellipse cx="190" cy="180" rx={geometry.earthRadius * .48} ry={geometry.earthRadius} fill="none" stroke="#73b6d0" strokeOpacity=".18" />
+          <ellipse cx="190" cy="180" rx={geometry.earthRadius} ry={geometry.earthRadius * .36} fill="none" stroke="#73b6d0" strokeOpacity=".18" />
+          <path d={geometry.path} fill="none" stroke="#79e6ff" strokeWidth="1.8" strokeLinejoin="round" />
+          <line x1="190" y1="180" x2={point.x} y2={point.y} stroke="#ffca70" strokeWidth="1.2" strokeDasharray="4 4" />
+          <circle cx="190" cy="180" r="2.5" fill="#ffca70" />
+          <circle cx={point.x} cy={point.y} r="10" fill="#ffca70" fillOpacity=".12" />
+          <circle cx={point.x} cy={point.y} r="4" fill="#ffca70" stroke="#fff0ce" />
+        </svg>
+      </div>
+      <div className="analysis-radius__readout">
+        <p className="eyebrow">{t("dynamics.selectedInstant")}</p>
+        <time>{formatDateTime(selected.timestampUnixMs, locale, "utc-only").primary}</time>
+        <dl>
+          <div><dt>{t("dynamics.radius")}</dt><dd>{formatDistanceFromKm(selected.radiusKm, units, locale, 2)}</dd></div>
+          <div><dt>{t("dynamics.altitude")}</dt><dd>{formatDistanceFromKm(selected.altitudeKm, units, locale, 2)}</dd></div>
+          <div><dt>{t("dynamics.earthRadius")}</dt><dd>{formatDistanceFromKm(SGP4_EARTH_RADIUS_KM, units, locale, 2)}</dd></div>
+        </dl>
+        <p className="analysis-radius__note">{t("dynamics.radiusDescription")}</p>
+        <label className="analysis-radius__slider">
+          <span>{t("dynamics.selectedInstant")} <b>{index + 1} / {samples.length}</b></span>
+          <input aria-label={t("dynamics.selectedInstant")} type="range" min="0" max={samples.length - 1} value={index} onChange={(event) => onSelectIndex?.(Number(event.target.value))} />
+        </label>
+      </div>
+    </div>
+  );
 }

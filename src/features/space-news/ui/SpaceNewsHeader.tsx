@@ -6,13 +6,11 @@ import { formatNumber } from "@/shared/i18n/formatters";
 interface SpaceNewsHeaderProps {
   itemCount: number;
   loadedCount: number;
-  source: string;
 }
 
 export function SpaceNewsHeader({
   itemCount,
   loadedCount,
-  source,
 }: SpaceNewsHeaderProps) {
   const { i18n, t } = useTranslation("news");
   return (
@@ -26,7 +24,6 @@ export function SpaceNewsHeader({
         </div>
       </div>
       <div className="space-news-header__status glass-surface">
-        <div><strong>{source}</strong></div>
         <div className="space-news-header__counts">
           <span><small>{t("metrics.loaded")}</small><strong>{formatNumber(loadedCount, i18n.resolvedLanguage)}</strong></span>
           <span><small>{t("metrics.archive")}</small><strong>{formatNumber(itemCount, i18n.resolvedLanguage)}</strong></span>

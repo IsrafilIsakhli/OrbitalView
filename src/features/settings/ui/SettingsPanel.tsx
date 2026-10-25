@@ -16,7 +16,6 @@ import {
   type UnitSystem,
   usePreferencesStore,
 } from "@/features/settings/model/preferences";
-import { NasaCredentialSettings } from "./NasaCredentialSettings";
 import { UpdateSettingsRow } from "@/features/updater/ui/UpdateSettingsRow";
 
 interface SettingsPanelProps {
@@ -219,7 +218,6 @@ export function SettingsPanel({ open, onClose, onOpenLanguage }: SettingsPanelPr
 
         <section className="settings-section">
           <h3>{t("settings:sections.system")}</h3>
-          <NasaCredentialSettings />
           <UpdateSettingsRow installedVersion={operations.data?.runtime.appVersion ?? "—"} />
         </section>
       </div>

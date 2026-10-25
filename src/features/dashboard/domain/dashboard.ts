@@ -85,6 +85,39 @@ export function displayableNoaaText(value: string | null | undefined): string | 
   return normalized;
 }
 
+const PROVIDER_PLACEHOLDERS = new Set([
+  "n/a",
+  "not available",
+  "tbc",
+  "tbd",
+  "unknown",
+  "unknown payload",
+]);
+
+export function dashboardMissionName(launch: LaunchRecord): string {
+  const missionName = normalizedProviderText(launch.missionName);
+  return missionName && !isProviderPlaceholder(missionName) ? missionName : launch.name;
+}
+
+export function dashboardLaunchSupportingLabel(launch: LaunchRecord): string | null {
+  const title = launch.name.trim().toLocaleLowerCase();
+  for (const value of [launch.missionName, launch.rocketName]) {
+    const normalized = normalizedProviderText(value);
+    if (!normalized || isProviderPlaceholder(normalized)) continue;
+    if (!title.includes(normalized.toLocaleLowerCase())) return normalized;
+  }
+  return null;
+}
+
+function isProviderPlaceholder(value: string): boolean {
+  return PROVIDER_PLACEHOLDERS.has(value.trim().toLocaleLowerCase());
+}
+
+function normalizedProviderText(value: string | null | undefined): string | null {
+  const normalized = value?.trim();
+  return normalized ? normalized : null;
+}
+
 function compareLaunchNet(left: LaunchRecord, right: LaunchRecord): number {
   return parsedNet(left) - parsedNet(right);
 }
