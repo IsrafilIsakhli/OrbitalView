@@ -18,9 +18,17 @@ playwright-report/
 dist
 dist-ssr
 **/target/
+# Credentials and environment configuration must stay outside source control.
+.env
+.env.*
 *.local
 *.key
 *.key.pub
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
 
 # Editor directories and files
 .vscode/*
